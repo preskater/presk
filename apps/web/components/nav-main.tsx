@@ -1,59 +1,62 @@
 "use client"
 
-import { Button } from "@workspace/ui/components/button"
+import Link from "next/link"
+
 import {
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
 } from "@workspace/ui/components/sidebar"
-import { CirclePlusIcon, MailIcon } from "lucide-react"
+import type { LucideIcon } from "lucide-react"
+
+type NavItem = {
+  title: string
+  url: string
+  icon: LucideIcon
+}
+
+type NavGroup = {
+  label: string
+  items: NavItem[]
+}
 
 export function NavMain({
-  items,
+  groups,
+  pathname,
 }: {
-  items: {
-    title: string
-    url: string
-    icon?: React.ReactNode
-  }[]
+  groups: NavGroup[]
+  pathname: string
 }) {
   return (
-    <SidebarGroup>
-      <SidebarGroupContent className="flex flex-col gap-2">
-        <SidebarMenu>
-          <SidebarMenuItem className="flex items-center gap-2">
-            <SidebarMenuButton
-              tooltip="Quick Create"
-              className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
-            >
-              <CirclePlusIcon
-              />
-              <span>Quick Create</span>
-            </SidebarMenuButton>
-            <Button
-              size="icon"
-              className="size-8 group-data-[collapsible=icon]:opacity-0"
-              variant="outline"
-            >
-              <MailIcon
-              />
-              <span className="sr-only">Inbox</span>
-            </Button>
-          </SidebarMenuItem>
-        </SidebarMenu>
-        <SidebarMenu>
-          {items.map((item) => (
-            <SidebarMenuItem key={item.title}>
-              <SidebarMenuButton tooltip={item.title}>
-                {item.icon}
-                <span>{item.title}</span>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
-        </SidebarMenu>
-      </SidebarGroupContent>
-    </SidebarGroup>
+    <>
+      {groups.map((group) => (
+        <SidebarGroup key={group.label}>
+          <SidebarGroupLabel>{group.label}</SidebarGroupLabel>
+          <SidebarGroupContent>
+            <SidebarMenu>
+              {group.items.map((item) => {
+                const isActive =
+                  pathname === item.url || pathname.startsWith(item.url + "/")
+                return (
+                  <SidebarMenuItem key={item.title}>
+                    <SidebarMenuButton
+                      tooltip={item.title}
+                      isActive={isActive}
+                      render={<Link href={item.url} />}
+                    >
+                      <item.icon />
+                      <span>{item.title}</span>
+                    </SidebarMenuButton>
+                  </SidebarMenuItem>
+                )
+              })}
+            </SidebarMenu>
+          </SidebarGroupContent>
+        </SidebarGroup>
+      ))}
+    </>
   )
 }
