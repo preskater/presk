@@ -1,21 +1,19 @@
-# shadcn/ui monorepo template
+# Presk
 
-This is a Next.js monorepo template with shadcn/ui.
+**AI‑Native Productivity Platform**
 
-## Adding components
+Presk is an AI‑first workspace that automates your workflow, centralizes your tasks, and connects your team in one place. It combines calendars, projects, files, and messaging with built‑in AI assistants to help you move faster and stay aligned.
 
-To add components to your app, run the following command at the root of your `web` app:
+## What you can do with Presk
 
-```bash
-pnpm dlx shadcn@latest add button -c apps/web
-```
+- **Calendars** – Schedule meetings, set reminders, and manage events across teams.  
+- **Projects** – Create projects, assign tasks, track progress, and manage deadlines.  
+- **Files** – Create, edit, and co‑author documents in real time with your team and AI.  
+- **Messages** – Chat with teammates and AI assistants in shared channels and threads.  
+- **Dashboard** – See all your tasks, projects, and team activity in a single, customizable view.
 
-This will place the ui components in the `packages/ui/src/components` directory.
+## Why Presk
 
-## Using components
-
-To use the components in your app, import them from the `ui` package.
-
-```tsx
-import { Button } from "@workspace/ui/components/button";
-```
+- **AI‑native**: AI is embedded in every surface—drafting docs, summarizing threads, suggesting next actions, and automating repetitive work.  
+- **Unified workspace**: No more switching between tools; everything you need lives in one platform.  
+- **Team‑first**: Built for collaboration, with real‑time editing, shared context, and clear ownership.
