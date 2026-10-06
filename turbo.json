@@ -2,10 +2,17 @@
   "$schema": "https://turbo.build/schema.json",
   "ui": "tui",
   "tasks": {
+    "generate": {
+      "cache": true,
+      "inputs": ["prisma/schema.prisma", "prisma.config.ts"],
+      "outputs": ["lib/generated/**"],
+      "env": ["DATABASE_URL"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "generate"],
       "inputs": ["$TURBO_DEFAULT$", ".env*"],
-      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"]
+      "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
+      "env": ["DATABASE_URL", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL"]
     },
     "lint": {
       "dependsOn": ["^lint"]
@@ -14,11 +21,13 @@
       "dependsOn": ["^format"]
     },
     "typecheck": {
-      "dependsOn": ["^typecheck"]
+      "dependsOn": ["^typecheck", "generate"]
     },
     "dev": {
+      "dependsOn": ["generate"],
       "cache": false,
-      "persistent": true
+      "persistent": true,
+      "env": ["DATABASE_URL", "BETTER_AUTH_SECRET", "BETTER_AUTH_URL"]
     }
   }
 }

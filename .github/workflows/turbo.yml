@@ -15,6 +15,14 @@ jobs:
     permissions:
       contents: read
 
+    env:
+      # Build-time placeholders. `prisma generate` loads prisma.config.ts,
+      # which requires DATABASE_URL, and `next build` evaluates auth config.
+      # Neither connects to the database during CI.
+      DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
+      BETTER_AUTH_SECRET: ci-build-placeholder-secret-not-used-at-runtime
+      BETTER_AUTH_URL: http://localhost:3000
+
     steps:
       - name: Checkout
         uses: actions/checkout@v7.0.1

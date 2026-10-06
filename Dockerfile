@@ -24,6 +24,14 @@ RUN npm ci
 # Build the project
 COPY --from=prepare ${WORKDIR}/out/full/ .
 
+# Build-time placeholders. `prisma generate` loads prisma.config.ts, which
+# requires DATABASE_URL, and `next build` evaluates auth config. Neither
+# connects to the database during the build. Real values are injected at
+# runtime (e.g. `docker run -e DATABASE_URL=... -e BETTER_AUTH_SECRET=...`).
+ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
+ENV BETTER_AUTH_SECRET=build-placeholder-secret-not-used-at-runtime
+ENV BETTER_AUTH_URL=http://localhost:3000
+
 # Uncomment and pass build args to enable remote caching
 # ARG TURBO_TEAM
 # ENV TURBO_TEAM=$TURBO_TEAM
