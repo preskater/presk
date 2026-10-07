@@ -1,0 +1,338 @@
+"use client"
+
+import * as React from "react"
+import { FolderIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
+
+import { FilesGrid } from "@/components/files/files-grid"
+import { FilesSearchCommand } from "@/components/files/files-search-command"
+import { FilesSidebar } from "@/components/files/files-sidebar"
+import { FilesTable } from "@/components/files/files-table"
+import { FilesToolbar, type SortOption, type ViewMode } from "@/components/files/files-toolbar"
+import { FilePermissionsSheet } from "@/components/files/file-permissions-sheet"
+import { FilePreviewSheet } from "@/components/files/file-preview-sheet"
+import { FileShareDialog } from "@/components/files/file-share-dialog"
+import { UploadQueue } from "@/components/files/file-upload-dialog"
+import { useUploadTicker } from "@/components/files/use-upload-ticker"
+import { Badge } from "@workspace/ui/components/badge"
+import { Button } from "@workspace/ui/components/button"
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@workspace/ui/components/empty"
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@workspace/ui/components/resizable"
+
+import { useFiles } from "@/lib/files/store"
+import { useRecents } from "@/lib/recents/store"
+import { LOCATION_LABEL, type FileLocation, type FileNode } from "@/lib/files/types"
+
+export function FilesWorkspace() {
+  const {
+    breadcrumbFor,
+    childrenOf,
+    getFile,
+    getMember,
+    moveToTrashMany,
+    restoreMany,
+    deleteMany,
+  } = useFiles()
+  const { uploads } = useUploadTicker()
+  const { record, active, hydrated } = useRecents()
+
+  const [location, setLocation] = React.useState<FileLocation>("my-files")
+  const [folderId, setFolderId] = React.useState<string | null>(null)
+  const [query, setQuery] = React.useState("")
+  const [filter, setFilter] = React.useState("all")
+  const [sortKey, setSortKey] = React.useState<SortOption>("name")
+  const [sortDir, setSortDir] = React.useState<"asc" | "desc">("asc")
+  const [view, setView] = React.useState<ViewMode>("list")
+  const [selected, setSelected] = React.useState<string[]>([])
+  const [searchOpen, setSearchOpen] = React.useState(false)
+  const [previewFile, setPreviewFile] = React.useState<FileNode | undefined>()
+  const [previewOpen, setPreviewOpen] = React.useState(false)
+  const [shareFile, setShareFile] = React.useState<FileNode | undefined>()
+  const [shareOpen, setShareOpen] = React.useState(false)
+  const [permissionsFile, setPermissionsFile] = React.useState<FileNode | undefined>()
+  const [permissionsOpen, setPermissionsOpen] = React.useState(false)
+
+  const restored = React.useRef(false)
+  React.useEffect(() => {
+    if (!hydrated || restored.current || !active.files) return
+    restored.current = true
+    const entry = active.files.replace(/^files:/, "")
+    const [entryLocation, entryFolder] = entry.split(":") as [
+      FileLocation,
+      string,
+    ]
+    if (!entryLocation) return
+    const folder = entryFolder && entryFolder !== "root" ? entryFolder : null
+    if (folder && getFile(folder)?.kind === "folder") {
+      setLocation(entryLocation)
+      setFolderId(folder)
+    } else {
+      setLocation(entryLocation)
+      setFolderId(null)
+    }
+  }, [hydrated, active.files, getFile])
+
+  const recordedRef = React.useRef(false)
+  React.useEffect(() => {
+    if (!hydrated) return
+    if (!recordedRef.current && active.files) {
+      recordedRef.current = true
+      return
+    }
+    recordedRef.current = true
+    const entryId = `files:${location}:${folderId ?? "root"}`
+    const folder = folderId ? getFile(folderId) : undefined
+    record("files", {
+      id: entryId,
+      label: folder?.name ?? LOCATION_LABEL[location],
+      hint: folder ? LOCATION_LABEL[location] : "Location",
+      data: { location, folderId },
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location, folderId, hydrated])
+
+
+  React.useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault()
+        setSearchOpen(true)
+      }
+    }
+    window.addEventListener("keydown", onKeyDown)
+    return () => window.removeEventListener("keydown", onKeyDown)
+  }, [])
+
+  const breadcrumb = location === "my-files" ? breadcrumbFor(folderId) : []
+  const filtered = React.useMemo(() => {
+    const list = childrenOf(location, folderId, query)
+    return filter === "all" ? list : list.filter((file) => file.kind === filter)
+  }, [childrenOf, location, folderId, query, filter])
+
+  const sorted = React.useMemo(() => {
+    const copy = [...filtered]
+    copy.sort((a, b) => {
+      if (a.kind === "folder" && b.kind !== "folder") return -1
+      if (b.kind === "folder" && a.kind !== "folder") return 1
+      const modifier = sortDir === "asc" ? 1 : -1
+      if (sortKey === "name") return a.name.localeCompare(b.name) * modifier
+      if (sortKey === "owner") {
+        const aName = getMember(a.ownerId)?.name ?? ""
+        const bName = getMember(b.ownerId)?.name ?? ""
+        return aName.localeCompare(bName) * modifier
+      }
+      if (sortKey === "modifiedAt")
+        return (
+          (new Date(a.modifiedAt).getTime() - new Date(b.modifiedAt).getTime()) *
+          modifier
+        )
+      return ((a.sizeBytes ?? 0) - (b.sizeBytes ?? 0)) * modifier
+    })
+    return copy
+  }, [filtered, sortKey, sortDir, getMember])
+
+  function changeSort(key: SortOption) {
+    if (key === sortKey) {
+      setSortDir((prev) => (prev === "asc" ? "desc" : "asc"))
+    } else {
+      setSortKey(key)
+      setSortDir("asc")
+    }
+  }
+
+  function selectLocation(next: FileLocation) {
+    setLocation(next)
+    setFolderId(null)
+    setSelected([])
+    setQuery("")
+  }
+
+  function openFolder(file: FileNode) {
+    setFolderId(file.id)
+    setLocation("my-files")
+    setSelected([])
+  }
+
+  function openPreview(file: FileNode) {
+    setPreviewFile(file)
+    setPreviewOpen(true)
+  }
+
+  function openShare(file: FileNode) {
+    setShareFile(file)
+    setShareOpen(true)
+  }
+
+  function openFile(file: FileNode) {
+    if (file.kind === "folder") {
+      openFolder(file)
+    } else {
+      setLocation("my-files")
+      setFolderId(file.parentId)
+      openPreview(file)
+    }
+  }
+
+  const isTrash = location === "trash"
+
+  return (
+    <>
+      <div className="flex min-h-0 flex-1 overflow-hidden rounded-xl ring-1 ring-foreground/10">
+        <ResizablePanelGroup
+          id="files-layout"
+          orientation="horizontal"
+          className="h-full min-h-0"
+        >
+          <ResizablePanel
+            id="files-sidebar"
+            defaultSize="240px"
+            minSize="200px"
+            maxSize="360px"
+            className="hidden min-h-0 md:block"
+          >
+            <FilesSidebar
+              location={location}
+              activeFolderId={folderId}
+              onSelectLocation={selectLocation}
+              onOpenFolder={(id) => {
+                setLocation("my-files")
+                setFolderId(id)
+                setSelected([])
+              }}
+            />
+          </ResizablePanel>
+
+          <ResizableHandle withHandle className="hidden md:flex" />
+
+          <ResizablePanel id="files-main" minSize="50%" className="flex min-h-0 flex-col">
+            <FilesToolbar
+              breadcrumb={breadcrumb}
+              query={query}
+              onQueryChange={setQuery}
+              view={view}
+              onViewChange={setView}
+              sort={sortKey}
+              onSortChange={changeSort}
+              filter={filter}
+              onFilterChange={setFilter}
+              onNavigateRoot={() => setFolderId(null)}
+              onNavigateFolder={setFolderId}
+              folderId={folderId}
+              onSearch={() => setSearchOpen(true)}
+            />
+
+            <div className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto p-4">
+              {uploads.length > 0 ? <UploadQueue /> : null}
+
+              {selected.length > 0 ? (
+                <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
+                  <span className="text-sm font-medium">
+                    {selected.length} selected
+                  </span>
+                  <div className="ms-auto flex items-center gap-2">
+                    {isTrash ? (
+                      <>
+                        <Button variant="outline" size="sm" onClick={() => { restoreMany(selected); setSelected([]) }}>
+                          <RotateCcwIcon data-icon="inline-start" />
+                          Restore
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => { deleteMany(selected); setSelected([]) }}>
+                          <Trash2Icon data-icon="inline-start" />
+                          Delete forever
+                        </Button>
+                      </>
+                    ) : (
+                      <Button variant="outline" size="sm" onClick={() => { moveToTrashMany(selected); setSelected([]) }}>
+                        <Trash2Icon data-icon="inline-start" />
+                        Move to trash
+                      </Button>
+                    )}
+                  </div>
+                </div>
+              ) : null}
+
+              {sorted.length === 0 ? (
+                <Empty className="flex-1 border border-dashed">
+                  <EmptyHeader>
+                    <EmptyMedia variant="icon">
+                      <FolderIcon />
+                    </EmptyMedia>
+                    <EmptyTitle>
+                      {isTrash ? "Trash is empty" : `No files in ${LOCATION_LABEL[location]}`}
+                    </EmptyTitle>
+                    <EmptyDescription>
+                      {isTrash
+                        ? "Items you delete will appear here."
+                        : "Upload files or create a folder to get started."}
+                    </EmptyDescription>
+                  </EmptyHeader>
+                  {!isTrash ? (
+                    <EmptyContent>
+                      <Badge variant="outline">Tip: use ⌘K to search</Badge>
+                    </EmptyContent>
+                  ) : null}
+                </Empty>
+              ) : view === "list" ? (
+                <FilesTable
+                  files={sorted}
+                  location={location}
+                  selected={selected}
+                  onSelectedChange={setSelected}
+                  onOpenFolder={openFolder}
+                  onPreview={openPreview}
+                  onOpenShare={openShare}
+                  sortKey={sortKey}
+                  sortDir={sortDir}
+                  onSortChange={changeSort}
+                />
+              ) : (
+                <FilesGrid
+                  files={sorted}
+                  location={location}
+                  onOpenFolder={openFolder}
+                  onPreview={openPreview}
+                  onOpenShare={openShare}
+                />
+              )}
+            </div>
+          </ResizablePanel>
+        </ResizablePanelGroup>
+      </div>
+
+      <FilePreviewSheet
+        file={previewFile}
+        open={previewOpen}
+        onOpenChange={setPreviewOpen}
+        onOpenShare={openShare}
+        onOpenPermissions={(file) => {
+          setPermissionsFile(file)
+          setPermissionsOpen(true)
+        }}
+      />
+
+      {shareFile ? (
+        <FileShareDialog
+          file={shareFile}
+          open={shareOpen}
+          onOpenChange={setShareOpen}
+          children={<span className="hidden" />}
+        />
+      ) : null}
+
+      <FilePermissionsSheet
+        file={permissionsFile}
+        open={permissionsOpen}
+        onOpenChange={setPermissionsOpen}
+      />
+
+      <FilesSearchCommand
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+        onSelectFile={openFile}
+      />
+    </>
+  )
+}

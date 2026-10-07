@@ -1,0 +1,215 @@
+"use client"
+
+import {
+  CalendarDaysIcon,
+  EllipsisIcon,
+  MessageSquareIcon,
+  PencilIcon,
+  SquareCheckIcon,
+  Trash2Icon,
+} from "lucide-react"
+import { useSortable } from "@dnd-kit/sortable"
+import { CSS } from "@dnd-kit/utilities"
+
+import { MemberAvatar } from "@/components/task/member-avatar"
+import { LabelTag, PriorityBadge } from "@/components/task/task-badge"
+import { TaskFormDialog } from "@/components/task/task-dialog"
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@workspace/ui/components/alert-dialog"
+import { Button } from "@workspace/ui/components/button"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@workspace/ui/components/dropdown-menu"
+import { cn } from "@workspace/ui/lib/utils"
+
+import { useProjectStore } from "@/lib/projects/store"
+import { formatDate, type Task } from "@/lib/projects/types"
+
+export function TaskCardContent({
+  task,
+  dragging,
+}: {
+  task: Task
+  dragging?: boolean
+}) {
+  const { getMember, getLabel } = useProjectStore()
+  const assignee = getMember(task.assigneeId)
+  const taskLabels = task.labelIds
+    .map((id) => getLabel(id))
+    .filter((label) => label !== undefined)
+  const doneSubtasks = task.subtasks.filter((subtask) => subtask.done).length
+
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-muted-foreground">
+            {task.identifier}
+          </span>
+          <span
+            className={cn(
+              "text-sm font-medium",
+              dragging && "line-clamp-2"
+            )}
+          >
+            {task.title}
+          </span>
+        </div>
+      </div>
+      {taskLabels.length ? (
+        <div className="flex flex-wrap gap-2">
+          {taskLabels.slice(0, 3).map((label) => (
+            <LabelTag key={label.id} label={label} />
+          ))}
+        </div>
+      ) : null}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-3 text-xs text-muted-foreground">
+          <PriorityBadge priority={task.priority} />
+          {task.dueDate ? (
+            <span className="inline-flex items-center gap-1">
+              <CalendarDaysIcon className="size-3.5" />
+              {formatDate(task.dueDate)}
+            </span>
+          ) : null}
+          {task.comments.length ? (
+            <span className="inline-flex items-center gap-1">
+              <MessageSquareIcon className="size-3.5" />
+              {task.comments.length}
+            </span>
+          ) : null}
+          {task.subtasks.length ? (
+            <span className="inline-flex items-center gap-1">
+              <SquareCheckIcon className="size-3.5" />
+              {doneSubtasks}/{task.subtasks.length}
+            </span>
+          ) : null}
+        </div>
+        {assignee ? <MemberAvatar member={assignee} size="sm" /> : null}
+      </div>
+    </div>
+  )
+}
+
+export function TaskCard({
+  task,
+  projectId,
+  onOpen,
+}: {
+  task: Task
+  projectId: string
+  onOpen: (taskId: string) => void
+}) {
+  const { deleteTask } = useProjectStore()
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+  } = useSortable({ id: task.id, data: { status: task.status } })
+
+  return (
+    <div
+      ref={setNodeRef}
+      style={{
+        transform: CSS.Translate.toString(transform),
+        transition,
+      }}
+      className={cn(
+        "group/task relative flex flex-col gap-3 rounded-xl bg-card p-3 text-sm ring-1 ring-foreground/10 transition-shadow",
+        isDragging && "opacity-40"
+      )}
+      {...attributes}
+      {...listeners}
+    >
+      <button
+        type="button"
+        className="cursor-grab text-start outline-none focus-visible:ring-3 focus-visible:ring-ring/50 active:cursor-grabbing"
+        onClick={() => onOpen(task.id)}
+      >
+        <TaskCardContent task={task} />
+      </button>
+      <div className="absolute top-2 end-2 opacity-0 transition-opacity group-hover/task:opacity-100 focus-within:opacity-100">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <Button
+                variant="ghost"
+                size="icon-xs"
+                onPointerDown={(event) => event.stopPropagation()}
+              />
+            }
+          >
+            <EllipsisIcon />
+            <span className="sr-only">Task actions</span>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end">
+            <DropdownMenuGroup>
+              <DropdownMenuItem onSelect={() => onOpen(task.id)}>
+                <SquareCheckIcon />
+                View details
+              </DropdownMenuItem>
+              <TaskFormDialog
+                projectId={projectId}
+                task={task}
+                trigger={
+                  <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
+                    <PencilIcon />
+                    Edit task
+                  </DropdownMenuItem>
+                }
+              />
+              <DropdownMenuSeparator />
+              <AlertDialog>
+                <AlertDialogTrigger
+                  render={
+                    <DropdownMenuItem variant="destructive">
+                      <Trash2Icon />
+                      Delete task
+                    </DropdownMenuItem>
+                  }
+                />
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>
+                      Delete {task.identifier}?
+                    </AlertDialogTitle>
+                    <AlertDialogDescription>
+                      “{task.title}” will be permanently deleted. This action
+                      cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction
+                      variant="destructive"
+                      onClick={() => deleteTask(task.id)}
+                    >
+                      Delete
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+    </div>
+  )
+}

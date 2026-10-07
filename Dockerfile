@@ -41,6 +41,16 @@ ENV BETTER_AUTH_URL=http://localhost:3000
 RUN npx turbo build
 
 # ---
+# Applies pending Prisma migrations, then exits. Runs before `web` starts.
+# Reuses the pruned dependency install + source from `prepare`.
+FROM base AS migrate
+ARG WORKDIR
+COPY --from=prepare ${WORKDIR}/out/json/ .
+RUN npm ci
+COPY --from=prepare ${WORKDIR}/out/full/ .
+CMD ["sh", "-c", "cd apps/web && npx prisma migrate deploy"]
+
+# ---
 FROM node:${NODE_VERSION}-alpine AS runner
 ARG WORKDIR
 WORKDIR ${WORKDIR}

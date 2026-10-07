@@ -1,0 +1,360 @@
+"use client"
+
+import * as React from "react"
+import { SendIcon } from "lucide-react"
+
+import { DatePicker } from "@/components/task/date-picker"
+import { MemberAvatar } from "@/components/task/member-avatar"
+import { MemberPicker } from "@/components/task/member-picker"
+import { PriorityBadge } from "@/components/task/task-badge"
+import { Button } from "@workspace/ui/components/button"
+import { Checkbox } from "@workspace/ui/components/checkbox"
+import {
+  Drawer,
+  DrawerContent,
+  DrawerDescription,
+  DrawerHeader,
+  DrawerTitle,
+} from "@workspace/ui/components/drawer"
+import {
+  Field,
+  FieldGroup,
+  FieldLabel,
+} from "@workspace/ui/components/field"
+import { Separator } from "@workspace/ui/components/separator"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet"
+import { Textarea } from "@workspace/ui/components/textarea"
+import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
+import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
+
+import { useProjectStore } from "@/lib/projects/store"
+import {
+  formatDate,
+  TASK_PRIORITIES,
+  TASK_STATUSES,
+  type TaskPriority,
+  type TaskStatus,
+} from "@/lib/projects/types"
+
+const statusItems = TASK_STATUSES.map((status) => ({
+  label: status.label,
+  value: status.value,
+}))
+
+const SILENT = { silent: true } as const
+
+function TaskDetailsBody({ taskId }: { taskId: string }) {
+  const store = useProjectStore()
+  const {
+    labels,
+    getLabel,
+    getMember,
+    updateTask,
+    toggleSubtask,
+    addComment,
+  } = store
+  const task = store.tasks.find((item) => item.id === taskId)
+  const [comment, setComment] = React.useState("")
+
+  if (!task) return null
+
+  const taskLabels = task.labelIds
+    .map((id) => getLabel(id))
+    .filter((label) => label !== undefined)
+  const doneSubtasks = task.subtasks.filter((subtask) => subtask.done).length
+
+  return (
+    <div className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto p-4">
+      <div className="flex flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-xs text-muted-foreground">
+            {task.identifier}
+          </span>
+          <PriorityBadge priority={task.priority} />
+        </div>
+        <Field>
+          <FieldLabel htmlFor="detail-title" className="sr-only">
+            Title
+          </FieldLabel>
+          <Textarea
+            id="detail-title"
+            className="min-h-0 resize-none text-base font-medium"
+            value={task.title}
+            onChange={(event) =>
+              updateTask(task.id, { title: event.target.value }, SILENT)
+            }
+          />
+        </Field>
+      </div>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field>
+          <FieldLabel htmlFor="detail-status">Status</FieldLabel>
+          <Select
+            items={statusItems}
+            value={task.status}
+            onValueChange={(value) =>
+              updateTask(task.id, { status: value as TaskStatus }, SILENT)
+            }
+          >
+            <SelectTrigger id="detail-status" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectGroup>
+                {statusItems.map((item) => (
+                  <SelectItem key={item.value} value={item.value}>
+                    {item.label}
+                  </SelectItem>
+                ))}
+              </SelectGroup>
+            </SelectContent>
+          </Select>
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="detail-assignee">Assignee</FieldLabel>
+          <MemberPicker
+            value={task.assigneeId}
+            onChange={(value) =>
+              updateTask(task.id, { assigneeId: value }, SILENT)
+            }
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="detail-due">Due date</FieldLabel>
+          <DatePicker
+            value={task.dueDate}
+            onChange={(value) => updateTask(task.id, { dueDate: value }, SILENT)}
+          />
+        </Field>
+        <Field>
+          <FieldLabel htmlFor="detail-priority">Priority</FieldLabel>
+          <ToggleGroup
+            value={[task.priority]}
+            onValueChange={(value) => {
+              if (value[0]) {
+                updateTask(
+                  task.id,
+                  { priority: value[0] as TaskPriority },
+                  SILENT
+                )
+              }
+            }}
+            spacing={2}
+            className="flex-wrap"
+          >
+            {TASK_PRIORITIES.map((item) => (
+              <ToggleGroupItem
+                key={item.value}
+                value={item.value}
+                variant="outline"
+                size="sm"
+              >
+                {item.label}
+              </ToggleGroupItem>
+            ))}
+          </ToggleGroup>
+        </Field>
+      </div>
+
+      <Field>
+        <FieldLabel htmlFor="detail-labels">Labels</FieldLabel>
+        <ToggleGroup
+          multiple
+          value={taskLabels.map((label) => label.id)}
+          onValueChange={(value) =>
+            updateTask(task.id, { labelIds: value }, SILENT)
+          }
+          spacing={2}
+          className="flex-wrap"
+        >
+          {labels.map((label) => (
+            <ToggleGroupItem
+              key={label.id}
+              value={label.id}
+              variant="outline"
+              size="sm"
+            >
+              <span
+                aria-hidden
+                className="size-2 shrink-0 rounded-full"
+                style={{ backgroundColor: label.color }}
+              />
+              {label.name}
+            </ToggleGroupItem>
+          ))}
+        </ToggleGroup>
+      </Field>
+
+      <Field>
+        <FieldLabel htmlFor="detail-description">Description</FieldLabel>
+        <Textarea
+          id="detail-description"
+          defaultValue={task.description}
+          placeholder="Add a more detailed description..."
+          onChange={(event) =>
+            updateTask(
+              task.id,
+              { description: event.target.value || undefined },
+              SILENT
+            )
+          }
+        />
+      </Field>
+
+      <Separator />
+
+      <div className="flex flex-col gap-3">
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-medium">Subtasks</h3>
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {doneSubtasks}/{task.subtasks.length}
+          </span>
+        </div>
+        {task.subtasks.length ? (
+          <FieldGroup className="gap-2">
+            {task.subtasks.map((subtask) => (
+              <Field
+                key={subtask.id}
+                orientation="horizontal"
+                className="items-center"
+              >
+                <Checkbox
+                  id={subtask.id}
+                  checked={subtask.done}
+                  onCheckedChange={() => toggleSubtask(task.id, subtask.id)}
+                />
+                <FieldLabel
+                  htmlFor={subtask.id}
+                  className={
+                    subtask.done
+                      ? "font-normal line-through opacity-60"
+                      : "font-normal"
+                  }
+                >
+                  {subtask.title}
+                </FieldLabel>
+              </Field>
+            ))}
+          </FieldGroup>
+        ) : (
+          <p className="text-sm text-muted-foreground">
+            No subtasks yet. Add subtasks when editing this task.
+          </p>
+        )}
+      </div>
+
+      <Separator />
+
+      <div className="flex flex-col gap-3 pb-4">
+        <h3 className="text-sm font-medium">Activity & comments</h3>
+        {task.comments.length ? (
+          <div className="flex flex-col gap-3">
+            {task.comments.map((entry) => {
+              const author = getMember(entry.authorId)
+              return (
+                <div key={entry.id} className="flex items-start gap-3">
+                  <MemberAvatar member={author} size="sm" />
+                  <div className="flex flex-col gap-0.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">
+                        {author?.name ?? "Unknown"}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDate(entry.createdAt)}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground">
+                      {entry.body}
+                    </p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <p className="text-sm text-muted-foreground">No comments yet.</p>
+        )}
+        <div className="flex items-end gap-2">
+          <Textarea
+            value={comment}
+            placeholder="Write a comment..."
+            className="min-h-9"
+            onChange={(event) => setComment(event.target.value)}
+          />
+          <Button
+            size="icon"
+            disabled={!comment.trim()}
+            aria-label="Send comment"
+            onClick={() => {
+              addComment(task.id, "u_aria", comment.trim())
+              setComment("")
+            }}
+          >
+            <SendIcon />
+          </Button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+export function TaskDetails({
+  taskId,
+  open,
+  onOpenChange,
+}: {
+  taskId?: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const isMobile = useIsMobile()
+  const store = useProjectStore()
+  const task = taskId ? store.tasks.find((item) => item.id === taskId) : undefined
+
+  if (!task) return null
+
+  if (isMobile) {
+    return (
+      <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
+        <DrawerContent className="max-h-[90dvh]">
+          <DrawerHeader>
+            <DrawerTitle>{task.identifier}</DrawerTitle>
+            <DrawerDescription className="line-clamp-1">
+              {task.title}
+            </DrawerDescription>
+          </DrawerHeader>
+          <TaskDetailsBody taskId={task.id} />
+        </DrawerContent>
+      </Drawer>
+    )
+  }
+
+  return (
+    <Sheet open={open} onOpenChange={onOpenChange}>
+      <SheetContent className="w-full gap-0 p-0 sm:max-w-xl">
+        <SheetHeader>
+          <SheetTitle>{task.identifier}</SheetTitle>
+          <SheetDescription className="line-clamp-1">
+            {task.title}
+          </SheetDescription>
+        </SheetHeader>
+        <TaskDetailsBody taskId={task.id} />
+      </SheetContent>
+    </Sheet>
+  )
+}

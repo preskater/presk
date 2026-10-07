@@ -1,8 +1,20 @@
 import { Geist, Geist_Mono, Inter } from "next/font/google"
 
+import type { Metadata } from "next"
+
 import "@workspace/ui/globals.css"
+import { Toaster } from "@workspace/ui/components/sonner"
 import { ThemeProvider } from "@/components/theme-provider"
 import { cn } from "@workspace/ui/lib/utils"
+
+export const metadata: Metadata = {
+  title: {
+    default: "Presk — The AI-native productivity platform",
+    template: "%s · Presk",
+  },
+  description:
+    "Projects, messaging, calendars and files with built-in AI assistants — in one workspace.",
+}
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" })
 
@@ -28,7 +40,10 @@ export default function RootLayout({
       )}
     >
       <body>
-        <ThemeProvider>{children}</ThemeProvider>
+        <ThemeProvider>
+          {children}
+          <Toaster />
+        </ThemeProvider>
       </body>
     </html>
   )

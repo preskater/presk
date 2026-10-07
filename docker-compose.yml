@@ -23,6 +23,20 @@ services:
       timeout: 5s
       retries: 5
 
+  web-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: migrate
+    environment:
+      - DATABASE_URL=postgresql://preskater:preskater@postgres:5432/preskater?schema=public
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - postgres-network
+    restart: "no"
+
   web:
     build:
       context: .
@@ -31,8 +45,13 @@ services:
       - "3000:3000"
     environment:
       - NODE_ENV=production
+      - DATABASE_URL=postgresql://preskater:preskater@postgres:5432/preskater?schema=public
+      - BETTER_AUTH_SECRET=dev-secret-change-me-in-production
+      - BETTER_AUTH_URL=http://localhost:3000
     depends_on:
       postgres:
         condition: service_healthy
+      web-migrate:
+        condition: service_completed_successfully
     networks:
       - postgres-network
