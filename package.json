@@ -29,5 +29,8 @@
     "@prisma/engines": true,
     "esbuild": true,
     "prisma": true
+  },
+  "dependencies": {
+    "@vercel/analytics": "^2.0.1"
   }
 }
