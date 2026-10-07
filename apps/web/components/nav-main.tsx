@@ -3,17 +3,15 @@
 import * as React from "react"
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
-import { CirclePlusIcon, MailIcon, RotateCcwIcon } from "lucide-react"
+import { CirclePlusIcon, MailIcon } from "lucide-react"
 
 import { ProjectFormDialog } from "@/components/project/project-dialog"
 import { Button } from "@workspace/ui/components/button"
 import {
   SidebarGroup,
-  SidebarGroupAction,
   SidebarGroupContent,
   SidebarGroupLabel,
   SidebarMenu,
-  SidebarMenuAction,
   SidebarMenuBadge,
   SidebarMenuButton,
   SidebarMenuItem,
@@ -35,12 +33,8 @@ export interface NavApp {
 export function NavMain({ items }: { items: NavApp[] }) {
   const pathname = usePathname()
   const router = useRouter()
-  const { recents, clearApp, clearAll, setActive } = useRecents()
+  const { recents, setActive } = useRecents()
   const { unreadTotal } = useMessaging()
-
-  const hasRecents = items.some(
-    (item) => item.key && recents[item.key].length > 0
-  )
 
   function openRecent(app: NavApp, id: string) {
     if (!app.key) return
@@ -51,15 +45,6 @@ export function NavMain({ items }: { items: NavApp[] }) {
   return (
     <SidebarGroup>
       <SidebarGroupLabel>Workspace</SidebarGroupLabel>
-      {hasRecents ? (
-        <SidebarGroupAction
-          title="Clear all recent items"
-          aria-label="Clear all recent items"
-          onClick={clearAll}
-        >
-          <RotateCcwIcon />
-        </SidebarGroupAction>
-      ) : null}
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
@@ -106,33 +91,23 @@ export function NavMain({ items }: { items: NavApp[] }) {
                   <SidebarMenuBadge>{unreadTotal}</SidebarMenuBadge>
                 ) : null}
                 {item.key && entries.length > 0 ? (
-                  <>
-                    <SidebarMenuAction
-                      title={`Clear ${item.title} recents`}
-                      aria-label={`Clear ${item.title} recents`}
-                      showOnHover
-                      onClick={() => clearApp(item.key as AppKey)}
-                    >
-                      <RotateCcwIcon />
-                    </SidebarMenuAction>
-                    <SidebarMenuSub>
-                      {entries.map((entry) => (
-                        <SidebarMenuSubItem key={entry.id}>
-                          <SidebarMenuSubButton
-                            render={<button type="button" />}
-                            onClick={() => openRecent(item, entry.id)}
-                          >
-                            <span className="truncate">{entry.label}</span>
-                            {entry.hint ? (
-                              <span className="ms-auto truncate text-xs text-sidebar-foreground/60">
-                                {entry.hint}
-                              </span>
-                            ) : null}
-                          </SidebarMenuSubButton>
-                        </SidebarMenuSubItem>
-                      ))}
-                    </SidebarMenuSub>
-                  </>
+                  <SidebarMenuSub>
+                    {entries.map((entry) => (
+                      <SidebarMenuSubItem key={entry.id}>
+                        <SidebarMenuSubButton
+                          render={<button type="button" />}
+                          onClick={() => openRecent(item, entry.id)}
+                        >
+                          <span className="truncate">{entry.label}</span>
+                          {entry.hint ? (
+                            <span className="ms-auto truncate text-xs text-sidebar-foreground/60">
+                              {entry.hint}
+                            </span>
+                          ) : null}
+                        </SidebarMenuSubButton>
+                      </SidebarMenuSubItem>
+                    ))}
+                  </SidebarMenuSub>
                 ) : null}
               </SidebarMenuItem>
             )
