@@ -16,6 +16,7 @@ import {
 import { NavMain, type NavApp } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
+import { OrgSwitcher } from "@/components/organization/org-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -79,6 +80,7 @@ const navSecondary = [
 
 export function AppSidebar({
   user,
+  activeOrganizationId,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
   user: {
@@ -86,10 +88,11 @@ export function AppSidebar({
     email: string
     image?: string | null
   }
+  activeOrganizationId: string | null
 }) {
   return (
     <Sidebar collapsible="offcanvas" {...props}>
-      <SidebarHeader>
+      <SidebarHeader className="gap-2">
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton
@@ -101,6 +104,7 @@ export function AppSidebar({
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
+        <OrgSwitcher activeOrganizationId={activeOrganizationId} />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={navMain} />

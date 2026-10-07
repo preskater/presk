@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { Controller, useForm } from "react-hook-form"
 import * as z from "zod"
@@ -36,6 +36,7 @@ export function SignInForm({
   ...props
 }: React.ComponentProps<"div">) {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -54,7 +55,8 @@ export function SignInForm({
       return
     }
 
-    router.push("/dashboard")
+    const redirectTo = searchParams.get("redirect") ?? "/dashboard"
+    router.push(redirectTo)
     router.refresh()
   }
 
@@ -118,7 +120,17 @@ export function SignInForm({
                 )}
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
-                  <Link href="/sign-up">Sign up</Link>
+                  <Link
+                    href={
+                      searchParams.get("redirect")
+                        ? `/sign-up?redirect=${encodeURIComponent(
+                            searchParams.get("redirect") as string
+                          )}`
+                        : "/sign-up"
+                    }
+                  >
+                    Sign up
+                  </Link>
                 </FieldDescription>
               </Field>
             </FieldGroup>

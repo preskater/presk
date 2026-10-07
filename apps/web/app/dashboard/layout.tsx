@@ -3,6 +3,7 @@ import { redirect } from "next/navigation"
 
 import { AppSidebar } from "@/components/app-sidebar"
 import { AssistantBar } from "@/components/assistant/assistant-bar"
+import { OrganizationSync } from "@/components/organization/organization-sync"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
@@ -25,6 +26,25 @@ export default async function DashboardLayout({
     redirect("/sign-in")
   }
 
+  const organizations = await auth.api.listOrganizations({
+    headers: await headers(),
+  })
+
+  if (organizations.length === 0) {
+    redirect("/onboarding")
+  }
+
+  const sessionOrganizationId = session.session.activeOrganizationId ?? null
+
+  const needsSync =
+    !sessionOrganizationId ||
+    !organizations.some((org) => org.id === sessionOrganizationId)
+
+  const activeOrganizationId =
+    needsSync
+      ? (organizations[0]?.id ?? null)
+      : sessionOrganizationId
+
   return (
     <TooltipProvider>
       <RecentsProvider>
@@ -41,7 +61,17 @@ export default async function DashboardLayout({
                     } as React.CSSProperties
                   }
                 >
-                  <AppSidebar variant="inset" user={session.user} />
+                  {needsSync && activeOrganizationId ? (
+                    <OrganizationSync
+                      needsSync={needsSync}
+                      organizationId={activeOrganizationId}
+                    />
+                  ) : null}
+                  <AppSidebar
+                    variant="inset"
+                    user={session.user}
+                    activeOrganizationId={activeOrganizationId}
+                  />
                   <SidebarInset>
                     <SiteHeader />
                     <div className="flex flex-1 flex-col">

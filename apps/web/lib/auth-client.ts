@@ -1,6 +1,14 @@
 import { createAuthClient } from "better-auth/react"
 import { adminClient, organizationClient } from "better-auth/client/plugins"
 
+import { ac, orgRoles } from "./organization/access"
+
 export const authClient = createAuthClient({
-  plugins: [organizationClient(), adminClient()],
+  plugins: [
+    organizationClient({
+      ac,
+      roles: orgRoles,
+    }),
+    adminClient(),
+  ],
 })

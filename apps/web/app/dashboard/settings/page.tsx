@@ -1,16 +1,15 @@
-import { Settings2Icon } from "lucide-react"
-
-import { DashboardEmpty } from "@/components/dashboard-empty"
+import { OrganizationSettings } from "@/components/organization/organization-settings"
 
 export default function SettingsPage() {
   return (
-    <div className="flex flex-1 flex-col px-4 py-4 md:py-6 lg:px-6">
-      <DashboardEmpty
-        icon={Settings2Icon}
-        title="Settings"
-        description="Workspace and account settings will appear here."
-        className="flex-1 border"
-      />
+    <div className="flex flex-1 flex-col gap-4 px-4 py-4 md:py-6 lg:px-6">
+      <div className="flex flex-col gap-1">
+        <h2 className="text-lg font-semibold">Settings</h2>
+        <p className="text-sm text-muted-foreground">
+          Manage your organization, members and roles.
+        </p>
+      </div>
+      <OrganizationSettings />
     </div>
   )
 }
