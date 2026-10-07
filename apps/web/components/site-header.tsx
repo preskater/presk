@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation"
 
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
@@ -42,6 +43,9 @@ export function SiteHeader() {
           className="mx-2 h-4 data-vertical:self-auto"
         />
         <h1 className="text-base font-medium">{title}</h1>
+        <div className="ms-auto flex items-center gap-1">
+          <ThemeToggle />
+        </div>
       </div>
     </header>
   )

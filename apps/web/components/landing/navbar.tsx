@@ -4,7 +4,7 @@ import * as React from "react"
 import Link from "next/link"
 import { MenuIcon } from "lucide-react"
 
-import { ThemeToggle } from "@/components/landing/theme-toggle"
+import { ThemeToggle } from "@/components/theme-toggle"
 import { Wordmark } from "@/components/landing/wordmark"
 import { Button } from "@workspace/ui/components/button"
 import {
