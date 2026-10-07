@@ -61,10 +61,12 @@ export function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-6xl items-center justify-between gap-4 px-6">
-        <Link href="/" aria-label="Presk home">
-          <Wordmark />
-        </Link>
+      <div className="mx-auto grid h-16 max-w-6xl grid-cols-[1fr_auto_1fr] items-center gap-4 px-6">
+        <div className="flex items-center">
+          <Link href="/" aria-label="Presk home">
+            <Wordmark />
+          </Link>
+        </div>
 
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
@@ -87,7 +89,7 @@ export function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
           </NavigationMenuList>
         </NavigationMenu>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center justify-end gap-2">
           <ThemeToggle />
           {isAuthenticated ? (
             <Button

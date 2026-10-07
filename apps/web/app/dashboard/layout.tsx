@@ -2,6 +2,7 @@ import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
 import { AppSidebar } from "@/components/app-sidebar"
+import { AssistantBar } from "@/components/assistant/assistant-bar"
 import { SiteHeader } from "@/components/site-header"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
@@ -36,6 +37,7 @@ export default async function DashboardLayout({
                     {
                       "--sidebar-width": "calc(var(--spacing) * 72)",
                       "--header-height": "calc(var(--spacing) * 12)",
+                      "--assistant-bar-space": "calc(var(--spacing) * 18)",
                     } as React.CSSProperties
                   }
                 >
@@ -43,11 +45,12 @@ export default async function DashboardLayout({
                   <SidebarInset>
                     <SiteHeader />
                     <div className="flex flex-1 flex-col">
-                      <div className="@container/main flex flex-1 flex-col gap-2">
+                      <div className="@container/main flex flex-1 flex-col gap-2 pb-[var(--assistant-bar-space)]">
                         {children}
                       </div>
                     </div>
                   </SidebarInset>
+                  <AssistantBar />
                 </SidebarProvider>
               </FilesProvider>
             </CalendarsProvider>
