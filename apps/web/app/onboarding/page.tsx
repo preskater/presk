@@ -1,6 +1,7 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
 
+import { AuthHomeButton } from "@/components/auth-home-button"
 import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 
 import { auth } from "@/lib/auth"
@@ -30,7 +31,10 @@ export default async function OnboardingPage() {
   }))
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <div className="relative flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="absolute start-6 top-6">
+        <AuthHomeButton />
+      </div>
       <div className="w-full max-w-lg">
         <OnboardingFlow
           userName={session.user.name}

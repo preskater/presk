@@ -4,6 +4,7 @@ import { redirect } from "next/navigation"
 import { MailIcon } from "lucide-react"
 
 import { AcceptInvitationCard } from "@/components/organization/accept-invitation-card"
+import { AuthHomeButton } from "@/components/auth-home-button"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -29,7 +30,10 @@ export default async function AcceptInvitationPage({
   const session = await auth.api.getSession({ headers: await headers() })
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+    <div className="relative flex min-h-svh w-full items-center justify-center p-6 md:p-10">
+      <div className="absolute start-6 top-6">
+        <AuthHomeButton />
+      </div>
       <div className="w-full max-w-md">
         {session ? (
           <AcceptInvitationCard invitationId={id} />
