@@ -37,18 +37,21 @@ export function OrgSwitcher({
     (organization) => organization.id === activeOrganizationId
   )
 
-  async function switchOrganization(organizationId: string) {
-    if (organizationId === activeOrganizationId) return
+  async function switchOrganization(organization: {
+    id: string
+    slug: string
+  }) {
+    if (organization.id === activeOrganizationId) return
     setSwitching(true)
     const { error } = await authClient.organization.setActive({
-      organizationId,
+      organizationId: organization.id,
     })
     if (error) {
       toast.error(error.message ?? "Unable to switch organization.")
       setSwitching(false)
       return
     }
-    router.push("/dashboard")
+    router.push(`/${organization.slug}`)
     router.refresh()
   }
 
@@ -93,7 +96,7 @@ export function OrgSwitcher({
                 <DropdownMenuItem
                   key={organization.id}
                   disabled={switching}
-                  onClick={() => switchOrganization(organization.id)}
+                  onClick={() => switchOrganization(organization)}
                 >
                   <div className="flex size-6 items-center justify-center rounded-sm border">
                     <span className="text-xs">
@@ -110,7 +113,7 @@ export function OrgSwitcher({
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => {
-                router.push("/onboarding")
+                router.push("/onboarding?create=1")
                 router.refresh()
               }}
             >

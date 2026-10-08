@@ -7,11 +7,31 @@ import { OnboardingFlow } from "@/components/onboarding/onboarding-flow"
 import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 
-export default async function OnboardingPage() {
+export default async function OnboardingPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ create?: string }>
+}) {
+  const { create } = await searchParams
+
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (!session) {
     redirect("/sign-in")
+  }
+
+  const organizations = await auth.api.listOrganizations({
+    headers: await headers(),
+  })
+
+  if (organizations.length > 0 && create !== "1") {
+    const sessionOrganizationId = session.session.activeOrganizationId ?? null
+    const active =
+      organizations.find((org) => org.id === sessionOrganizationId) ??
+      organizations[0]
+    if (active) {
+      redirect(`/${active.slug}`)
+    }
   }
 
   const invitations = await prisma.invitation.findMany({
@@ -20,13 +40,14 @@ export default async function OnboardingPage() {
       status: "pending",
       expiresAt: { gt: new Date() },
     },
-    include: { organization: { select: { name: true } } },
+    include: { organization: { select: { name: true, slug: true } } },
     orderBy: { createdAt: "desc" },
   })
 
   const pendingInvitations = invitations.map((invitation) => ({
     id: invitation.id,
     organizationName: invitation.organization.name,
+    organizationSlug: invitation.organization.slug,
     role: invitation.role,
   }))
 

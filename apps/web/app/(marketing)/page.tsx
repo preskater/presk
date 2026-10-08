@@ -6,20 +6,20 @@ import { Testimonials } from "@/components/landing/testimonials"
 import { PricingPreview } from "@/components/landing/pricing-preview"
 import { FinalCta } from "@/components/landing/final-cta"
 
-import { isAuthenticated } from "@/lib/landing/session"
+import { getMarketingAuth } from "@/lib/landing/session"
 
 export default async function HomePage() {
-  const authenticated = await isAuthenticated()
+  const { isAuthenticated: authenticated, dashboardHref } = await getMarketingAuth()
 
   return (
     <>
-      <HeroSection isAuthenticated={authenticated} />
+      <HeroSection isAuthenticated={authenticated} dashboardHref={dashboardHref} />
       <LogoCloud />
       <FeatureGrid limit={3} showCta />
       <ProductShowcase />
       <Testimonials />
-      <PricingPreview isAuthenticated={authenticated} />
-      <FinalCta isAuthenticated={authenticated} />
+      <PricingPreview isAuthenticated={authenticated} dashboardHref={dashboardHref} />
+      <FinalCta isAuthenticated={authenticated} dashboardHref={dashboardHref} />
     </>
   )
 }

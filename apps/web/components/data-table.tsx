@@ -16,10 +16,12 @@ import {
 } from "@workspace/ui/components/table"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import { formatDate } from "@/lib/projects/types"
 
 export function DataTable() {
   const { tasks, getMember, getProject } = useProjectStore()
+  const orgSlug = useOrgSlug()
   const recent = [...tasks]
     .sort(
       (a, b) =>
@@ -56,7 +58,7 @@ export function DataTable() {
                   <TableRow key={task.id}>
                     <TableCell>
                       <Link
-                        href={`/dashboard/projects/${task.projectId}`}
+                        href={`/${orgSlug}/projects/${task.projectId}`}
                         className="flex flex-col hover:underline"
                       >
                         <span className="text-xs text-muted-foreground">

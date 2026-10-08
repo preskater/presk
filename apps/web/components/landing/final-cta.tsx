@@ -4,7 +4,13 @@ import { ArrowRightIcon } from "lucide-react"
 import { Container } from "@/components/landing/section"
 import { Button } from "@workspace/ui/components/button"
 
-export function FinalCta({ isAuthenticated }: { isAuthenticated: boolean }) {
+export function FinalCta({
+  isAuthenticated,
+  dashboardHref,
+}: {
+  isAuthenticated: boolean
+  dashboardHref: string
+}) {
   return (
     <section className="py-20 sm:py-24">
       <Container>
@@ -21,7 +27,7 @@ export function FinalCta({ isAuthenticated }: { isAuthenticated: boolean }) {
               <Button
                 size="lg"
                 variant="secondary"
-                render={<Link href="/dashboard" />}
+                render={<Link href={dashboardHref} />}
                 nativeButton={false}
               >
                 Go to dashboard

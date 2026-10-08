@@ -55,7 +55,7 @@ export function SignInForm({
       return
     }
 
-    const redirectTo = searchParams.get("redirect") ?? "/dashboard"
+    const redirectTo = searchParams.get("redirect") ?? "/onboarding"
     router.push(redirectTo)
     router.refresh()
   }

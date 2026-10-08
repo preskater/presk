@@ -9,30 +9,35 @@ import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 import { useProjectStore } from "@/lib/projects/store"
 
 const titles: Record<string, string> = {
-  "/dashboard": "Dashboard",
-  "/dashboard/projects": "Projects",
-  "/dashboard/messages": "Messages",
-  "/dashboard/calendars": "Calendars",
-  "/dashboard/files": "Files",
-  "/dashboard/settings": "Settings",
-  "/dashboard/search": "Search",
-  "/dashboard/help": "Get Help",
+  "": "Dashboard",
+  "/projects": "Projects",
+  "/messages": "Messages",
+  "/calendars": "Calendars",
+  "/files": "Files",
+  "/settings": "Settings",
+  "/search": "Search",
+  "/help": "Get Help",
 }
 
-function usePageTitle(pathname: string) {
+function usePageTitle(orgSlug: string, pathname: string) {
   const { getProject } = useProjectStore()
 
-  if (titles[pathname]) return titles[pathname]
-  if (pathname.startsWith("/dashboard/projects/")) {
-    const projectId = pathname.split("/")[3]
+  const prefix = `/${orgSlug}`
+  const relative = pathname.startsWith(prefix)
+    ? pathname.slice(prefix.length)
+    : pathname
+
+  if (titles[relative] !== undefined) return titles[relative]
+  if (relative.startsWith("/projects/")) {
+    const projectId = relative.split("/")[2]
     return projectId ? (getProject(projectId)?.name ?? "Project") : "Projects"
   }
   return "Dashboard"
 }
 
-export function SiteHeader() {
+export function SiteHeader({ orgSlug }: { orgSlug: string }) {
   const pathname = usePathname()
-  const title = usePageTitle(pathname)
+  const title = usePageTitle(orgSlug, pathname)
 
   return (
     <header className="flex h-(--header-height) shrink-0 items-center gap-2 border-b transition-[width,height] ease-linear group-has-data-[collapsible=icon]/sidebar-wrapper:h-(--header-height)">

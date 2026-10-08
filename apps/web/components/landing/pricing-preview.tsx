@@ -10,8 +10,10 @@ import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-gr
 
 export function PricingPreview({
   isAuthenticated,
+  dashboardHref,
 }: {
   isAuthenticated: boolean
+  dashboardHref: string
 }) {
   const [yearly, setYearly] = React.useState(false)
 
@@ -38,7 +40,11 @@ export function PricingPreview({
         </ToggleGroup>
       </div>
       <div className="mt-10">
-        <PricingGrid yearly={yearly} isAuthenticated={isAuthenticated} />
+        <PricingGrid
+          yearly={yearly}
+          isAuthenticated={isAuthenticated}
+          dashboardHref={dashboardHref}
+        />
       </div>
       <div className="mt-10 flex justify-center">
         <Button

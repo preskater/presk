@@ -73,7 +73,8 @@ export function OrganizationDangerZone({
       return
     }
     toast.success("You left the organization.")
-    router.push("/dashboard")
+    const { data: remaining } = await authClient.organization.list()
+    router.push(remaining?.[0]?.slug ? `/${remaining[0].slug}` : "/onboarding")
     router.refresh()
   }
 

@@ -6,7 +6,7 @@ import { ProductShowcase } from "@/components/landing/product-showcase"
 import { LogoCloud } from "@/components/landing/logo-cloud"
 import { FinalCta } from "@/components/landing/final-cta"
 
-import { isAuthenticated } from "@/lib/landing/session"
+import { getMarketingAuth } from "@/lib/landing/session"
 
 export const metadata: Metadata = {
   title: "Features",
@@ -15,7 +15,7 @@ export const metadata: Metadata = {
 }
 
 export default async function FeaturesPage() {
-  const authenticated = await isAuthenticated()
+  const { isAuthenticated: authenticated, dashboardHref } = await getMarketingAuth()
 
   return (
     <>
@@ -27,7 +27,7 @@ export default async function FeaturesPage() {
       <FeatureGrid />
       <ProductShowcase />
       <LogoCloud />
-      <FinalCta isAuthenticated={authenticated} />
+      <FinalCta isAuthenticated={authenticated} dashboardHref={dashboardHref} />
     </>
   )
 }

@@ -42,6 +42,7 @@ import {
 import { Progress } from "@workspace/ui/components/progress"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import { formatDate, type Project } from "@/lib/projects/types"
 
 const PROJECT_STATUS_LABEL: Record<Project["status"], string> = {
@@ -51,6 +52,7 @@ const PROJECT_STATUS_LABEL: Record<Project["status"], string> = {
 }
 
 function ProjectCard({ project }: { project: Project }) {
+  const orgSlug = useOrgSlug()
   const { tasksForProject, getMember, deleteProject } = useProjectStore()
   const tasks = tasksForProject(project.id)
   const done = tasks.filter((task) => task.status === "done").length
@@ -65,7 +67,7 @@ function ProjectCard({ project }: { project: Project }) {
         <div className="flex items-start justify-between gap-3">
           <div className="flex flex-col gap-1">
             <CardTitle className="line-clamp-1">
-              <Link href={`/dashboard/projects/${project.id}`}>
+              <Link href={`/${orgSlug}/projects/${project.id}`}>
                 <span className="absolute inset-0" />
                 {project.name}
               </Link>

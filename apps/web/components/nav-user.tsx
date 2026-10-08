@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 
 import { authClient } from "@/lib/auth-client"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import {
   Avatar,
   AvatarFallback,
@@ -53,6 +54,7 @@ export function NavUser({
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
+  const orgSlug = useOrgSlug()
   const initials = getInitials(user.name)
 
   async function handleSignOut() {
@@ -108,7 +110,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem render={<Link href="/dashboard/settings" />}>
+              <DropdownMenuItem render={<Link href={`/${orgSlug}/settings`} />}>
                 <CircleUserRoundIcon />
                 Account
               </DropdownMenuItem>

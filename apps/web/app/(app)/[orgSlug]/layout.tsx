@@ -20,11 +20,15 @@ import { MessagingProvider } from "@/lib/messaging/store"
 import { ProjectStoreProvider } from "@/lib/projects/store"
 import { RecentsProvider } from "@/lib/recents/store"
 
-export default async function DashboardLayout({
+export default async function OrganizationLayout({
   children,
+  params,
 }: Readonly<{
   children: React.ReactNode
+  params: Promise<{ orgSlug: string }>
 }>) {
+  const { orgSlug } = await params
+
   const session = await auth.api.getSession({ headers: await headers() })
 
   if (!session) {
@@ -39,22 +43,16 @@ export default async function DashboardLayout({
     redirect("/onboarding")
   }
 
-  const sessionOrganizationId = session.session.activeOrganizationId ?? null
+  const organization = organizations.find((org) => org.slug === orgSlug)
 
-  const needsSync =
-    !sessionOrganizationId ||
-    !organizations.some((org) => org.id === sessionOrganizationId)
-
-  const activeOrganizationId =
-    needsSync
-      ? (organizations[0]?.id ?? null)
-      : sessionOrganizationId
-
-  if (!activeOrganizationId) {
-    redirect("/onboarding")
+  if (!organization) {
+    redirect(`/${organizations[0]?.slug}`)
   }
 
-  const ctx = await getRequestContextForOrganization(activeOrganizationId)
+  const sessionOrganizationId = session.session.activeOrganizationId ?? null
+  const needsSync = sessionOrganizationId !== organization.id
+
+  const ctx = await getRequestContextForOrganization(organization.id)
 
   const [projectData, calendarData, filesData, messagingData] =
     await Promise.all([
@@ -66,7 +64,7 @@ export default async function DashboardLayout({
 
   return (
     <TooltipProvider>
-      <RecentsProvider organizationId={activeOrganizationId}>
+      <RecentsProvider organizationId={organization.id}>
         <ProjectStoreProvider
           initialData={projectData}
           currentUserId={ctx.userId}
@@ -95,19 +93,20 @@ export default async function DashboardLayout({
                     } as React.CSSProperties
                   }
                 >
-                  {needsSync && activeOrganizationId ? (
+                  {needsSync ? (
                     <OrganizationSync
                       needsSync={needsSync}
-                      organizationId={activeOrganizationId}
+                      organizationId={organization.id}
                     />
                   ) : null}
                   <AppSidebar
                     variant="inset"
                     user={session.user}
-                    activeOrganizationId={activeOrganizationId}
+                    orgSlug={organization.slug}
+                    activeOrganizationId={organization.id}
                   />
                   <SidebarInset>
-                    <SiteHeader />
+                    <SiteHeader orgSlug={organization.slug} />
                     <div className="flex flex-1 flex-col">
                       <div className="@container/main flex flex-1 flex-col gap-2 pb-[var(--assistant-bar-space)]">
                         {children}

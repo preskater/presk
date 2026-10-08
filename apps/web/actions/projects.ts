@@ -1,9 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { withAction } from "@/lib/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
+import { revalidateOrgPath } from "@/lib/organization/paths"
 import { projectService } from "@/lib/projects"
 import {
   addCommentSchema,
@@ -26,8 +25,8 @@ export const createProjectAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = createProjectSchema.parse(input)
   const project = await projectService.create(ctx, parsed)
-  revalidatePath("/dashboard/projects")
-  revalidatePath("/dashboard")
+  await revalidateOrgPath(ctx.organizationId, "/projects")
+  await revalidateOrgPath(ctx.organizationId)
   return project
 })
 
@@ -36,8 +35,8 @@ export const updateProjectAction = withAction(
     const ctx = await getRequestContext()
     const parsed = updateProjectSchema.parse(input)
     const project = await projectService.update(ctx, id, parsed)
-    revalidatePath("/dashboard/projects")
-    revalidatePath(`/dashboard/projects/${id}`)
+    await revalidateOrgPath(ctx.organizationId, "/projects")
+    await revalidateOrgPath(ctx.organizationId, `/projects/${id}`)
     return project
   }
 )
@@ -45,8 +44,8 @@ export const updateProjectAction = withAction(
 export const deleteProjectAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.remove(ctx, id)
-  revalidatePath("/dashboard/projects")
-  revalidatePath("/dashboard")
+  await revalidateOrgPath(ctx.organizationId, "/projects")
+  await revalidateOrgPath(ctx.organizationId)
   return result
 })
 
@@ -54,8 +53,8 @@ export const createTaskAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = createTaskSchema.parse(input)
   const task = await projectService.createTask(ctx, parsed)
-  revalidatePath(`/dashboard/projects/${parsed.projectId}`)
-  revalidatePath("/dashboard")
+  await revalidateOrgPath(ctx.organizationId, `/projects/${parsed.projectId}`)
+  await revalidateOrgPath(ctx.organizationId)
   return task
 })
 
@@ -63,7 +62,7 @@ export const updateTaskAction = withAction(async (id: string, input: unknown) =>
   const ctx = await getRequestContext()
   const parsed = updateTaskSchema.parse(input)
   const task = await projectService.updateTask(ctx, id, parsed)
-  revalidatePath(`/dashboard/projects/${task.projectId}`)
+  await revalidateOrgPath(ctx.organizationId, `/projects/${task.projectId}`)
   return task
 })
 
@@ -71,14 +70,14 @@ export const moveTaskAction = withAction(async (id: string, status: unknown) => 
   const ctx = await getRequestContext()
   const parsed = moveTaskSchema.parse(status)
   const task = await projectService.moveTask(ctx, id, parsed)
-  revalidatePath(`/dashboard/projects/${task.projectId}`)
+  await revalidateOrgPath(ctx.organizationId, `/projects/${task.projectId}`)
   return task
 })
 
 export const deleteTaskAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.removeTask(ctx, id)
-  revalidatePath("/dashboard")
+  await revalidateOrgPath(ctx.organizationId)
   return result
 })
 
@@ -86,7 +85,7 @@ export const toggleSubtaskAction = withAction(
   async (taskId: string, subtaskId: string) => {
     const ctx = await getRequestContext()
     const task = await projectService.toggleSubtask(ctx, taskId, subtaskId)
-    revalidatePath(`/dashboard/projects/${task.projectId}`)
+    await revalidateOrgPath(ctx.organizationId, `/projects/${task.projectId}`)
     return task
   }
 )
@@ -96,7 +95,7 @@ export const addCommentAction = withAction(
     const ctx = await getRequestContext()
     const parsed = addCommentSchema.parse({ body })
     const task = await projectService.addComment(ctx, taskId, parsed)
-    revalidatePath(`/dashboard/projects/${task.projectId}`)
+    await revalidateOrgPath(ctx.organizationId, `/projects/${task.projectId}`)
     return task
   }
 )
@@ -110,7 +109,7 @@ export const addMemberAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = addMemberSchema.parse(input)
   const member = await projectService.addMember(ctx, parsed)
-  revalidatePath("/dashboard/settings")
+  await revalidateOrgPath(ctx.organizationId, "/settings")
   return member
 })
 
@@ -119,7 +118,7 @@ export const updateMemberRoleAction = withAction(
     const ctx = await getRequestContext()
     const parsed = updateMemberRoleSchema.parse(role)
     const member = await projectService.updateMemberRole(ctx, userId, parsed)
-    revalidatePath("/dashboard/settings")
+    await revalidateOrgPath(ctx.organizationId, "/settings")
     return member
   }
 )
@@ -127,7 +126,7 @@ export const updateMemberRoleAction = withAction(
 export const removeMemberAction = withAction(async (userId: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.removeMember(ctx, userId)
-  revalidatePath("/dashboard/settings")
+  await revalidateOrgPath(ctx.organizationId, "/settings")
   return result
 })
 
@@ -140,13 +139,13 @@ export const addLabelAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = addLabelSchema.parse(input)
   const label = await projectService.addLabel(ctx, parsed)
-  revalidatePath("/dashboard/projects")
+  await revalidateOrgPath(ctx.organizationId, "/projects")
   return label
 })
 
 export const removeLabelAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.removeLabel(ctx, id)
-  revalidatePath("/dashboard/projects")
+  await revalidateOrgPath(ctx.organizationId, "/projects")
   return result
 })

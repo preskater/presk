@@ -56,7 +56,13 @@ function NavMenuColumn({ column }: { column: NavColumn }) {
 
 const columns = [productNav, solutionNav, resourceNav, companyNav]
 
-export function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
+export function Navbar({
+  isAuthenticated,
+  dashboardHref,
+}: {
+  isAuthenticated: boolean
+  dashboardHref: string
+}) {
   const [mobileOpen, setMobileOpen] = React.useState(false)
 
   return (
@@ -94,7 +100,7 @@ export function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
           {isAuthenticated ? (
             <Button
               className="hidden sm:inline-flex"
-              render={<Link href="/dashboard" />}
+              render={<Link href={dashboardHref} />}
               nativeButton={false}
             >
               Go to dashboard
@@ -168,7 +174,7 @@ export function Navbar({ isAuthenticated }: { isAuthenticated: boolean }) {
                 <Separator className="mb-2" />
                 {isAuthenticated ? (
                   <Button
-                    render={<Link href="/dashboard" />}
+                    render={<Link href={dashboardHref} />}
                     nativeButton={false}
                   >
                     Go to dashboard

@@ -8,9 +8,11 @@ import { DashboardEmpty } from "@/components/dashboard-empty"
 import { Button } from "@workspace/ui/components/button"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 
 export function ProjectWorkspace({ projectId }: { projectId: string }) {
   const { getProject } = useProjectStore()
+  const orgSlug = useOrgSlug()
   const project = getProject(projectId)
 
   if (!project) {
@@ -22,7 +24,7 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
           description="This project may have been deleted or the link is incorrect."
           className="flex-1 border"
           action={
-            <Button render={<Link href="/dashboard/projects" />} nativeButton={false}>
+            <Button render={<Link href={`/${orgSlug}/projects`} />} nativeButton={false}>
               Back to projects
             </Button>
           }

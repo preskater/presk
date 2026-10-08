@@ -21,6 +21,7 @@ import {
 } from "@workspace/ui/components/sidebar"
 
 import { useMessaging } from "@/lib/messaging/store"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import { useRecents, type AppKey } from "@/lib/recents/store"
 
 export interface NavApp {
@@ -33,6 +34,7 @@ export interface NavApp {
 export function NavMain({ items }: { items: NavApp[] }) {
   const pathname = usePathname()
   const router = useRouter()
+  const orgSlug = useOrgSlug()
   const { recents, setActive } = useRecents()
   const { unreadTotal } = useMessaging()
 
@@ -63,7 +65,7 @@ export function NavMain({ items }: { items: NavApp[] }) {
               size="icon"
               className="size-8 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
-              render={<Link href="/dashboard/messages" />}
+              render={<Link href={`/${orgSlug}/messages`} />}
               nativeButton={false}
             >
               <MailIcon />

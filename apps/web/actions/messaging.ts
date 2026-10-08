@@ -1,9 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { withAction } from "@/lib/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
+import { revalidateOrgPath } from "@/lib/organization/paths"
 import { messagingService } from "@/lib/messaging"
 import {
   addThreadReplySchema,
@@ -26,7 +25,7 @@ export const sendMessageAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = sendMessageSchema.parse(input)
   const message = await messagingService.sendMessage(ctx, parsed)
-  revalidatePath("/dashboard/messages")
+  await revalidateOrgPath(ctx.organizationId, "/messages")
   return message
 })
 
@@ -34,14 +33,14 @@ export const editMessageAction = withAction(async (id: string, body: string) => 
   const ctx = await getRequestContext()
   const parsed = editMessageSchema.parse({ body })
   const message = await messagingService.editMessage(ctx, id, parsed)
-  revalidatePath("/dashboard/messages")
+  await revalidateOrgPath(ctx.organizationId, "/messages")
   return message
 })
 
 export const deleteMessageAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await messagingService.deleteMessage(ctx, id)
-  revalidatePath("/dashboard/messages")
+  await revalidateOrgPath(ctx.organizationId, "/messages")
   return result
 })
 
@@ -54,7 +53,7 @@ export const toggleReactionAction = withAction(
       messageId,
       parsed
     )
-    revalidatePath("/dashboard/messages")
+    await revalidateOrgPath(ctx.organizationId, "/messages")
     return message
   }
 )
@@ -64,7 +63,7 @@ export const addThreadReplyAction = withAction(
     const ctx = await getRequestContext()
     const parsed = addThreadReplySchema.parse({ parentId, body })
     const message = await messagingService.addThreadReply(ctx, parsed)
-    revalidatePath("/dashboard/messages")
+    await revalidateOrgPath(ctx.organizationId, "/messages")
     return message
   }
 )
@@ -78,7 +77,7 @@ export const startDmAction = withAction(async (memberId: string) => {
   const ctx = await getRequestContext()
   const parsed = startDmSchema.parse({ memberId })
   const conversation = await messagingService.startDirectMessage(ctx, parsed)
-  revalidatePath("/dashboard/messages")
+  await revalidateOrgPath(ctx.organizationId, "/messages")
   return conversation
 })
 
@@ -86,7 +85,7 @@ export const createChannelAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = createChannelSchema.parse(input)
   const conversation = await messagingService.createChannel(ctx, parsed)
-  revalidatePath("/dashboard/messages")
+  await revalidateOrgPath(ctx.organizationId, "/messages")
   return conversation
 })
 
@@ -108,7 +107,7 @@ export const toggleMuteAction = withAction(
       conversationId,
       muted
     )
-    revalidatePath("/dashboard/messages")
+    await revalidateOrgPath(ctx.organizationId, "/messages")
     return conversation
   }
 )
@@ -122,7 +121,7 @@ export const togglePinAction = withAction(
       conversationId,
       pinned
     )
-    revalidatePath("/dashboard/messages")
+    await revalidateOrgPath(ctx.organizationId, "/messages")
     return conversation
   }
 )

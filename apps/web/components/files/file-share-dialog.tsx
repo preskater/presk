@@ -39,6 +39,7 @@ import {
 } from "@workspace/ui/components/select"
 
 import { useFiles } from "@/lib/files/store"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import {
   SHARE_PERMISSIONS,
   type FileNode,
@@ -65,6 +66,7 @@ export function FileShareDialog({
     removeShare,
     getMember,
   } = useFiles()
+  const orgSlug = useOrgSlug()
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
   const open = controlledOpen ?? uncontrolledOpen
   const setOpen = onOpenChange ?? setUncontrolledOpen
@@ -72,7 +74,9 @@ export function FileShareDialog({
   const entries = sharesFor(file.id)
 
   function copyLink() {
-    void navigator.clipboard?.writeText(`${window.location.origin}/dashboard/files`)
+    void navigator.clipboard?.writeText(
+      `${window.location.origin}/${orgSlug}/files`
+    )
     toast.success("Link copied to clipboard.")
   }
 

@@ -64,7 +64,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
       return
     }
 
-    const redirectTo = searchParams.get("redirect") ?? "/dashboard"
+    const redirectTo = searchParams.get("redirect") ?? "/onboarding"
     router.push(redirectTo)
     router.refresh()
   }

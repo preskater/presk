@@ -42,6 +42,7 @@ import {
 } from "@workspace/ui/components/tooltip"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import {
   formatDate,
   type Project,
@@ -62,6 +63,7 @@ export function ProjectHeader({
   onDeleted: () => void
 }) {
   const { getMember, deleteProject } = useProjectStore()
+  const orgSlug = useOrgSlug()
   const members = project.memberIds
     .map((id) => getMember(id))
     .filter((member) => member !== undefined)
@@ -71,7 +73,7 @@ export function ProjectHeader({
       <Breadcrumb>
         <BreadcrumbList>
           <BreadcrumbItem>
-            <BreadcrumbLink render={<Link href="/dashboard/projects" />}>
+            <BreadcrumbLink render={<Link href={`/${orgSlug}/projects`} />}>
               Projects
             </BreadcrumbLink>
           </BreadcrumbItem>

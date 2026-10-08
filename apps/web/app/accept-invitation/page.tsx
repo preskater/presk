@@ -24,7 +24,7 @@ export default async function AcceptInvitationPage({
   const { id } = await searchParams
 
   if (!id) {
-    redirect("/dashboard")
+    redirect("/onboarding")
   }
 
   const session = await auth.api.getSession({ headers: await headers() })

@@ -33,6 +33,7 @@ import { getInitials, slugify } from "@/lib/organization/utils"
 interface PendingInvitation {
   id: string
   organizationName: string
+  organizationSlug: string
   role: string | null
 }
 
@@ -55,6 +56,7 @@ export function OnboardingFlow({
 
   async function accept(invitationId: string) {
     setPendingId(invitationId)
+    const invitation = invitations.find((item) => item.id === invitationId)
     const { error } = await authClient.organization.acceptInvitation({
       invitationId,
     })
@@ -64,7 +66,7 @@ export function OnboardingFlow({
       return
     }
     toast.success("Welcome to the organization!")
-    router.push("/dashboard")
+    router.push(invitation ? `/${invitation.organizationSlug}` : "/onboarding")
     router.refresh()
   }
 
@@ -96,7 +98,7 @@ export function OnboardingFlow({
     }
     setSubmitting(true)
     setError(null)
-    const { error } = await authClient.organization.create({
+    const { data, error } = await authClient.organization.create({
       name: trimmed,
       slug,
     })
@@ -106,7 +108,7 @@ export function OnboardingFlow({
       return
     }
     toast.success("Organization created.")
-    router.push("/dashboard")
+    router.push(data?.slug ? `/${data.slug}` : "/onboarding")
     router.refresh()
   }
 

@@ -21,6 +21,7 @@ import { formatRoleLabel } from "@/lib/organization/roles"
 
 interface InvitationDetails {
   organizationName: string
+  organizationSlug: string
   inviterEmail: string
   role: string | null
   email: string
@@ -53,6 +54,7 @@ export function AcceptInvitationCard({
       }
       setInvitation({
         organizationName: data.organizationName,
+        organizationSlug: data.organizationSlug,
         inviterEmail: data.inviterEmail,
         role: data.role,
         email: data.email,
@@ -81,7 +83,7 @@ export function AcceptInvitationCard({
       return
     }
     toast.success("Invitation accepted.")
-    router.push("/dashboard")
+    router.push(invitation ? `/${invitation.organizationSlug}` : "/onboarding")
     router.refresh()
   }
 
@@ -96,7 +98,7 @@ export function AcceptInvitationCard({
       return
     }
     toast.success("Invitation declined.")
-    router.push("/dashboard")
+    router.push("/onboarding")
     router.refresh()
   }
 

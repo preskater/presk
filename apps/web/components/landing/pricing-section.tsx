@@ -29,16 +29,18 @@ function PricingCard({
   tier,
   yearly,
   isAuthenticated,
+  dashboardHref,
 }: {
   tier: PricingTier
   yearly: boolean
   isAuthenticated: boolean
+  dashboardHref: string
 }) {
   const ctaHref =
     tier.name === "Enterprise"
       ? "/contact"
       : isAuthenticated
-        ? "/dashboard"
+        ? dashboardHref
         : "/sign-up"
   const ctaLabel = isAuthenticated ? "Go to dashboard" : tier.cta
 
@@ -94,9 +96,11 @@ function PricingCard({
 export function PricingGrid({
   yearly,
   isAuthenticated,
+  dashboardHref,
 }: {
   yearly: boolean
   isAuthenticated: boolean
+  dashboardHref: string
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
@@ -106,6 +110,7 @@ export function PricingGrid({
           tier={tier}
           yearly={yearly}
           isAuthenticated={isAuthenticated}
+          dashboardHref={dashboardHref}
         />
       ))}
     </div>
@@ -114,8 +119,10 @@ export function PricingGrid({
 
 export function PricingSection({
   isAuthenticated,
+  dashboardHref,
 }: {
   isAuthenticated: boolean
+  dashboardHref: string
 }) {
   const [yearly, setYearly] = React.useState(false)
 
@@ -142,7 +149,11 @@ export function PricingSection({
         </ToggleGroup>
       </div>
       <div className="mt-10">
-        <PricingGrid yearly={yearly} isAuthenticated={isAuthenticated} />
+        <PricingGrid
+          yearly={yearly}
+          isAuthenticated={isAuthenticated}
+          dashboardHref={dashboardHref}
+        />
       </div>
     </Section>
   )

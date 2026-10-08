@@ -14,11 +14,13 @@ import { TaskList } from "@/components/task/task-list"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import { useRecents } from "@/lib/recents/store"
 import type { Project } from "@/lib/projects/types"
 
 export function ProjectView({ project }: { project: Project }) {
   const router = useRouter()
+  const orgSlug = useOrgSlug()
   const store = useProjectStore()
   const { record } = useRecents()
   const [filters, setFilters] = React.useState<TaskFilters>(defaultFilters)
@@ -48,7 +50,7 @@ export function ProjectView({ project }: { project: Project }) {
     <div className="flex flex-1 flex-col gap-4 px-4 py-4 md:py-6 lg:px-6">
       <ProjectHeader
         project={project}
-        onDeleted={() => router.push("/dashboard/projects")}
+        onDeleted={() => router.push(`/${orgSlug}/projects`)}
       />
 
       <Tabs

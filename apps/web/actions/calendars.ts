@@ -1,9 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { withAction } from "@/lib/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
+import { revalidateOrgPath } from "@/lib/organization/paths"
 import { calendarService } from "@/lib/calendars"
 import {
   createCalendarSchema,
@@ -22,8 +21,8 @@ export const createEventAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = createEventSchema.parse(input)
   const event = await calendarService.createEvent(ctx, parsed)
-  revalidatePath("/dashboard/calendars")
-  revalidatePath("/dashboard")
+  await revalidateOrgPath(ctx.organizationId, "/calendars")
+  await revalidateOrgPath(ctx.organizationId)
   return event
 })
 
@@ -32,7 +31,7 @@ export const updateEventAction = withAction(
     const ctx = await getRequestContext()
     const parsed = updateEventSchema.parse(input)
     const event = await calendarService.updateEvent(ctx, id, parsed)
-    revalidatePath("/dashboard/calendars")
+    await revalidateOrgPath(ctx.organizationId, "/calendars")
     return event
   }
 )
@@ -41,14 +40,14 @@ export const moveEventAction = withAction(async (id: string, input: unknown) => 
   const ctx = await getRequestContext()
   const parsed = moveEventSchema.parse(input)
   const event = await calendarService.moveEvent(ctx, id, parsed)
-  revalidatePath("/dashboard/calendars")
+  await revalidateOrgPath(ctx.organizationId, "/calendars")
   return event
 })
 
 export const deleteEventAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await calendarService.removeEvent(ctx, id)
-  revalidatePath("/dashboard/calendars")
+  await revalidateOrgPath(ctx.organizationId, "/calendars")
   return result
 })
 
@@ -56,7 +55,7 @@ export const addCalendarAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = createCalendarSchema.parse(input)
   const calendar = await calendarService.addCalendar(ctx, parsed)
-  revalidatePath("/dashboard/calendars")
+  await revalidateOrgPath(ctx.organizationId, "/calendars")
   return calendar
 })
 
@@ -64,7 +63,7 @@ export const toggleCalendarAction = withAction(
   async (id: string, visible?: boolean) => {
     const ctx = await getRequestContext()
     const calendar = await calendarService.toggleCalendar(ctx, id, visible)
-    revalidatePath("/dashboard/calendars")
+    await revalidateOrgPath(ctx.organizationId, "/calendars")
     return calendar
   }
 )
@@ -74,7 +73,7 @@ export const respondToEventAction = withAction(
     const ctx = await getRequestContext()
     const parsed = setAttendeeResponseSchema.parse(input)
     const event = await calendarService.setAttendeeResponse(ctx, eventId, parsed)
-    revalidatePath("/dashboard/calendars")
+    await revalidateOrgPath(ctx.organizationId, "/calendars")
     return event
   }
 )

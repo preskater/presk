@@ -6,7 +6,13 @@ import { WaitlistForm } from "@/components/forms/waitlist-form"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 
-export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
+export function HeroSection({
+  isAuthenticated,
+  dashboardHref,
+}: {
+  isAuthenticated: boolean
+  dashboardHref: string
+}) {
   return (
     <section className="relative overflow-hidden py-20 sm:py-28">
       <div
@@ -32,7 +38,7 @@ export function HeroSection({ isAuthenticated }: { isAuthenticated: boolean }) {
           {isAuthenticated ? (
             <Button
               size="lg"
-              render={<Link href="/dashboard" />}
+              render={<Link href={dashboardHref} />}
               nativeButton={false}
             >
               Go to dashboard

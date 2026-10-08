@@ -39,6 +39,7 @@ import {
 } from "@workspace/ui/components/context-menu"
 
 import { useFiles } from "@/lib/files/store"
+import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import type { FileLocation, FileNode } from "@/lib/files/types"
 
 export function FileMenuItems({
@@ -58,6 +59,7 @@ export function FileMenuItems({
 }) {
   const { duplicateFile, toggleStar, trashFile, restoreFile, deleteForever } =
     useFiles()
+  const orgSlug = useOrgSlug()
 
   const Item =
     menu === "context"
@@ -71,7 +73,9 @@ export function FileMenuItems({
 
   const download = () => toast.success(`Downloading “${file.name}”.`)
   const copyLink = () => {
-    void navigator.clipboard?.writeText(`${window.location.origin}/dashboard/files`)
+    void navigator.clipboard?.writeText(
+      `${window.location.origin}/${orgSlug}/files`
+    )
     toast.success("Link copied to clipboard.")
   }
   const isFolder = file.kind === "folder"

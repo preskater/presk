@@ -28,58 +28,63 @@ import {
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
 
-const navMain: NavApp[] = [
-  {
-    title: "Dashboard",
-    url: "/dashboard",
-    icon: <LayoutDashboardIcon />,
-  },
-  {
-    key: "projects",
-    title: "Projects",
-    url: "/dashboard/projects",
-    icon: <FolderIcon />,
-  },
-  {
-    key: "messages",
-    title: "Messages",
-    url: "/dashboard/messages",
-    icon: <MessageSquareIcon />,
-  },
-  {
-    key: "calendars",
-    title: "Calendars",
-    url: "/dashboard/calendars",
-    icon: <CalendarIcon />,
-  },
-  {
-    key: "files",
-    title: "Files",
-    url: "/dashboard/files",
-    icon: <FileIcon />,
-  },
-]
+function buildNavMain(orgSlug: string): NavApp[] {
+  return [
+    {
+      title: "Dashboard",
+      url: `/${orgSlug}`,
+      icon: <LayoutDashboardIcon />,
+    },
+    {
+      key: "projects",
+      title: "Projects",
+      url: `/${orgSlug}/projects`,
+      icon: <FolderIcon />,
+    },
+    {
+      key: "messages",
+      title: "Messages",
+      url: `/${orgSlug}/messages`,
+      icon: <MessageSquareIcon />,
+    },
+    {
+      key: "calendars",
+      title: "Calendars",
+      url: `/${orgSlug}/calendars`,
+      icon: <CalendarIcon />,
+    },
+    {
+      key: "files",
+      title: "Files",
+      url: `/${orgSlug}/files`,
+      icon: <FileIcon />,
+    },
+  ]
+}
 
-const navSecondary = [
-  {
-    title: "Settings",
-    url: "/dashboard/settings",
-    icon: <Settings2Icon />,
-  },
-  {
-    title: "Search",
-    url: "/dashboard/search",
-    icon: <SearchIcon />,
-  },
-  {
-    title: "Get Help",
-    url: "/dashboard/help",
-    icon: <CircleHelpIcon />,
-  },
-]
+function buildNavSecondary(orgSlug: string) {
+  return [
+    {
+      title: "Settings",
+      url: `/${orgSlug}/settings`,
+      icon: <Settings2Icon />,
+    },
+    {
+      title: "Search",
+      url: `/${orgSlug}/search`,
+      icon: <SearchIcon />,
+    },
+    {
+      title: "Get Help",
+      url: `/${orgSlug}/help`,
+      icon: <CircleHelpIcon />,
+    },
+  ]
+}
 
 export function AppSidebar({
   user,
+  orgSlug,
   activeOrganizationId,
   ...props
 }: React.ComponentProps<typeof Sidebar> & {
@@ -88,8 +93,11 @@ export function AppSidebar({
     email: string
     image?: string | null
   }
+  orgSlug: string
   activeOrganizationId: string | null
 }) {
+  const navMain = buildNavMain(orgSlug)
+  const navSecondary = buildNavSecondary(orgSlug)
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className="gap-2">
@@ -97,7 +105,7 @@ export function AppSidebar({
           <SidebarMenuItem>
             <SidebarMenuButton
               className="data-[slot=sidebar-menu-button]:p-1.5!"
-              render={<Link href="/dashboard" />}
+              render={<Link href={`/${orgSlug}`} />}
             >
               <CommandIcon className="size-5!" />
               <span className="text-base font-semibold">Presk</span>

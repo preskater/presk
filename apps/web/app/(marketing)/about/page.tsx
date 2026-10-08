@@ -7,7 +7,7 @@ import { FinalCta } from "@/components/landing/final-cta"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 
 import { companyStats, companyValues } from "@/lib/landing/content"
-import { isAuthenticated } from "@/lib/landing/session"
+import { getMarketingAuth } from "@/lib/landing/session"
 
 export const metadata: Metadata = {
   title: "About",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 const statIcons = [RocketIcon, UsersIcon, GlobeIcon, Building2Icon]
 
 export default async function AboutPage() {
-  const authenticated = await isAuthenticated()
+  const { isAuthenticated: authenticated, dashboardHref } = await getMarketingAuth()
 
   return (
     <>
@@ -65,7 +65,7 @@ export default async function AboutPage() {
           ))}
         </div>
       </Section>
-      <FinalCta isAuthenticated={authenticated} />
+      <FinalCta isAuthenticated={authenticated} dashboardHref={dashboardHref} />
     </>
   )
 }
