@@ -108,7 +108,14 @@ export class MessagingRepository {
     meetingTitle?: string
     meetingStartsAt?: Date
     meetingDuration?: number
-    attachments?: { name: string; kind: string; meta?: string }[]
+    attachments?: {
+      name: string
+      kind: string
+      meta?: string
+      storageKey?: string
+      mimeType?: string
+      sizeBytes?: number
+    }[]
   }) {
     return this.db.message.create({
       data: {
@@ -125,6 +132,9 @@ export class MessagingRepository {
                 name: attachment.name,
                 kind: attachment.kind,
                 meta: attachment.meta,
+                storageKey: attachment.storageKey,
+                mimeType: attachment.mimeType,
+                sizeBytes: attachment.sizeBytes,
               })),
             }
           : undefined,

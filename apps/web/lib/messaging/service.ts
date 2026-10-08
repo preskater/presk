@@ -1,5 +1,7 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
+import { prisma } from "@/lib/prisma"
+import { realtime } from "@/lib/realtime"
 
 import { MessagingRepository } from "./repository"
 import type {
@@ -71,6 +73,8 @@ export class MessagingService {
         name: attachment.name,
         kind: attachment.kind as Message["attachments"][number]["kind"],
         meta: attachment.meta ?? undefined,
+        sizeBytes: attachment.sizeBytes ?? undefined,
+        hasStorage: Boolean(attachment.storageKey),
       })),
       parentId: row.parentId ?? undefined,
       edited: row.edited,
@@ -106,12 +110,24 @@ export class MessagingService {
   }
 
   async list(ctx: RequestContext): Promise<MessagingData> {
-    const [conversations, messages, teams] = await Promise.all([
+    const [conversations, messages, teams, onlineUsers] = await Promise.all([
       this.repo.listConversations(ctx.organizationId),
       this.repo.listMessages(ctx.organizationId),
       this.repo.listTeams(ctx.organizationId),
+      prisma.member.findMany({
+        where: { organizationId: ctx.organizationId },
+        select: { userId: true, user: { select: { lastSeenAt: true } } },
+      }),
     ])
+    const now = Date.now()
     const presence: Record<string, Presence> = {}
+    for (const entry of onlineUsers) {
+      const lastSeen = entry.user.lastSeenAt?.getTime()
+      if (!lastSeen) continue
+      const minutes = (now - lastSeen) / 60000
+      presence[entry.userId] =
+        minutes < 2 ? "online" : minutes < 15 ? "away" : "offline"
+    }
     const typing: Record<string, string[]> = {}
     return {
       teams: teams.map((team) => this.mapTeam(team)),
@@ -170,6 +186,9 @@ export class MessagingService {
         name: attachment.name,
         kind: attachment.kind,
         meta: attachment.meta,
+        storageKey: attachment.storageKey,
+        mimeType: attachment.mimeType,
+        sizeBytes: attachment.sizeBytes,
       })),
     })
     if (!input.parentId) {
@@ -178,7 +197,13 @@ export class MessagingService {
         unreadCount: 0,
       })
     }
-    return this.mapMessage(row)
+    const message = this.mapMessage(row)
+    void realtime.messageCreated(ctx.organizationId, {
+      conversationId: input.conversationId,
+      messageId: message.id,
+      parentId: input.parentId ?? null,
+    })
+    return message
   }
 
   async editMessage(
@@ -193,7 +218,12 @@ export class MessagingService {
       body: input.body,
       edited: true,
     })
-    return this.mapMessage(row)
+    const message = this.mapMessage(row)
+    void realtime.messageUpdated(ctx.organizationId, {
+      conversationId: existing.conversationId,
+      messageId: id,
+    })
+    return message
   }
 
   async deleteMessage(ctx: RequestContext, id: string): Promise<{ id: string }> {
@@ -201,6 +231,10 @@ export class MessagingService {
     const existing = await this.repo.findMessage(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Message")
     await this.repo.deleteMessage(id)
+    void realtime.messageDeleted(ctx.organizationId, {
+      conversationId: existing.conversationId,
+      messageId: id,
+    })
     return { id }
   }
 
@@ -328,7 +362,27 @@ export class MessagingService {
     return rows.map((row) => this.mapTeam(row))
   }
 
-  setTyping(_ctx: RequestContext, _input: SetTypingInput): { ok: true } {
+  setTyping(
+    ctx: RequestContext,
+    conversationId: string,
+    input: SetTypingInput
+  ): { ok: true } {
+    void realtime.typing(ctx.organizationId, {
+      conversationId,
+      memberId: input.memberId,
+      isTyping: input.isTyping,
+    })
     return { ok: true }
+  }
+
+  async touchPresence(ctx: RequestContext): Promise<void> {
+    await prisma.user.update({
+      where: { id: ctx.userId },
+      data: { lastSeenAt: new Date() },
+    })
+    void realtime.presence(ctx.organizationId, {
+      memberId: ctx.userId,
+      presence: "online",
+    })
   }
 }

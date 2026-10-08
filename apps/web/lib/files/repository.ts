@@ -33,6 +33,9 @@ export class FileRepository {
     parentId: string | null
     ownerId: string
     sizeBytes?: number
+    mimeType?: string
+    storageKey?: string
+    checksum?: string
   }) {
     return this.db.fileNode.create({
       data: {
@@ -42,6 +45,9 @@ export class FileRepository {
         parentId: data.parentId,
         ownerId: data.ownerId,
         sizeBytes: data.sizeBytes,
+        mimeType: data.mimeType,
+        storageKey: data.storageKey,
+        checksum: data.checksum,
       },
       include: {
         shares: true,
@@ -59,6 +65,8 @@ export class FileRepository {
       parentId: string | null
       ownerId: string
       sizeBytes?: number
+      mimeType?: string
+      storageKey?: string
     }[]
   ) {
     return this.db.$transaction(
@@ -78,6 +86,10 @@ export class FileRepository {
       trashedAt?: Date | null
       shared?: boolean
       modifiedAt?: Date
+      sizeBytes?: number
+      mimeType?: string
+      storageKey?: string
+      checksum?: string
     }
   ) {
     return this.db.fileNode.update({
@@ -116,6 +128,17 @@ export class FileRepository {
     return this.db.fileActivity.create({
       data: { fileId, userId, action },
     })
+  }
+
+  addVersion(data: {
+    fileId: string
+    userId: string
+    note: string
+    storageKey?: string
+    mimeType?: string
+    sizeBytes?: number
+  }) {
+    return this.db.fileVersion.create({ data })
   }
 
   addShare(fileId: string, userId: string, permission: string) {

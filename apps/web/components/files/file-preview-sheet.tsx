@@ -108,7 +108,11 @@ export function FilePreviewSheet({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => toast.success(t("downloading", { name: file.name }))}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open(`/api/files/${file.id}/download`, "_blank")}
+            >
               <DownloadIcon data-icon="inline-start" />
               {t("download")}
             </Button>

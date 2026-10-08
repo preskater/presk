@@ -23,26 +23,6 @@
     "files": "Fichiers",
     "filesDescription": "Documents, partage et permissions"
   },
-  "solutionNav": {
-    "engineering": "Ingénierie",
-    "engineeringDescription": "Livrez plus vite, ensemble",
-    "design": "Design",
-    "designDescription": "Gardez le travail synchronisé",
-    "operations": "Opérations",
-    "operationsDescription": "Pilotez l'entreprise",
-    "startups": "Startups",
-    "startupsDescription": "Évoluez dès le premier jour"
-  },
-  "resourceNav": {
-    "documentation": "Documentation",
-    "documentationDescription": "Guides et références",
-    "blog": "Blog",
-    "blogDescription": "Nouveautés produit",
-    "community": "Communauté",
-    "communityDescription": "Rejoignez la conversation",
-    "support": "Assistance",
-    "supportDescription": "Nous sommes là pour vous aider"
-  },
   "companyNav": {
     "about": "À propos",
     "aboutDescription": "Notre mission et notre équipe",
@@ -171,5 +151,25 @@
     "dashboard": "Aller au tableau de bord",
     "startBuilding": "Commencer gratuitement",
     "signIn": "Se connecter"
+  },
+  "solutionsNav": {
+    "engineering": "Ingénierie",
+    "engineeringDescription": "Livrez plus vite, ensemble",
+    "design": "Design",
+    "designDescription": "Gardez le travail synchronisé",
+    "operations": "Opérations",
+    "operationsDescription": "Pilotez l'entreprise",
+    "startups": "Startups",
+    "startupsDescription": "Évoluez dès le premier jour"
+  },
+  "resourcesNav": {
+    "documentation": "Documentation",
+    "documentationDescription": "Guides et références",
+    "blog": "Blog",
+    "blogDescription": "Nouveautés produit",
+    "community": "Communauté",
+    "communityDescription": "Rejoignez la conversation",
+    "support": "Assistance",
+    "supportDescription": "Nous sommes là pour vous aider"
   }
 }

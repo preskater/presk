@@ -83,5 +83,6 @@
   "mentionPlaceholder": "Mentionner quelqu'un...",
   "noMembers": "Aucun membre trouvé.",
   "meetingShared": "A partagé une réunion",
-  "conversationFallback": "Conversation"
+  "conversationFallback": "Conversation",
+  "attachFailed": "Impossible de téléverser la pièce jointe."
 }

@@ -139,7 +139,18 @@ export function MessageItem({
                     <FileIcon className="size-4 text-muted-foreground" />
                   )}
                   <div className="flex flex-col">
-                    <span className="text-sm font-medium">{attachment.name}</span>
+                    {attachment.hasStorage ? (
+                      <a
+                        href={`/api/messages/attachments/${attachment.id}`}
+                        className="text-sm font-medium hover:underline"
+                      >
+                        {attachment.name}
+                      </a>
+                    ) : (
+                      <span className="text-sm font-medium">
+                        {attachment.name}
+                      </span>
+                    )}
                     {attachment.meta ? (
                       <span className="text-xs text-muted-foreground">
                         {attachment.meta}

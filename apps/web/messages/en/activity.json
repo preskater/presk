@@ -9,5 +9,6 @@
   "movedThisFileToTrash": "moved this file to trash",
   "editedThisFile": "edited this file",
   "sharedWith": "shared with {name}",
-  "taskMoved": "{identifier} to {status}"
+  "taskMoved": "{identifier} to {status}",
+  "uploadedThisFile": "uploaded this file"
 }

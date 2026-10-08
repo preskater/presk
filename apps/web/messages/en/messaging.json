@@ -83,5 +83,6 @@
   "mentionPlaceholder": "Mention someone...",
   "noMembers": "No members found.",
   "meetingShared": "Shared a meeting",
-  "conversationFallback": "Conversation"
+  "conversationFallback": "Conversation",
+  "attachFailed": "Couldn't upload the attachment."
 }

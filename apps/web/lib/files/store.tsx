@@ -9,10 +9,10 @@ import {
   bulkDeleteAction,
   bulkRestoreAction,
   bulkTrashAction,
-  createFilesAction,
   createFolderAction,
   deleteFileAction,
   duplicateFileAction,
+  finalizeUploadAction,
   moveFileAction,
   removeShareAction,
   renameFileAction,
@@ -23,6 +23,7 @@ import {
 } from "@/actions/files"
 import { unwrapActionResult } from "@/lib/core/action"
 import { useErrorTranslator } from "@/lib/i18n/errors"
+import { buildUploadPath } from "@/lib/files/paths"
 import type { Member } from "@/lib/projects/types"
 
 import { kindFromName } from "./file-utils"
@@ -42,6 +43,8 @@ function uid(prefix: string) {
 interface FilesStore extends FilesData {
   members: Member[]
   currentUserId: string
+  organizationId: string
+  storageQuotaBytes: number
   uploads: UploadItem[]
   getMember: (id?: string) => Member | undefined
   getFile: (id?: string) => FileNode | undefined
@@ -54,10 +57,6 @@ interface FilesStore extends FilesData {
   sharesFor: (id: string) => ShareEntry[]
   locationCounts: Record<FileLocation, number>
   createFolder: (parentId: string | null, name: string) => void
-  createFiles: (
-    parentId: string | null,
-    files: { name: string; sizeBytes: number }[]
-  ) => void
   renameFile: (id: string, name: string) => void
   moveFile: (id: string, parentId: string | null) => void
   duplicateFile: (id: string) => void
@@ -75,11 +74,7 @@ interface FilesStore extends FilesData {
     permission: SharePermission
   ) => void
   removeShare: (id: string, memberId: string) => void
-  enqueueUploads: (
-    items: { name: string; sizeBytes: number }[],
-    parentId: string | null
-  ) => void
-  advanceUploads: () => void
+  enqueueUploads: (files: File[], parentId: string | null) => void
   removeUpload: (id: string) => void
   clearCompletedUploads: () => void
 }
@@ -90,11 +85,15 @@ export function FilesProvider({
   children,
   initialData,
   currentUserId,
+  organizationId,
+  storageQuotaBytes,
   members = [],
 }: {
   children: React.ReactNode
   initialData: FilesData
   currentUserId: string
+  organizationId: string
+  storageQuotaBytes: number
   members?: Member[]
 }) {
   const t = useTranslations("Toasts")
@@ -223,41 +222,48 @@ export function FilesProvider({
       )
     }
 
-    function createFiles(
-      parentId: string | null,
-      items: { name: string; sizeBytes: number }[]
+    function updateUpload(id: string, patch: Partial<UploadItem>) {
+      setUploads((prev) =>
+        prev.map((item) => (item.id === id ? { ...item, ...patch } : item))
+      )
+    }
+
+    async function uploadOne(
+      item: UploadItem,
+      file: File,
+      parentId: string | null
     ) {
-      const created: FileNode[] = items.map((item) => ({
-        id: uid("file"),
-        name: item.name,
-        kind: kindFromName(item.name),
-        parentId,
-        ownerId: currentUserId,
-        modifiedAt: new Date().toISOString(),
-        sizeBytes: item.sizeBytes,
-        starred: false,
-        trashed: false,
-        shared: false,
-        restricted: false,
-      }))
-      setFiles((prev) => [...prev, ...created])
-      void createFilesAction({ parentId, files: items })
-        .then((result) => {
-          const files = unwrapActionResult(result)
-          setFiles((prev) => {
-            const byName = new Map(files.map((file) => [file.name, file]))
-            return prev.map((file) => {
-              const match = created.find((item) => item.id === file.id)
-              return match ? (byName.get(match.name) ?? file) : file
-            })
-          })
-          toast.success(t("filesUploaded", { count: created.length }))
+      try {
+        const { upload } = await import("@vercel/blob/client")
+        updateUpload(item.id, { status: "uploading" })
+        const blob = await upload(
+          buildUploadPath(organizationId, file.name),
+          file,
+          {
+            access: "private",
+            handleUploadUrl: "/api/files/upload",
+            onUploadProgress: ({ percentage }) => {
+              updateUpload(item.id, {
+                progress: Math.round(percentage),
+                status: "uploading",
+              })
+            },
+          }
+        )
+        const result = await finalizeUploadAction({
+          parentId,
+          name: file.name,
+          sizeBytes: file.size,
+          mimeType: file.type || undefined,
+          storageKey: blob.pathname,
         })
-        .catch((error) => {
-          const ids = new Set(created.map((file) => file.id))
-          setFiles((prev) => prev.filter((file) => !ids.has(file.id)))
-          toast.error(te(error, "uploadFailed"))
-        })
+        const created = unwrapActionResult(result)
+        setFiles((prev) => [created, ...prev])
+        updateUpload(item.id, { progress: 100, status: "done" })
+      } catch (error) {
+        updateUpload(item.id, { status: "error" })
+        toast.error(te(error, "uploadFailed"))
+      }
     }
 
     return {
@@ -268,6 +274,8 @@ export function FilesProvider({
       members,
       uploads,
       currentUserId,
+      organizationId,
+      storageQuotaBytes,
       getMember,
       getFile,
       breadcrumbFor,
@@ -303,7 +311,6 @@ export function FilesProvider({
             toast.error(te(error, "createFolderFailed"))
           })
       },
-      createFiles,
       renameFile: (id, name) => {
         setFiles((prev) =>
           prev.map((file) =>
@@ -500,28 +507,23 @@ export function FilesProvider({
           })
           .catch((error) => toast.error(te(error, "removeFailed")))
       },
-      enqueueUploads: (items, parentId) => {
-        const queued: UploadItem[] = items.map((item) => ({
-          id: uid("upload"),
-          name: item.name,
-          sizeBytes: item.sizeBytes,
-          progress: 0,
-          status: "queued",
-        }))
-        setUploads((prev) => [...prev, ...queued])
-        window.setTimeout(() => {
-          createFiles(parentId, items)
-        }, 1600)
-      },
-      advanceUploads: () => {
-        setUploads((prev) =>
-          prev.map((item) => {
-            if (item.status === "done" || item.status === "error") return item
-            const next = Math.min(100, item.progress + 12 + Math.random() * 18)
-            if (next >= 100) return { ...item, progress: 100, status: "done" }
-            return { ...item, progress: next, status: "uploading" }
+      enqueueUploads: (files, parentId) => {
+        const queued: Array<{ item: UploadItem; file: File }> = files.map(
+          (file) => ({
+            file,
+            item: {
+              id: uid("upload"),
+              name: file.name,
+              sizeBytes: file.size,
+              progress: 0,
+              status: "queued",
+            },
           })
         )
+        setUploads((prev) => [...prev, ...queued.map((entry) => entry.item)])
+        for (const entry of queued) {
+          void uploadOne(entry.item, entry.file, parentId)
+        }
       },
       removeUpload: (id) => {
         setUploads((prev) => prev.filter((item) => item.id !== id))
@@ -530,7 +532,7 @@ export function FilesProvider({
         setUploads((prev) => prev.filter((item) => item.status !== "done"))
       },
     }
-  }, [files, shares, versions, activities, uploads, members, currentUserId])
+  }, [files, shares, versions, activities, uploads, members, currentUserId, organizationId, storageQuotaBytes])
 
   return <FilesContext.Provider value={store}>{children}</FilesContext.Provider>
 }

@@ -5,6 +5,7 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { AssistantBar } from "@/components/assistant/assistant-bar"
 import { OrganizationSync } from "@/components/organization/organization-sync"
 import { SiteHeader } from "@/components/site-header"
+import { RealtimeProvider } from "@/components/realtime-provider"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
@@ -12,6 +13,7 @@ import { auth } from "@/lib/auth"
 import { calendarService } from "@/lib/calendars"
 import { getRequestContextForOrganization } from "@/lib/core/auth-context"
 import { fileService } from "@/lib/files"
+import { orgQuotaBytes } from "@/lib/files/storage"
 import { messagingService } from "@/lib/messaging"
 import { projectService } from "@/lib/projects"
 import { CalendarsProvider } from "@/lib/calendars/store"
@@ -54,17 +56,19 @@ export default async function OrganizationLayout({
 
   const ctx = await getRequestContextForOrganization(organization.id)
 
-  const [projectData, calendarData, filesData, messagingData] =
+  const [projectData, calendarData, filesData, messagingData, storageQuotaBytes] =
     await Promise.all([
       projectService.list(ctx),
       calendarService.list(ctx),
       fileService.list(ctx),
       messagingService.list(ctx),
+      orgQuotaBytes(organization.id),
     ])
 
   return (
     <TooltipProvider>
-      <RecentsProvider organizationId={organization.id}>
+      <RealtimeProvider organizationId={organization.id}>
+        <RecentsProvider organizationId={organization.id}>
         <ProjectStoreProvider
           initialData={projectData}
           currentUserId={ctx.userId}
@@ -72,6 +76,7 @@ export default async function OrganizationLayout({
           <MessagingProvider
             initialData={messagingData}
             currentUserId={ctx.userId}
+            organizationId={organization.id}
             members={projectData.members}
           >
             <CalendarsProvider
@@ -82,6 +87,8 @@ export default async function OrganizationLayout({
               <FilesProvider
                 initialData={filesData}
                 currentUserId={ctx.userId}
+                organizationId={organization.id}
+                storageQuotaBytes={storageQuotaBytes}
                 members={projectData.members}
               >
                 <SidebarProvider
@@ -119,7 +126,8 @@ export default async function OrganizationLayout({
             </CalendarsProvider>
           </MessagingProvider>
         </ProjectStoreProvider>
-      </RecentsProvider>
+        </RecentsProvider>
+      </RealtimeProvider>
     </TooltipProvider>
   )
 }

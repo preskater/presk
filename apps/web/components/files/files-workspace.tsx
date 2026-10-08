@@ -13,7 +13,6 @@ import { FilePermissionsSheet } from "@/components/files/file-permissions-sheet"
 import { FilePreviewSheet } from "@/components/files/file-preview-sheet"
 import { FileShareDialog } from "@/components/files/file-share-dialog"
 import { UploadQueue } from "@/components/files/file-upload-dialog"
-import { useUploadTicker } from "@/components/files/use-upload-ticker"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@workspace/ui/components/empty"
@@ -39,8 +38,8 @@ export function FilesWorkspace() {
     moveToTrashMany,
     restoreMany,
     deleteMany,
+    uploads,
   } = useFiles()
-  const { uploads } = useUploadTicker()
   const { record, active, hydrated } = useRecents()
 
   const [location, setLocation] = React.useState<FileLocation>("my-files")

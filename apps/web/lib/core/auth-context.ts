@@ -63,9 +63,13 @@ export interface GetRequestContextOptions {
 export async function getRequestContext(
   options: GetRequestContextOptions = {}
 ): Promise<RequestContext> {
-  const token =
-    options.request?.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ??
-    process.env.MCP_SERVICE_TOKEN
+  // Only an explicit Bearer token (machine-to-machine) or an authenticated
+  // session may establish context. We never fall back to the service token
+  // implicitly, otherwise any unauthenticated request would inherit the MCP
+  // service organization's context.
+  const token = options.request?.headers
+    .get("authorization")
+    ?.replace(/^Bearer\s+/i, "")
 
   if (token) {
     const fromToken = contextFromServiceToken(token)

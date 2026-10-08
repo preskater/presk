@@ -23,6 +23,8 @@ export interface FileNode {
   ownerId: string
   modifiedAt: string
   sizeBytes?: number
+  mimeType?: string
+  hasStorage?: boolean
   starred: boolean
   trashed: boolean
   trashedAt?: string
@@ -40,6 +42,8 @@ export interface FileVersion {
   memberId: string
   at: string
   note: string
+  sizeBytes?: number
+  hasStorage?: boolean
 }
 
 export interface FileActivity {

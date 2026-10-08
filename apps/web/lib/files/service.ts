@@ -1,11 +1,13 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
+import { realtime } from "@/lib/realtime"
 
 import { kindFromName } from "./file-utils"
 import { FileRepository } from "./repository"
 import type {
   CreateFilesInput,
   CreateFolderInput,
+  FinalizeUploadInput,
   MoveFileInput,
   RenameFileInput,
   AddShareInput,
@@ -49,6 +51,8 @@ export class FileService {
       ownerId: row.ownerId,
       modifiedAt: row.modifiedAt.toISOString(),
       sizeBytes: row.sizeBytes ?? undefined,
+      mimeType: row.mimeType ?? undefined,
+      hasStorage: Boolean(row.storageKey),
       starred: row.starred,
       trashed: row.trashed,
       trashedAt: row.trashedAt?.toISOString(),
@@ -70,6 +74,8 @@ export class FileService {
       memberId: version.userId,
       at: version.at.toISOString(),
       note: version.note,
+      sizeBytes: version.sizeBytes ?? undefined,
+      hasStorage: Boolean(version.storageKey),
     }))
   }
 
@@ -118,6 +124,10 @@ export class FileService {
       parentId: input.parentId ?? null,
       ownerId: ctx.userId,
     })
+    void realtime.fileChanged(ctx.organizationId, {
+      action: "folder.created",
+      fileId: row.id,
+    })
     return this.mapFile(row)
   }
 
@@ -134,9 +144,44 @@ export class FileService {
         parentId: input.parentId ?? null,
         ownerId: ctx.userId,
         sizeBytes: file.sizeBytes,
+        mimeType: file.mimeType,
+        storageKey: file.storageKey,
       }))
     )
+    void realtime.fileChanged(ctx.organizationId, { action: "files.created" })
     return rows.map((row) => this.mapFile(row as FileRow))
+  }
+
+  async finalizeUpload(
+    ctx: RequestContext,
+    input: FinalizeUploadInput
+  ): Promise<FileNode> {
+    canWrite(ctx)
+    const row = await this.repo.create({
+      organizationId: ctx.organizationId,
+      name: input.name,
+      kind: kindFromName(input.name),
+      parentId: input.parentId ?? null,
+      ownerId: ctx.userId,
+      sizeBytes: input.sizeBytes,
+      mimeType: input.mimeType,
+      storageKey: input.storageKey,
+    })
+    await this.repo.addVersion({
+      fileId: row.id,
+      userId: ctx.userId,
+      note: "Initial upload",
+      storageKey: input.storageKey,
+      mimeType: input.mimeType,
+      sizeBytes: input.sizeBytes,
+    })
+    await this.repo.addActivity(row.id, ctx.userId, "uploadedThisFile")
+    void realtime.fileChanged(ctx.organizationId, {
+      action: "file.uploaded",
+      fileId: row.id,
+    })
+    const withRelations = await this.repo.findById(ctx.organizationId, row.id)
+    return this.mapFile((withRelations ?? row) as FileRow)
   }
 
   private async require(
@@ -160,6 +205,10 @@ export class FileService {
       modifiedAt: new Date(),
     })
     await this.repo.addActivity(id, ctx.userId, "renamedThisFile")
+    void realtime.fileChanged(ctx.organizationId, {
+      action: "file.renamed",
+      fileId: id,
+    })
     return this.mapFile(row)
   }
 
@@ -210,6 +259,10 @@ export class FileService {
       trashedAt: new Date(),
     })
     await this.repo.addActivity(id, ctx.userId, "movedThisFileToTrash")
+    void realtime.fileChanged(ctx.organizationId, {
+      action: "file.trashed",
+      fileId: id,
+    })
     return this.mapFile(row)
   }
 
@@ -227,6 +280,10 @@ export class FileService {
     canWrite(ctx)
     await this.require(ctx, id)
     await this.repo.delete(id)
+    void realtime.fileChanged(ctx.organizationId, {
+      action: "file.deleted",
+      fileId: id,
+    })
     return { id }
   }
 

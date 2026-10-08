@@ -27,6 +27,7 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/tooltip"
 
 import { useMessaging } from "@/lib/messaging/store"
+import { buildUploadPath } from "@/lib/files/paths"
 import type { Attachment } from "@/lib/messaging/types"
 
 const EMOJI = [
@@ -47,10 +48,13 @@ export function MessageComposer({
   onScheduleMeeting?: () => void
 }) {
   const t = useTranslations("Messaging")
-  const { sendMessage, currentUserId, setTyping } = useMessaging()
+  const { sendMessage, currentUserId, organizationId, setTyping } = useMessaging()
   const [value, setValue] = React.useState("")
   const [attachments, setAttachments] = React.useState<Attachment[]>([])
+  const [uploading, setUploading] = React.useState(false)
   const textareaRef = React.useRef<HTMLTextAreaElement>(null)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
+  const imageInputRef = React.useRef<HTMLInputElement>(null)
 
   function submit() {
     const body = value.trim()
@@ -60,6 +64,36 @@ export function MessageComposer({
     setAttachments([])
     setTyping(conversationId, currentUserId, false)
     textareaRef.current?.focus()
+  }
+
+  async function uploadFiles(files: FileList | null, kind: "file" | "image") {
+    if (!files || files.length === 0) return
+    setUploading(true)
+    try {
+      const { upload } = await import("@vercel/blob/client")
+      for (const file of Array.from(files)) {
+        const blob = await upload(
+          buildUploadPath(organizationId, file.name),
+          file,
+          { access: "private", handleUploadUrl: "/api/files/upload" }
+        )
+        setAttachments((prev) => [
+          ...prev,
+          {
+            id: `a_${Math.random().toString(36).slice(2, 7)}`,
+            name: file.name,
+            kind,
+            hasStorage: true,
+            sizeBytes: file.size,
+            meta: file.type || undefined,
+          } as Attachment & { storageKey?: string },
+        ])
+      }
+    } catch {
+      toast.error(t("attachFailed"))
+    } finally {
+      setUploading(false)
+    }
   }
 
   function handleCommand(command: SlashCommand) {
@@ -124,21 +158,33 @@ export function MessageComposer({
 
         <div className="flex items-center justify-between border-t p-1.5">
           <div className="flex items-center gap-0.5">
+            <input
+              ref={fileInputRef}
+              type="file"
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                void uploadFiles(event.target.files, "file")
+                if (fileInputRef.current) fileInputRef.current.value = ""
+              }}
+            />
+            <input
+              ref={imageInputRef}
+              type="file"
+              accept="image/*"
+              multiple
+              className="hidden"
+              onChange={(event) => {
+                void uploadFiles(event.target.files, "image")
+                if (imageInputRef.current) imageInputRef.current.value = ""
+              }}
+            />
             <Button
               variant="ghost"
               size="icon-sm"
               aria-label={t("attachFile")}
-              onClick={() =>
-                setAttachments((prev) => [
-                  ...prev,
-                  {
-                    id: `a_${Math.random().toString(36).slice(2, 7)}`,
-                    name: "document.pdf",
-                    kind: "file",
-                    meta: "PDF · 240 KB",
-                  },
-                ])
-              }
+              disabled={uploading}
+              onClick={() => fileInputRef.current?.click()}
             >
               <PaperclipIcon />
             </Button>
@@ -226,6 +272,7 @@ export function MessageComposer({
                     variant="ghost"
                     size="icon-sm"
                     aria-label={t("attachImage")}
+                    disabled={uploading}
                   />
                 }
               >
@@ -235,17 +282,7 @@ export function MessageComposer({
                 <button
                   type="button"
                   className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-start text-sm transition-colors hover:bg-muted"
-                  onClick={() =>
-                    setAttachments((prev) => [
-                      ...prev,
-                      {
-                        id: `a_${Math.random().toString(36).slice(2, 7)}`,
-                        name: "screenshot.png",
-                        kind: "image",
-                        meta: "PNG · 640 KB",
-                      },
-                    ])
-                  }
+                  onClick={() => imageInputRef.current?.click()}
                 >
                   <ImageIcon className="size-4" />
                   {t("uploadImage")}

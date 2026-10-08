@@ -9,5 +9,6 @@
   "movedThisFileToTrash": "a mis ce fichier à la corbeille",
   "editedThisFile": "a modifié ce fichier",
   "sharedWith": "a partagé avec {name}",
-  "taskMoved": "{identifier} vers {status}"
+  "taskMoved": "{identifier} vers {status}",
+  "uploadedThisFile": "a téléversé ce fichier"
 }

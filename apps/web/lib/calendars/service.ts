@@ -1,5 +1,6 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
+import { realtime } from "@/lib/realtime"
 
 import { CalendarRepository } from "./repository"
 import type {
@@ -106,6 +107,10 @@ export class CalendarService {
       createdBy: ctx.userId,
       attendees,
     })
+    void realtime.calendarChanged(ctx.organizationId, {
+      action: "event.created",
+      eventId: row.id,
+    })
     return this.mapEvent(row)
   }
 
@@ -129,6 +134,10 @@ export class CalendarService {
       color: input.color,
       reminderMinutes: input.reminderMinutes,
     })
+    void realtime.calendarChanged(ctx.organizationId, {
+      action: "event.updated",
+      eventId: id,
+    })
     return this.mapEvent(row)
   }
 
@@ -144,6 +153,10 @@ export class CalendarService {
       startAt: new Date(input.startAt),
       endAt: new Date(input.endAt),
     })
+    void realtime.calendarChanged(ctx.organizationId, {
+      action: "event.moved",
+      eventId: id,
+    })
     return this.mapEvent(row)
   }
 
@@ -152,6 +165,10 @@ export class CalendarService {
     const existing = await this.repo.findEvent(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Event")
     await this.repo.deleteEvent(id)
+    void realtime.calendarChanged(ctx.organizationId, {
+      action: "event.deleted",
+      eventId: id,
+    })
     return { id }
   }
 
@@ -166,6 +183,10 @@ export class CalendarService {
       kind: input.kind,
       color: input.color,
       memberIds: [ctx.userId],
+    })
+    void realtime.calendarChanged(ctx.organizationId, {
+      action: "calendar.created",
+      calendarId: row.id,
     })
     return this.mapCalendar(row)
   }

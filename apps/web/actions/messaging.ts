@@ -22,6 +22,12 @@ export const listMessagingAction = withAction(async () => {
   return messagingService.list(ctx)
 })
 
+export const touchPresenceAction = withAction(async () => {
+  const ctx = await getRequestContext()
+  await messagingService.touchPresence(ctx)
+  return { ok: true }
+})
+
 export const sendMessageAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = await parseLocalized(sendMessageSchema, input)
@@ -94,8 +100,7 @@ export const setTypingAction = withAction(
   async (conversationId: string, input: unknown) => {
     const ctx = await getRequestContext()
     const parsed = await parseLocalized(setTypingSchema, input)
-    void conversationId
-    return messagingService.setTyping(ctx, parsed)
+    return messagingService.setTyping(ctx, conversationId, parsed)
   }
 )
 

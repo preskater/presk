@@ -23,26 +23,6 @@
     "files": "Files",
     "filesDescription": "Documents, sharing and permissions"
   },
-  "solutionNav": {
-    "engineering": "Engineering",
-    "engineeringDescription": "Ship faster together",
-    "design": "Design",
-    "designDescription": "Keep work in sync",
-    "operations": "Operations",
-    "operationsDescription": "Run the business",
-    "startups": "Startups",
-    "startupsDescription": "Scale from day one"
-  },
-  "resourceNav": {
-    "documentation": "Documentation",
-    "documentationDescription": "Guides and references",
-    "blog": "Blog",
-    "blogDescription": "Product updates",
-    "community": "Community",
-    "communityDescription": "Join the conversation",
-    "support": "Support",
-    "supportDescription": "We're here to help"
-  },
   "companyNav": {
     "about": "About",
     "aboutDescription": "Our mission and team",
@@ -171,5 +151,25 @@
     "dashboard": "Go to dashboard",
     "startBuilding": "Start building free",
     "signIn": "Sign in"
+  },
+  "solutionsNav": {
+    "engineering": "Engineering",
+    "engineeringDescription": "Ship faster together",
+    "design": "Design",
+    "designDescription": "Keep work in sync",
+    "operations": "Operations",
+    "operationsDescription": "Run the business",
+    "startups": "Startups",
+    "startupsDescription": "Scale from day one"
+  },
+  "resourcesNav": {
+    "documentation": "Documentation",
+    "documentationDescription": "Guides and references",
+    "blog": "Blog",
+    "blogDescription": "Product updates",
+    "community": "Community",
+    "communityDescription": "Join the conversation",
+    "support": "Support",
+    "supportDescription": "We're here to help"
   }
 }

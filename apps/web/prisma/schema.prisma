@@ -19,6 +19,7 @@ model User {
   banned        Boolean?     @default(false)
   banReason     String?
   banExpires    DateTime?
+  lastSeenAt    DateTime?
   sessions      Session[]
   accounts      Account[]
   teammembers   TeamMember[]
@@ -81,15 +82,16 @@ model Verification {
 }
 
 model Organization {
-  id          String       @id
-  name        String
-  slug        String
-  logo        String?
-  createdAt   DateTime
-  metadata    String?
-  teams       Team[]
-  members     Member[]
-  invitations Invitation[]
+  id                 String       @id
+  name               String
+  slug               String
+  logo               String?
+  createdAt          DateTime
+  metadata           String?
+  storageQuotaBytes  BigInt?
+  teams              Team[]
+  members            Member[]
+  invitations        Invitation[]
 
   projects       Project[]
   labels         Label[]
@@ -393,6 +395,9 @@ model FileNode {
   trashedAt      DateTime?
   shared         Boolean      @default(false)
   restricted     Boolean      @default(false)
+  storageKey     String?
+  mimeType       String?
+  checksum       String?
   createdAt      DateTime     @default(now())
 
   shares     FileShare[]
@@ -418,12 +423,15 @@ model FileShare {
 }
 
 model FileVersion {
-  id     String   @id @default(cuid())
-  fileId String
-  file   FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
-  userId String
-  at     DateTime @default(now())
-  note   String
+  id         String   @id @default(cuid())
+  fileId     String
+  file       FileNode @relation(fields: [fileId], references: [id], onDelete: Cascade)
+  userId     String
+  at         DateTime @default(now())
+  note       String
+  storageKey String?
+  mimeType   String?
+  sizeBytes  Int?
 
   @@index([fileId])
   @@map("fileVersion")
@@ -531,12 +539,15 @@ model MessageReaction {
 }
 
 model MessageAttachment {
-  id        String  @id @default(cuid())
-  messageId String
-  message   Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
-  name      String
-  kind      String  @default("file")
-  meta      String?
+  id         String  @id @default(cuid())
+  messageId  String
+  message    Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  name       String
+  kind       String  @default("file")
+  meta       String?
+  storageKey String?
+  mimeType   String?
+  sizeBytes  Int?
 
   @@index([messageId])
   @@map("messageAttachment")

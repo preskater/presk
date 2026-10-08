@@ -73,7 +73,9 @@ export function FileMenuItems({
         )
   const Separator = menu === "context" ? ContextMenuSeparator : DropdownMenuSeparator
 
-  const download = () => toast.success(t("downloading", { name: file.name }))
+  const download = () => {
+    window.open(`/api/files/${file.id}/download`, "_blank")
+  }
   const copyLink = () => {
     void navigator.clipboard?.writeText(
       `${window.location.origin}/${orgSlug}/files`

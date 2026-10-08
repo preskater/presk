@@ -105,8 +105,7 @@ export async function setTyping(
   const ctx = await getRequestContext({ request })
   const { conversationId } = await params
   const input = setTypingSchema.parse(await readJson(request))
-  void conversationId
-  return messagingService.setTyping(ctx, input)
+  return messagingService.setTyping(ctx, conversationId, input)
 }
 
 export async function toggleMute(

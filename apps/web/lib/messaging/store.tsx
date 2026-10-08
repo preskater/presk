@@ -9,8 +9,10 @@ import {
   createChannelAction,
   deleteMessageAction,
   editMessageAction,
+  listMessagingAction,
   markReadAction,
   sendMessageAction,
+  setTypingAction,
   startDmAction,
   toggleMuteAction,
   togglePinAction,
@@ -18,6 +20,7 @@ import {
 } from "@/actions/messaging"
 import { unwrapActionResult } from "@/lib/core/action"
 import { useErrorTranslator } from "@/lib/i18n/errors"
+import { onRealtime } from "@/lib/realtime/bus"
 import type { Member } from "@/lib/projects/types"
 
 import type {
@@ -48,6 +51,7 @@ export interface SendMessageInput {
 interface MessagingStore extends MessagingData {
   members: Member[]
   currentUserId: string
+  organizationId: string
   getMember: (id?: string) => Member | undefined
   getTeam: (id?: string) => Team | undefined
   getConversation: (id?: string) => Conversation | undefined
@@ -84,11 +88,13 @@ export function MessagingProvider({
   children,
   initialData,
   currentUserId,
+  organizationId,
   members: initialMembers = [],
 }: {
   children: React.ReactNode
   initialData: MessagingData
   currentUserId: string
+  organizationId: string
   members?: Member[]
 }) {
   const t = useTranslations("Toasts")
@@ -98,7 +104,7 @@ export function MessagingProvider({
   )
   const [messages, setMessages] = React.useState<Message[]>(initialData.messages)
   const [teams, setTeams] = React.useState<Team[]>(initialData.teams)
-  const [presence] = React.useState<Record<string, Presence>>(
+  const [presence, setPresence] = React.useState<Record<string, Presence>>(
     initialData.presence
   )
   const [typing, setTypingState] = React.useState<Record<string, string[]>>(
@@ -111,8 +117,65 @@ export function MessagingProvider({
     setConversations(initialData.conversations)
     setMessages(initialData.messages)
     setTeams(initialData.teams)
+    setPresence(initialData.presence)
     setTypingState(initialData.typing)
   }, [initialData])
+
+  React.useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined
+    const refetch = () => {
+      void listMessagingAction()
+        .then((result) => {
+          const data = unwrap(result)
+          setConversations(data.conversations)
+          setMessages(data.messages)
+          setTeams(data.teams)
+          setPresence(data.presence)
+          setTypingState(data.typing)
+        })
+        .catch(() => {})
+    }
+    const unsubscribe = onRealtime((event) => {
+      if (event.type === "typing") {
+        const { conversationId, memberId, isTyping } = event.data as {
+          conversationId: string
+          memberId: string
+          isTyping: boolean
+        }
+        if (memberId === currentUserId) return
+        setTypingState((prev) => {
+          const current = prev[conversationId] ?? []
+          const next = isTyping
+            ? Array.from(new Set([...current, memberId]))
+            : current.filter((id) => id !== memberId)
+          return { ...prev, [conversationId]: next }
+        })
+        return
+      }
+      if (event.type === "presence") {
+        const { memberId, presence: value } = event.data as {
+          memberId: string
+          presence: Presence
+        }
+        setPresence((prev) => ({ ...prev, [memberId]: value }))
+        return
+      }
+      if (
+        event.type === "message.created" ||
+        event.type === "message.updated" ||
+        event.type === "message.deleted" ||
+        event.type === "conversation.updated"
+      ) {
+        if (timer) clearTimeout(timer)
+        timer = setTimeout(refetch, 250)
+      }
+    })
+    return () => {
+      unsubscribe()
+      if (timer) clearTimeout(timer)
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUserId])
 
   const store = React.useMemo<MessagingStore>(() => {
     const getMember = (id?: string) =>
@@ -204,6 +267,7 @@ export function MessagingProvider({
       typing,
       members,
       currentUserId,
+      organizationId,
       getMember,
       getTeam,
       getConversation,
@@ -389,13 +453,7 @@ export function MessagingProvider({
         return id
       },
       setTyping: (conversationId, memberId, isTyping) => {
-        setTypingState((prev) => {
-          const current = prev[conversationId] ?? []
-          const next = isTyping
-            ? Array.from(new Set([...current, memberId]))
-            : current.filter((id) => id !== memberId)
-          return { ...prev, [conversationId]: next }
-        })
+        void setTypingAction(conversationId, { memberId, isTyping })
       },
       toggleMute: (conversationId) => {
         let muted = false
@@ -424,7 +482,7 @@ export function MessagingProvider({
           .catch((error) => toast.error(te(error, "updateFailed")))
       },
     }
-  }, [conversations, messages, teams, presence, typing, members, currentUserId])
+  }, [conversations, messages, teams, presence, typing, members, currentUserId, organizationId])
 
   return (
     <MessagingContext.Provider value={store}>

@@ -35,8 +35,6 @@ const LOCATIONS: { value: FileLocation; icon: React.ComponentType<{ className?: 
   { value: "trash", icon: Trash2Icon },
 ]
 
-const QUOTA_BYTES = 2 * 1024 * 1024 * 1024
-
 function FolderTreeNode({
   folder,
   activeFolderId,
@@ -115,7 +113,7 @@ export function FilesSidebar({
   onSelectLocation: (location: FileLocation) => void
   onOpenFolder: (folderId: string) => void
 }) {
-  const { files, locationCounts } = useFiles()
+  const { files, locationCounts, storageQuotaBytes } = useFiles()
   const t = useTranslations("Files")
   const L = useEnumLabel()
 
@@ -123,7 +121,10 @@ export function FilesSidebar({
     (node) => node.kind === "folder" && !node.trashed && node.parentId === null
   )
   const usedBytes = files.reduce((total, file) => total + (file.sizeBytes ?? 0), 0)
-  const quotaPercent = Math.min(100, Math.round((usedBytes / QUOTA_BYTES) * 100))
+  const quotaPercent = Math.min(
+    100,
+    Math.round((usedBytes / Math.max(1, storageQuotaBytes)) * 100)
+  )
 
   return (
     <aside className="flex h-full min-h-0 flex-col border-e bg-sidebar text-sidebar-foreground">
@@ -178,7 +179,7 @@ export function FilesSidebar({
         <p className="mt-1.5 text-xs text-muted-foreground">
           {t("storageUsed", {
             used: formatBytes(usedBytes),
-            quota: formatBytes(QUOTA_BYTES),
+            quota: formatBytes(storageQuotaBytes),
           })}
         </p>
       </div>

@@ -9,6 +9,10 @@ export interface Attachment {
   name: string
   kind: AttachmentKind
   meta?: string
+  storageKey?: string
+  mimeType?: string
+  sizeBytes?: number
+  hasStorage?: boolean
 }
 
 export interface Reaction {

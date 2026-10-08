@@ -1,5 +1,12 @@
 export type OrgRole = "owner" | "admin" | "member" | "viewer"
 
+export const ROLE_RANK: Record<OrgRole, number> = {
+  owner: 4,
+  admin: 3,
+  member: 2,
+  viewer: 1,
+}
+
 export interface RoleMeta {
   value: OrgRole
   badge: "default" | "secondary" | "outline"

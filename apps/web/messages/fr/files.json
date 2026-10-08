@@ -106,5 +106,6 @@
   "moveHere": "Déplacer ici",
   "renameFile": "Renommer le fichier",
   "renameFolder": "Renommer le dossier",
-  "save": "Enregistrer"
+  "save": "Enregistrer",
+  "browseFiles": "Parcourir les fichiers"
 }

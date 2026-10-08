@@ -48,6 +48,7 @@ services:
       - DATABASE_URL=postgresql://preskater:preskater@postgres:5432/preskater?schema=public
       - BETTER_AUTH_SECRET=dev-secret-change-me-in-production
       - BETTER_AUTH_URL=http://localhost:3000
+      - BLOB_READ_WRITE_TOKEN=${BLOB_READ_WRITE_TOKEN:-}
     depends_on:
       postgres:
         condition: service_healthy

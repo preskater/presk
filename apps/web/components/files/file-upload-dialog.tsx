@@ -33,18 +33,6 @@ const STATUS_VARIANT: Record<
   error: "destructive",
 }
 
-interface PendingFile {
-  id: string
-  name: string
-  sizeBytes: number
-}
-
-const SAMPLE_FILES: PendingFile[] = [
-  { id: "s1", name: "quarterly-plan.pdf", sizeBytes: 2.1 * 1024 * 1024 },
-  { id: "s2", name: "team-offsite.png", sizeBytes: 4.6 * 1024 * 1024 },
-  { id: "s3", name: "notes.docx", sizeBytes: 42 * 1024 },
-]
-
 export function FileUploadDialog({
   parentId,
   children,
@@ -55,20 +43,20 @@ export function FileUploadDialog({
   const { enqueueUploads } = useFiles()
   const t = useTranslations("Files")
   const [open, setOpen] = React.useState(false)
-  const [pending, setPending] = React.useState<PendingFile[]>([])
+  const [pending, setPending] = React.useState<File[]>([])
+  const inputRef = React.useRef<HTMLInputElement>(null)
 
-  function addFile(file: PendingFile) {
-    setPending((prev) =>
-      prev.some((item) => item.name === file.name) ? prev : [...prev, file]
-    )
+  function addFiles(files: File[]) {
+    if (files.length === 0) return
+    setPending((prev) => {
+      const names = new Set(prev.map((file) => file.name))
+      return [...prev, ...files.filter((file) => !names.has(file.name))]
+    })
   }
 
   function handleSubmit() {
     if (pending.length === 0) return
-    enqueueUploads(
-      pending.map((item) => ({ name: item.name, sizeBytes: item.sizeBytes })),
-      parentId
-    )
+    enqueueUploads(pending, parentId)
     setPending([])
     setOpen(false)
   }
@@ -85,9 +73,7 @@ export function FileUploadDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>{t("uploadFiles")}</DialogTitle>
-          <DialogDescription>
-            {t("uploadDescription")}
-          </DialogDescription>
+          <DialogDescription>{t("uploadDescription")}</DialogDescription>
         </DialogHeader>
 
         <div
@@ -95,46 +81,46 @@ export function FileUploadDialog({
           onDragOver={(event) => event.preventDefault()}
           onDrop={(event) => {
             event.preventDefault()
-            addFile({
-              id: `d_${Math.random().toString(36).slice(2, 7)}`,
-              name: `dropped-file-${pending.length + 1}.pdf`,
-              sizeBytes: 1.4 * 1024 * 1024,
-            })
+            addFiles(Array.from(event.dataTransfer.files))
           }}
         >
           <span className="flex size-10 items-center justify-center rounded-full bg-muted">
             <CloudUploadIcon className="size-5 text-muted-foreground" />
           </span>
           <p className="text-sm font-medium">{t("dragDrop")}</p>
-          <p className="text-xs text-muted-foreground">{t("orSample")}</p>
-          <div className="mt-1 flex flex-wrap justify-center gap-2">
-            {SAMPLE_FILES.map((file) => (
-              <Button
-                key={file.id}
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => addFile(file)}
-              >
-                <FileIcon data-icon="inline-start" />
-                {file.name}
-              </Button>
-            ))}
-          </div>
+          <input
+            ref={inputRef}
+            type="file"
+            multiple
+            className="hidden"
+            onChange={(event) => {
+              addFiles(Array.from(event.target.files ?? []))
+              if (inputRef.current) inputRef.current.value = ""
+            }}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => inputRef.current?.click()}
+          >
+            <FileIcon data-icon="inline-start" />
+            {t("browseFiles")}
+          </Button>
         </div>
 
         {pending.length > 0 ? (
           <div className="flex max-h-48 flex-col gap-2 overflow-y-auto">
             {pending.map((file) => (
               <div
-                key={file.id}
+                key={file.name}
                 className="flex items-center gap-3 rounded-lg border px-3 py-2"
               >
                 <FileIcon className="size-4 text-muted-foreground" />
                 <div className="flex min-w-0 flex-1 flex-col">
                   <span className="truncate text-sm">{file.name}</span>
                   <span className="text-xs text-muted-foreground">
-                    {formatBytes(file.sizeBytes)}
+                    {formatBytes(file.size)}
                   </span>
                 </div>
                 <Button
@@ -143,7 +129,9 @@ export function FileUploadDialog({
                   size="icon-sm"
                   aria-label={t("removeFile", { name: file.name })}
                   onClick={() =>
-                    setPending((prev) => prev.filter((item) => item.id !== file.id))
+                    setPending((prev) =>
+                      prev.filter((item) => item !== file)
+                    )
                   }
                 >
                   <Trash2Icon />

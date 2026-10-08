@@ -106,5 +106,6 @@
   "moveHere": "Move here",
   "renameFile": "Rename file",
   "renameFolder": "Rename folder",
-  "save": "Save"
+  "save": "Save",
+  "browseFiles": "Browse files"
 }
