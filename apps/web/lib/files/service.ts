@@ -1,6 +1,5 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
-import { realtime } from "@/lib/realtime"
 
 import { kindFromName } from "./file-utils"
 import { FileRepository } from "./repository"
@@ -124,10 +123,6 @@ export class FileService {
       parentId: input.parentId ?? null,
       ownerId: ctx.userId,
     })
-    void realtime.fileChanged(ctx.organizationId, {
-      action: "folder.created",
-      fileId: row.id,
-    })
     return this.mapFile(row)
   }
 
@@ -148,7 +143,6 @@ export class FileService {
         storageKey: file.storageKey,
       }))
     )
-    void realtime.fileChanged(ctx.organizationId, { action: "files.created" })
     return rows.map((row) => this.mapFile(row as FileRow))
   }
 
@@ -176,10 +170,6 @@ export class FileService {
       sizeBytes: input.sizeBytes,
     })
     await this.repo.addActivity(row.id, ctx.userId, "uploadedThisFile")
-    void realtime.fileChanged(ctx.organizationId, {
-      action: "file.uploaded",
-      fileId: row.id,
-    })
     const withRelations = await this.repo.findById(ctx.organizationId, row.id)
     return this.mapFile((withRelations ?? row) as FileRow)
   }
@@ -205,10 +195,6 @@ export class FileService {
       modifiedAt: new Date(),
     })
     await this.repo.addActivity(id, ctx.userId, "renamedThisFile")
-    void realtime.fileChanged(ctx.organizationId, {
-      action: "file.renamed",
-      fileId: id,
-    })
     return this.mapFile(row)
   }
 
@@ -259,10 +245,6 @@ export class FileService {
       trashedAt: new Date(),
     })
     await this.repo.addActivity(id, ctx.userId, "movedThisFileToTrash")
-    void realtime.fileChanged(ctx.organizationId, {
-      action: "file.trashed",
-      fileId: id,
-    })
     return this.mapFile(row)
   }
 
@@ -280,10 +262,6 @@ export class FileService {
     canWrite(ctx)
     await this.require(ctx, id)
     await this.repo.delete(id)
-    void realtime.fileChanged(ctx.organizationId, {
-      action: "file.deleted",
-      fileId: id,
-    })
     return { id }
   }
 

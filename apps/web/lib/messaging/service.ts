@@ -1,7 +1,6 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
 import { prisma } from "@/lib/prisma"
-import { realtime } from "@/lib/realtime"
 
 import { MessagingRepository } from "./repository"
 import type {
@@ -198,11 +197,6 @@ export class MessagingService {
       })
     }
     const message = this.mapMessage(row)
-    void realtime.messageCreated(ctx.organizationId, {
-      conversationId: input.conversationId,
-      messageId: message.id,
-      parentId: input.parentId ?? null,
-    })
     return message
   }
 
@@ -219,10 +213,6 @@ export class MessagingService {
       edited: true,
     })
     const message = this.mapMessage(row)
-    void realtime.messageUpdated(ctx.organizationId, {
-      conversationId: existing.conversationId,
-      messageId: id,
-    })
     return message
   }
 
@@ -231,10 +221,6 @@ export class MessagingService {
     const existing = await this.repo.findMessage(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Message")
     await this.repo.deleteMessage(id)
-    void realtime.messageDeleted(ctx.organizationId, {
-      conversationId: existing.conversationId,
-      messageId: id,
-    })
     return { id }
   }
 
@@ -367,11 +353,6 @@ export class MessagingService {
     conversationId: string,
     input: SetTypingInput
   ): { ok: true } {
-    void realtime.typing(ctx.organizationId, {
-      conversationId,
-      memberId: input.memberId,
-      isTyping: input.isTyping,
-    })
     return { ok: true }
   }
 
@@ -379,10 +360,6 @@ export class MessagingService {
     await prisma.user.update({
       where: { id: ctx.userId },
       data: { lastSeenAt: new Date() },
-    })
-    void realtime.presence(ctx.organizationId, {
-      memberId: ctx.userId,
-      presence: "online",
     })
   }
 }

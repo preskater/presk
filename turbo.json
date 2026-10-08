@@ -14,6 +14,7 @@
       "outputs": [".next/**", "!.next/cache/**", "!.next/dev/**"],
       "env": [
         "DATABASE_URL",
+        "DATABASE_POOL_MAX",
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
         "AI_GATEWAY_API_KEY",
@@ -42,6 +43,7 @@
       "persistent": true,
       "env": [
         "DATABASE_URL",
+        "DATABASE_POOL_MAX",
         "BETTER_AUTH_SECRET",
         "BETTER_AUTH_URL",
         "AI_GATEWAY_API_KEY",

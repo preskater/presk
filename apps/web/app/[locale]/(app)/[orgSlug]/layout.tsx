@@ -5,7 +5,6 @@ import { AppSidebar } from "@/components/app-sidebar"
 import { AssistantBar } from "@/components/assistant/assistant-bar"
 import { OrganizationSync } from "@/components/organization/organization-sync"
 import { SiteHeader } from "@/components/site-header"
-import { RealtimeProvider } from "@/components/realtime-provider"
 import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
@@ -67,8 +66,7 @@ export default async function OrganizationLayout({
 
   return (
     <TooltipProvider>
-      <RealtimeProvider organizationId={organization.id}>
-        <RecentsProvider organizationId={organization.id}>
+      <RecentsProvider organizationId={organization.id}>
         <ProjectStoreProvider
           initialData={projectData}
           currentUserId={ctx.userId}
@@ -126,8 +124,7 @@ export default async function OrganizationLayout({
             </CalendarsProvider>
           </MessagingProvider>
         </ProjectStoreProvider>
-        </RecentsProvider>
-      </RealtimeProvider>
+      </RecentsProvider>
     </TooltipProvider>
   )
 }

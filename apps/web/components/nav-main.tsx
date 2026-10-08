@@ -66,7 +66,7 @@ export function NavMain({ items }: { items: NavApp[] }) {
               size="icon"
               className="size-8 group-data-[collapsible=icon]:opacity-0"
               variant="outline"
-              render={<Link href={`/${orgSlug}/messages`} />}
+              render={<Link href={`/${orgSlug}/messages`} prefetch={false} />}
               nativeButton={false}
             >
               <MailIcon />
@@ -85,7 +85,7 @@ export function NavMain({ items }: { items: NavApp[] }) {
                 <SidebarMenuButton
                   tooltip={item.title}
                   isActive={active}
-                  render={<Link href={item.url} />}
+                  render={<Link href={item.url} prefetch={false} />}
                 >
                   {item.icon}
                   <span>{item.title}</span>

@@ -5,7 +5,6 @@ import { getRequestContext } from "@/lib/core/auth-context"
 import { parseLocalized } from "@/lib/core/validation-server"
 import { revalidateOrgPath } from "@/lib/organization/paths"
 import { projectService } from "@/lib/projects"
-import { realtime } from "@/lib/realtime"
 import {
   addCommentSchema,
   addLabelSchema,
@@ -27,7 +26,6 @@ export const createProjectAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = await parseLocalized(createProjectSchema, input)
   const project = await projectService.create(ctx, parsed)
-  void realtime.projectChanged(ctx.organizationId, { action: "project.created" })
   await revalidateOrgPath(ctx.organizationId, "/projects")
   await revalidateOrgPath(ctx.organizationId)
   return project
@@ -38,7 +36,6 @@ export const updateProjectAction = withAction(
     const ctx = await getRequestContext()
     const parsed = await parseLocalized(updateProjectSchema, input)
     const project = await projectService.update(ctx, id, parsed)
-    void realtime.projectChanged(ctx.organizationId, { action: "project.updated" })
     await revalidateOrgPath(ctx.organizationId, "/projects")
     await revalidateOrgPath(ctx.organizationId, `/projects/${id}`)
     return project
@@ -47,7 +44,6 @@ export const updateProjectAction = withAction(
 
 export const deleteProjectAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
-  void realtime.projectChanged(ctx.organizationId, { action: "project.deleted" })
   const result = await projectService.remove(ctx, id)
   await revalidateOrgPath(ctx.organizationId, "/projects")
   await revalidateOrgPath(ctx.organizationId)
@@ -58,7 +54,6 @@ export const createTaskAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = await parseLocalized(createTaskSchema, input)
   const task = await projectService.createTask(ctx, parsed)
-  void realtime.projectChanged(ctx.organizationId, { action: "task.created" })
   await revalidateOrgPath(ctx.organizationId, `/projects/${parsed.projectId}`)
   await revalidateOrgPath(ctx.organizationId)
   return task
@@ -68,7 +63,6 @@ export const updateTaskAction = withAction(async (id: string, input: unknown) =>
   const ctx = await getRequestContext()
   const parsed = await parseLocalized(updateTaskSchema, input)
   const task = await projectService.updateTask(ctx, id, parsed)
-  void realtime.projectChanged(ctx.organizationId, { action: "task.updated" })
   await revalidateOrgPath(ctx.organizationId, `/projects/${task.projectId}`)
   return task
 })
@@ -77,14 +71,12 @@ export const moveTaskAction = withAction(async (id: string, status: unknown) => 
   const ctx = await getRequestContext()
   const parsed = await parseLocalized(moveTaskSchema, status)
   const task = await projectService.moveTask(ctx, id, parsed)
-  void realtime.projectChanged(ctx.organizationId, { action: "task.moved" })
   await revalidateOrgPath(ctx.organizationId, `/projects/${task.projectId}`)
   return task
 })
 
 export const deleteTaskAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
-  void realtime.projectChanged(ctx.organizationId, { action: "task.deleted" })
   const result = await projectService.removeTask(ctx, id)
   await revalidateOrgPath(ctx.organizationId)
   return result

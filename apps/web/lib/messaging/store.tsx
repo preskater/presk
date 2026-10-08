@@ -12,15 +12,14 @@ import {
   listMessagingAction,
   markReadAction,
   sendMessageAction,
-  setTypingAction,
   startDmAction,
   toggleMuteAction,
   togglePinAction,
   toggleReactionAction,
+  touchPresenceAction,
 } from "@/actions/messaging"
 import { unwrapActionResult } from "@/lib/core/action"
 import { useErrorTranslator } from "@/lib/i18n/errors"
-import { onRealtime } from "@/lib/realtime/bus"
 import type { Member } from "@/lib/projects/types"
 
 import type {
@@ -122,10 +121,11 @@ export function MessagingProvider({
   }, [initialData])
 
   React.useEffect(() => {
-    let timer: ReturnType<typeof setTimeout> | undefined
+    let active = true
     const refetch = () => {
       void listMessagingAction()
         .then((result) => {
+          if (!active) return
           const data = unwrap(result)
           setConversations(data.conversations)
           setMessages(data.messages)
@@ -135,47 +135,29 @@ export function MessagingProvider({
         })
         .catch(() => {})
     }
-    const unsubscribe = onRealtime((event) => {
-      if (event.type === "typing") {
-        const { conversationId, memberId, isTyping } = event.data as {
-          conversationId: string
-          memberId: string
-          isTyping: boolean
-        }
-        if (memberId === currentUserId) return
-        setTypingState((prev) => {
-          const current = prev[conversationId] ?? []
-          const next = isTyping
-            ? Array.from(new Set([...current, memberId]))
-            : current.filter((id) => id !== memberId)
-          return { ...prev, [conversationId]: next }
-        })
-        return
-      }
-      if (event.type === "presence") {
-        const { memberId, presence: value } = event.data as {
-          memberId: string
-          presence: Presence
-        }
-        setPresence((prev) => ({ ...prev, [memberId]: value }))
-        return
-      }
-      if (
-        event.type === "message.created" ||
-        event.type === "message.updated" ||
-        event.type === "message.deleted" ||
-        event.type === "conversation.updated"
-      ) {
-        if (timer) clearTimeout(timer)
-        timer = setTimeout(refetch, 250)
-      }
-    })
-    return () => {
-      unsubscribe()
-      if (timer) clearTimeout(timer)
+
+    const onVisible = () => {
+      if (document.visibilityState === "visible") refetch()
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentUserId])
+    window.addEventListener("focus", onVisible)
+    document.addEventListener("visibilitychange", onVisible)
+    const poll = window.setInterval(() => {
+      if (document.visibilityState === "visible") refetch()
+    }, 5000)
+    // Presence is coarse: write at most once every 30s, not on every poll.
+    const presence = window.setInterval(() => {
+      if (document.visibilityState === "visible") void touchPresenceAction()
+    }, 30000)
+    void touchPresenceAction()
+
+    return () => {
+      active = false
+      window.clearInterval(poll)
+      window.clearInterval(presence)
+      window.removeEventListener("focus", onVisible)
+      document.removeEventListener("visibilitychange", onVisible)
+    }
+  }, [])
 
   const store = React.useMemo<MessagingStore>(() => {
     const getMember = (id?: string) =>
@@ -452,8 +434,9 @@ export function MessagingProvider({
           })
         return id
       },
-      setTyping: (conversationId, memberId, isTyping) => {
-        void setTypingAction(conversationId, { memberId, isTyping })
+      setTyping: () => {
+        // Ephemeral typing indicators require realtime transport; without it
+        // we avoid per-keystroke server round-trips entirely.
       },
       toggleMute: (conversationId) => {
         let muted = false
