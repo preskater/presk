@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache"
 
+import { withAction } from "@/lib/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
 import { projectService } from "@/lib/projects"
 import {
@@ -16,128 +17,136 @@ import {
   updateTaskSchema,
 } from "@/lib/projects/schemas"
 
-export async function listProjectsAction() {
+export const listProjectsAction = withAction(async () => {
   const ctx = await getRequestContext()
   return projectService.list(ctx)
-}
+})
 
-export async function createProjectAction(input: unknown) {
+export const createProjectAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = createProjectSchema.parse(input)
   const project = await projectService.create(ctx, parsed)
   revalidatePath("/dashboard/projects")
   revalidatePath("/dashboard")
   return project
-}
+})
 
-export async function updateProjectAction(id: string, input: unknown) {
-  const ctx = await getRequestContext()
-  const parsed = updateProjectSchema.parse(input)
-  const project = await projectService.update(ctx, id, parsed)
-  revalidatePath("/dashboard/projects")
-  revalidatePath(`/dashboard/projects/${id}`)
-  return project
-}
+export const updateProjectAction = withAction(
+  async (id: string, input: unknown) => {
+    const ctx = await getRequestContext()
+    const parsed = updateProjectSchema.parse(input)
+    const project = await projectService.update(ctx, id, parsed)
+    revalidatePath("/dashboard/projects")
+    revalidatePath(`/dashboard/projects/${id}`)
+    return project
+  }
+)
 
-export async function deleteProjectAction(id: string) {
+export const deleteProjectAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.remove(ctx, id)
   revalidatePath("/dashboard/projects")
   revalidatePath("/dashboard")
   return result
-}
+})
 
-export async function createTaskAction(input: unknown) {
+export const createTaskAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = createTaskSchema.parse(input)
   const task = await projectService.createTask(ctx, parsed)
   revalidatePath(`/dashboard/projects/${parsed.projectId}`)
   revalidatePath("/dashboard")
   return task
-}
+})
 
-export async function updateTaskAction(id: string, input: unknown) {
+export const updateTaskAction = withAction(async (id: string, input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = updateTaskSchema.parse(input)
   const task = await projectService.updateTask(ctx, id, parsed)
   revalidatePath(`/dashboard/projects/${task.projectId}`)
   return task
-}
+})
 
-export async function moveTaskAction(id: string, status: unknown) {
+export const moveTaskAction = withAction(async (id: string, status: unknown) => {
   const ctx = await getRequestContext()
   const parsed = moveTaskSchema.parse(status)
   const task = await projectService.moveTask(ctx, id, parsed)
   revalidatePath(`/dashboard/projects/${task.projectId}`)
   return task
-}
+})
 
-export async function deleteTaskAction(id: string) {
+export const deleteTaskAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.removeTask(ctx, id)
   revalidatePath("/dashboard")
   return result
-}
+})
 
-export async function toggleSubtaskAction(taskId: string, subtaskId: string) {
-  const ctx = await getRequestContext()
-  const task = await projectService.toggleSubtask(ctx, taskId, subtaskId)
-  revalidatePath(`/dashboard/projects/${task.projectId}`)
-  return task
-}
+export const toggleSubtaskAction = withAction(
+  async (taskId: string, subtaskId: string) => {
+    const ctx = await getRequestContext()
+    const task = await projectService.toggleSubtask(ctx, taskId, subtaskId)
+    revalidatePath(`/dashboard/projects/${task.projectId}`)
+    return task
+  }
+)
 
-export async function addCommentAction(taskId: string, body: string) {
-  const ctx = await getRequestContext()
-  const parsed = addCommentSchema.parse({ body })
-  const task = await projectService.addComment(ctx, taskId, parsed)
-  revalidatePath(`/dashboard/projects/${task.projectId}`)
-  return task
-}
+export const addCommentAction = withAction(
+  async (taskId: string, body: string) => {
+    const ctx = await getRequestContext()
+    const parsed = addCommentSchema.parse({ body })
+    const task = await projectService.addComment(ctx, taskId, parsed)
+    revalidatePath(`/dashboard/projects/${task.projectId}`)
+    return task
+  }
+)
 
-export async function listMembersAction() {
+export const listMembersAction = withAction(async () => {
   const ctx = await getRequestContext()
   return projectService.listMembers(ctx)
-}
+})
 
-export async function addMemberAction(input: unknown) {
+export const addMemberAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = addMemberSchema.parse(input)
   const member = await projectService.addMember(ctx, parsed)
   revalidatePath("/dashboard/settings")
   return member
-}
+})
 
-export async function updateMemberRoleAction(userId: string, role: unknown) {
-  const ctx = await getRequestContext()
-  const parsed = updateMemberRoleSchema.parse(role)
-  const member = await projectService.updateMemberRole(ctx, userId, parsed)
-  revalidatePath("/dashboard/settings")
-  return member
-}
+export const updateMemberRoleAction = withAction(
+  async (userId: string, role: unknown) => {
+    const ctx = await getRequestContext()
+    const parsed = updateMemberRoleSchema.parse(role)
+    const member = await projectService.updateMemberRole(ctx, userId, parsed)
+    revalidatePath("/dashboard/settings")
+    return member
+  }
+)
 
-export async function removeMemberAction(userId: string) {
+export const removeMemberAction = withAction(async (userId: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.removeMember(ctx, userId)
   revalidatePath("/dashboard/settings")
   return result
-}
+})
 
-export async function listLabelsAction() {
+export const listLabelsAction = withAction(async () => {
   const ctx = await getRequestContext()
   return projectService.listLabels(ctx)
-}
+})
 
-export async function addLabelAction(input: unknown) {
+export const addLabelAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
   const parsed = addLabelSchema.parse(input)
   const label = await projectService.addLabel(ctx, parsed)
   revalidatePath("/dashboard/projects")
   return label
-}
+})
 
-export async function removeLabelAction(id: string) {
+export const removeLabelAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.removeLabel(ctx, id)
   revalidatePath("/dashboard/projects")
   return result
-}
+})

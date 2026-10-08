@@ -15,6 +15,7 @@ import {
   togglePinAction,
   toggleReactionAction,
 } from "@/actions/messaging"
+import { unwrapActionResult } from "@/lib/core/action"
 import type { Member } from "@/lib/projects/types"
 
 import type {
@@ -31,6 +32,8 @@ import type {
 function uid(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`
 }
+
+const unwrap = unwrapActionResult
 
 export interface SendMessageInput {
   conversationId: string
@@ -175,7 +178,8 @@ export function MessagingProvider({
         )
       }
       void sendMessageAction(input)
-        .then((message) => {
+        .then((result) => {
+          const message = unwrap(result)
           setMessages((prev) =>
             prev.map((item) => (item.id === optimistic.id ? message : item))
           )
@@ -215,7 +219,10 @@ export function MessagingProvider({
           )
         )
         void editMessageAction(id, body)
-          .then(() => toast.success("Message edited."))
+          .then((result) => {
+            unwrap(result)
+            toast.success("Message edited.")
+          })
           .catch((error) => toast.error(error.message ?? "Edit failed."))
       },
       deleteMessage: (id) => {
@@ -225,7 +232,10 @@ export function MessagingProvider({
           )
         )
         void deleteMessageAction(id)
-          .then(() => toast.success("Message deleted."))
+          .then((result) => {
+            unwrap(result)
+            toast.success("Message deleted.")
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       toggleReaction: (messageId, emoji) => {
@@ -242,9 +252,9 @@ export function MessagingProvider({
             }
           })
         )
-        void toggleReactionAction(messageId, { emoji }).catch((error) =>
-          toast.error(error.message ?? "Reaction failed.")
-        )
+        void toggleReactionAction(messageId, { emoji })
+          .then((result) => unwrap(result))
+          .catch((error) => toast.error(error.message ?? "Reaction failed."))
       },
       toggleReactionMember: (messageId, emoji, memberId) => {
         setMessages((prev) =>
@@ -261,9 +271,9 @@ export function MessagingProvider({
               : message
           )
         )
-        void toggleReactionAction(messageId, { emoji, memberId }).catch(
-          (error) => toast.error(error.message ?? "Reaction failed.")
-        )
+        void toggleReactionAction(messageId, { emoji, memberId })
+          .then((result) => unwrap(result))
+          .catch((error) => toast.error(error.message ?? "Reaction failed."))
       },
       addThreadReply: (parentId, body) => {
         const parentMessage = messages.find((message) => message.id === parentId)
@@ -280,7 +290,8 @@ export function MessagingProvider({
         }
         setMessages((prev) => [...prev, optimistic])
         void addThreadReplyAction(parentId, body)
-          .then((message) => {
+          .then((result) => {
+            const message = unwrap(result)
             setMessages((prev) =>
               prev.map((item) => (item.id === optimistic.id ? message : item))
             )
@@ -290,6 +301,8 @@ export function MessagingProvider({
           )
       },
       markRead: (conversationId) => {
+        const target = getConversation(conversationId)
+        if (!target || target.unreadCount === 0) return
         setConversations((prev) =>
           prev.map((conversation) =>
             conversation.id === conversationId
@@ -320,7 +333,8 @@ export function MessagingProvider({
           ...prev,
         ])
         void startDmAction(memberId)
-          .then((conversation) => {
+          .then((result) => {
+            const conversation = unwrap(result)
             setConversations((prev) =>
               prev.map((item) => (item.id === id ? conversation : item))
             )
@@ -355,7 +369,8 @@ export function MessagingProvider({
           )
         )
         void createChannelAction({ teamId, name, topic })
-          .then((conversation) => {
+          .then((result) => {
+            const conversation = unwrap(result)
             setConversations((prev) =>
               prev.map((item) => (item.id === id ? conversation : item))
             )
@@ -385,9 +400,9 @@ export function MessagingProvider({
             return { ...conversation, muted }
           })
         )
-        void toggleMuteAction(conversationId, muted).catch((error) =>
-          toast.error(error.message ?? "Update failed.")
-        )
+        void toggleMuteAction(conversationId, muted)
+          .then((result) => unwrap(result))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       togglePin: (conversationId) => {
         let pinned = false
@@ -398,9 +413,9 @@ export function MessagingProvider({
             return { ...conversation, pinned }
           })
         )
-        void togglePinAction(conversationId, pinned).catch((error) =>
-          toast.error(error.message ?? "Update failed.")
-        )
+        void togglePinAction(conversationId, pinned)
+          .then((result) => unwrap(result))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
     }
   }, [conversations, messages, teams, presence, typing, members, currentUserId])

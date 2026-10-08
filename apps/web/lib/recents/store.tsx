@@ -14,7 +14,7 @@ export interface RecentEntry {
 
 type RecentsState = Record<AppKey, RecentEntry[]>
 
-const STORAGE_KEY = "presk.recents.v1"
+const STORAGE_PREFIX = "presk.recents.v2"
 const MAX_STORED = 5
 
 const EMPTY: RecentsState = {
@@ -29,9 +29,13 @@ interface PersistedState {
   active?: Partial<Record<AppKey, string>>
 }
 
-function readStored(): PersistedState {
+function storageKey(organizationId?: string) {
+  return organizationId ? `${STORAGE_PREFIX}.${organizationId}` : STORAGE_PREFIX
+}
+
+function readStored(key: string): PersistedState {
   try {
-    const raw = window.localStorage.getItem(STORAGE_KEY)
+    const raw = window.localStorage.getItem(key)
     if (!raw) return {}
     return JSON.parse(raw) as PersistedState
   } catch {
@@ -62,7 +66,13 @@ interface RecentsStore {
 
 const RecentsContext = React.createContext<RecentsStore | null>(null)
 
-export function RecentsProvider({ children }: { children: React.ReactNode }) {
+export function RecentsProvider({
+  children,
+  organizationId,
+}: {
+  children: React.ReactNode
+  organizationId?: string
+}) {
   const [recents, setRecents] = React.useState<RecentsState>(EMPTY)
   const [active, setActiveState] = React.useState<
     Partial<Record<AppKey, string>>
@@ -70,23 +80,23 @@ export function RecentsProvider({ children }: { children: React.ReactNode }) {
   const [hydrated, setHydrated] = React.useState(false)
 
   React.useEffect(() => {
-    const stored = readStored()
+    const stored = readStored(storageKey(organizationId))
     setRecents(normalize(stored.recents))
     setActiveState(stored.active ?? {})
     setHydrated(true)
-  }, [])
+  }, [organizationId])
 
   React.useEffect(() => {
     if (!hydrated) return
     try {
       window.localStorage.setItem(
-        STORAGE_KEY,
+        storageKey(organizationId),
         JSON.stringify({ recents, active })
       )
     } catch {
       // ignore storage failures
     }
-  }, [recents, active, hydrated])
+  }, [recents, active, hydrated, organizationId])
 
   const store = React.useMemo<RecentsStore>(() => {
     return {

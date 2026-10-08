@@ -238,12 +238,13 @@ export class MessagingService {
   async markRead(
     ctx: RequestContext,
     conversationId: string
-  ): Promise<Conversation> {
+  ): Promise<Conversation | null> {
     const conversation = await this.repo.findConversation(
       ctx.organizationId,
       conversationId
     )
-    if (!conversation) throw new NotFoundError("Conversation")
+    if (!conversation) return null
+    if (conversation.unreadCount === 0) return this.mapConversation(conversation)
     const row = await this.repo.updateConversation(conversationId, {
       unreadCount: 0,
     })

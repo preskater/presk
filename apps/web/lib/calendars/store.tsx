@@ -12,6 +12,7 @@ import {
   toggleCalendarAction,
   updateEventAction,
 } from "@/actions/calendars"
+import { unwrapActionResult } from "@/lib/core/action"
 import type { Member } from "@/lib/projects/types"
 
 import type { CalendarData, CalendarEvent, CalendarSource } from "./types"
@@ -134,7 +135,8 @@ export function CalendarsProvider({
         }
         setEvents((prev) => [...prev, optimistic])
         void createEventAction(input)
-          .then((event) => {
+          .then((result) => {
+            const event = unwrapActionResult(result)
             setEvents((prev) =>
               prev.map((item) => (item.id === optimistic.id ? event : item))
             )
@@ -150,13 +152,19 @@ export function CalendarsProvider({
           prev.map((event) => (event.id === id ? { ...event, ...patch } : event))
         )
         void updateEventAction(id, patch)
-          .then(() => toast.success("Event updated."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Event updated.")
+          })
           .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       deleteEvent: (id) => {
         setEvents((prev) => prev.filter((event) => event.id !== id))
         void deleteEventAction(id)
-          .then(() => toast.success("Event deleted."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Event deleted.")
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       moveEvent: (id, startAt, endAt) => {
@@ -165,9 +173,9 @@ export function CalendarsProvider({
             event.id === id ? { ...event, startAt, endAt } : event
           )
         )
-        void moveEventAction(id, { startAt, endAt }).catch((error) =>
-          toast.error(error.message ?? "Move failed.")
-        )
+        void moveEventAction(id, { startAt, endAt })
+          .then((result) => unwrapActionResult(result))
+          .catch((error) => toast.error(error.message ?? "Move failed."))
       },
       toggleCalendar: (id) => {
         setCalendars((prev) =>
@@ -177,9 +185,9 @@ export function CalendarsProvider({
               : calendar
           )
         )
-        void toggleCalendarAction(id).catch((error) =>
-          toast.error(error.message ?? "Update failed.")
-        )
+        void toggleCalendarAction(id)
+          .then((result) => unwrapActionResult(result))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       addCalendar: (name, kind, color) => {
         const optimistic: CalendarSource = {
@@ -192,7 +200,8 @@ export function CalendarsProvider({
         }
         setCalendars((prev) => [...prev, optimistic])
         void addCalendarAction({ name, kind, color })
-          .then((calendar) => {
+          .then((result) => {
+            const calendar = unwrapActionResult(result)
             setCalendars((prev) =>
               prev.map((item) => (item.id === optimistic.id ? calendar : item))
             )
@@ -220,9 +229,9 @@ export function CalendarsProvider({
               : event
           )
         )
-        void respondToEventAction(eventId, { memberId, response }).catch(
-          (error) => toast.error(error.message ?? "Update failed.")
-        )
+        void respondToEventAction(eventId, { memberId, response })
+          .then((result) => unwrapActionResult(result))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
     }
   }, [calendars, events, members, currentUserId, visibleEvents])

@@ -20,6 +20,7 @@ import {
   trashFileAction,
   updateShareAction,
 } from "@/actions/files"
+import { unwrapActionResult } from "@/lib/core/action"
 import type { Member } from "@/lib/projects/types"
 
 import { kindFromName } from "./file-utils"
@@ -238,8 +239,9 @@ export function FilesProvider({
       setFiles((prev) => [...prev, ...created])
       void createFilesAction({ parentId, files: items })
         .then((result) => {
+          const files = unwrapActionResult(result)
           setFiles((prev) => {
-            const byName = new Map(result.map((file) => [file.name, file]))
+            const byName = new Map(files.map((file) => [file.name, file]))
             return prev.map((file) => {
               const match = created.find((item) => item.id === file.id)
               return match ? (byName.get(match.name) ?? file) : file
@@ -285,7 +287,8 @@ export function FilesProvider({
         }
         setFiles((prev) => [...prev, optimistic])
         void createFolderAction({ parentId, name })
-          .then((folder) => {
+          .then((result) => {
+            const folder = unwrapActionResult(result)
             setFiles((prev) =>
               prev.map((item) => (item.id === optimistic.id ? folder : item))
             )
@@ -313,7 +316,10 @@ export function FilesProvider({
         )
         logActivity(id, "renamed this file")
         void renameFileAction(id, { name })
-          .then(() => toast.success("File renamed."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("File renamed.")
+          })
           .catch((error) => toast.error(error.message ?? "Rename failed."))
       },
       moveFile: (id, parentId) => {
@@ -325,7 +331,10 @@ export function FilesProvider({
           )
         )
         void moveFileAction(id, { parentId })
-          .then(() => toast.success("File moved."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("File moved.")
+          })
           .catch((error) => toast.error(error.message ?? "Move failed."))
       },
       duplicateFile: (id) => {
@@ -347,7 +356,8 @@ export function FilesProvider({
         }
         setFiles((prev) => [...prev, optimistic])
         void duplicateFileAction(id)
-          .then((file) => {
+          .then((result) => {
+            const file = unwrapActionResult(result)
             setFiles((prev) =>
               prev.map((item) => (item.id === optimistic.id ? file : item))
             )
@@ -370,18 +380,22 @@ export function FilesProvider({
           })
         )
         void toggleStarAction(id)
-          .then(() =>
+          .then((result) => {
+            unwrapActionResult(result)
             toast.success(
               starred ? "Added to favorites." : "Removed from favorites."
             )
-          )
+          })
           .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       trashFile: (id) => {
         trashIds([id])
         logActivity(id, "moved this file to trash")
         void trashFileAction(id)
-          .then(() => toast.success("Moved to trash."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Moved to trash.")
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       restoreFile: (id) => {
@@ -393,23 +407,30 @@ export function FilesProvider({
           )
         )
         void restoreFileAction(id)
-          .then(() => toast.success("File restored."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("File restored.")
+          })
           .catch((error) => toast.error(error.message ?? "Restore failed."))
       },
       deleteForever: (id) => {
         setFiles((prev) => prev.filter((file) => file.id !== id))
         void deleteFileAction(id)
-          .then(() => toast.success("File permanently deleted."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("File permanently deleted.")
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       moveToTrashMany: (ids) => {
         trashIds(ids)
         void bulkTrashAction({ ids })
-          .then(() =>
+          .then((result) => {
+            unwrapActionResult(result)
             toast.success(
               `${ids.length} item${ids.length === 1 ? "" : "s"} moved to trash.`
             )
-          )
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       restoreMany: (ids) => {
@@ -422,22 +443,24 @@ export function FilesProvider({
           )
         )
         void bulkRestoreAction({ ids })
-          .then(() =>
+          .then((result) => {
+            unwrapActionResult(result)
             toast.success(
               `${ids.length} item${ids.length === 1 ? "" : "s"} restored.`
             )
-          )
+          })
           .catch((error) => toast.error(error.message ?? "Restore failed."))
       },
       deleteMany: (ids) => {
         const set = new Set(ids)
         setFiles((prev) => prev.filter((file) => !set.has(file.id)))
         void bulkDeleteAction({ ids })
-          .then(() =>
+          .then((result) => {
+            unwrapActionResult(result)
             toast.success(
               `${ids.length} item${ids.length === 1 ? "" : "s"} deleted.`
             )
-          )
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       addShare: (id, memberId, permission) => {
@@ -451,9 +474,9 @@ export function FilesProvider({
         setFiles((prev) =>
           prev.map((file) => (file.id === id ? { ...file, shared: true } : file))
         )
-        void addShareAction(id, { memberId, permission }).catch((error) =>
-          toast.error(error.message ?? "Share failed.")
-        )
+        void addShareAction(id, { memberId, permission })
+          .then((result) => unwrapActionResult(result))
+          .catch((error) => toast.error(error.message ?? "Share failed."))
       },
       setPermission: (id, memberId, permission) => {
         setShares((prev) => ({
@@ -463,7 +486,10 @@ export function FilesProvider({
           ),
         }))
         void updateShareAction(id, { memberId, permission })
-          .then(() => toast.success("Permission updated."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Permission updated.")
+          })
           .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       removeShare: (id, memberId) => {
@@ -472,7 +498,10 @@ export function FilesProvider({
           [id]: (prev[id] ?? []).filter((entry) => entry.memberId !== memberId),
         }))
         void removeShareAction(id, { memberId })
-          .then(() => toast.success("Access removed."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Access removed.")
+          })
           .catch((error) => toast.error(error.message ?? "Remove failed."))
       },
       enqueueUploads: (items, parentId) => {

@@ -31,9 +31,13 @@ export function MessagingWorkspace() {
 
   const activeConversation = getConversation(activeId)
 
+  const markedReadRef = React.useRef<string | undefined>(undefined)
   React.useEffect(() => {
-    if (activeId) markRead(activeId)
-  }, [activeId, markRead])
+    if (!activeId || markedReadRef.current === activeId) return
+    if (!getConversation(activeId)) return
+    markedReadRef.current = activeId
+    markRead(activeId)
+  }, [activeId, getConversation, markRead])
 
   const restoredRef = React.useRef(false)
   React.useEffect(() => {

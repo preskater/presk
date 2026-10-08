@@ -66,7 +66,7 @@ export default async function DashboardLayout({
 
   return (
     <TooltipProvider>
-      <RecentsProvider>
+      <RecentsProvider organizationId={activeOrganizationId}>
         <ProjectStoreProvider
           initialData={projectData}
           currentUserId={ctx.userId}

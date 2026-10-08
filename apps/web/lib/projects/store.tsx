@@ -19,6 +19,7 @@ import {
   updateProjectAction,
   updateTaskAction,
 } from "@/actions/projects"
+import { unwrapActionResult } from "@/lib/core/action"
 import type { CreateTaskInput } from "@/lib/projects/schemas"
 import type {
   Activity,
@@ -184,7 +185,8 @@ export function ProjectStoreProvider({
         }
         setProjects((prev) => [optimistic, ...prev])
         void createProjectAction(input)
-          .then((project) => {
+          .then((result) => {
+            const project = unwrapActionResult(result)
             setProjects((prev) =>
               prev.map((item) => (item.id === optimistic.id ? project : item))
             )
@@ -204,7 +206,10 @@ export function ProjectStoreProvider({
           )
         )
         void updateProjectAction(id, patch)
-          .then(() => toast.success("Project updated."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Project updated.")
+          })
           .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       deleteProject: (id) => {
@@ -214,7 +219,10 @@ export function ProjectStoreProvider({
           prev.filter((activity) => activity.projectId !== id)
         )
         void deleteProjectAction(id)
-          .then(() => toast.success("Project deleted."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Project deleted.")
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       createTask: (input) => {
@@ -241,7 +249,8 @@ export function ProjectStoreProvider({
           priority: input.priority ?? "medium",
           labelIds: input.labelIds ?? [],
         })
-          .then((task) => {
+          .then((result) => {
+            const task = unwrapActionResult(result)
             setTasks((prev) =>
               prev.map((item) => (item.id === optimistic.id ? task : item))
             )
@@ -267,7 +276,8 @@ export function ProjectStoreProvider({
           )
         )
         void updateTaskAction(id, patch)
-          .then(() => {
+          .then((result) => {
+            unwrapActionResult(result)
             if (!options?.silent) toast.success("Task updated.")
           })
           .catch((error) => toast.error(error.message ?? "Update failed."))
@@ -292,7 +302,10 @@ export function ProjectStoreProvider({
         setTasks((prev) => prev.filter((t) => t.id !== id))
         if (task) pushActivity(task.projectId, "deleted", task.identifier)
         void deleteTaskAction(id)
-          .then(() => toast.success("Task deleted."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Task deleted.")
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       toggleSubtask: (taskId, subtaskId) => {
@@ -310,9 +323,9 @@ export function ProjectStoreProvider({
               : task
           )
         )
-        void toggleSubtaskAction(taskId, subtaskId).catch((error) =>
-          toast.error(error.message ?? "Update failed.")
-        )
+        void toggleSubtaskAction(taskId, subtaskId)
+          .then((result) => unwrapActionResult(result))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       addComment: (taskId, _authorId, body) => {
         const comment: Comment = {
@@ -330,9 +343,9 @@ export function ProjectStoreProvider({
         )
         const task = tasks.find((t) => t.id === taskId)
         if (task) pushActivity(task.projectId, "commented on", task.identifier)
-        void addCommentAction(taskId, body).catch((error) =>
-          toast.error(error.message ?? "Comment failed.")
-        )
+        void addCommentAction(taskId, body)
+          .then((result) => unwrapActionResult(result))
+          .catch((error) => toast.error(error.message ?? "Comment failed."))
       },
       addMember: (input) => {
         const optimistic: Member = {
@@ -343,7 +356,8 @@ export function ProjectStoreProvider({
         }
         setMembers((prev) => [...prev, optimistic])
         void addMemberAction(input)
-          .then((member) => {
+          .then((result) => {
+            const member = unwrapActionResult(result)
             setMembers((prev) =>
               prev.map((item) => (item.id === optimistic.id ? member : item))
             )
@@ -363,7 +377,10 @@ export function ProjectStoreProvider({
           )
         )
         void updateMemberRoleAction(id, { role })
-          .then(() => toast.success("Role updated."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Role updated.")
+          })
           .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       removeMember: (id) => {
@@ -375,14 +392,18 @@ export function ProjectStoreProvider({
           }))
         )
         void removeMemberAction(id)
-          .then(() => toast.success("Member removed."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Member removed.")
+          })
           .catch((error) => toast.error(error.message ?? "Remove failed."))
       },
       addLabel: (name, color) => {
         const optimistic: Label = { id: uid("l"), name, color }
         setLabels((prev) => [...prev, optimistic])
         void addLabelAction({ name, color })
-          .then((label) => {
+          .then((result) => {
+            const label = unwrapActionResult(result)
             setLabels((prev) =>
               prev.map((item) => (item.id === optimistic.id ? label : item))
             )
@@ -404,7 +425,10 @@ export function ProjectStoreProvider({
           }))
         )
         void removeLabelAction(id)
-          .then(() => toast.success("Label deleted."))
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success("Label deleted.")
+          })
           .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
     }
