@@ -3,9 +3,17 @@
 import * as React from "react"
 import { toast } from "sonner"
 
+import {
+  addCalendarAction,
+  createEventAction,
+  deleteEventAction,
+  moveEventAction,
+  respondToEventAction,
+  toggleCalendarAction,
+  updateEventAction,
+} from "@/actions/calendars"
 import type { Member } from "@/lib/projects/types"
 
-import { calendarData as seedData, members as seedMembers } from "./mock-data"
 import type { CalendarData, CalendarEvent, CalendarSource } from "./types"
 
 function uid(prefix: string) {
@@ -34,7 +42,7 @@ interface CalendarStore extends CalendarData {
   visibleEvents: CalendarEvent[]
   eventsInRange: (start: Date, end: Date) => CalendarEvent[]
   eventsOnDay: (date: Date) => CalendarEvent[]
-  createEvent: (input: EventInput) => CalendarEvent
+  createEvent: (input: EventInput) => void
   updateEvent: (id: string, patch: Partial<EventInput>) => void
   deleteEvent: (id: string) => void
   moveEvent: (id: string, startAt: string, endAt: string) => void
@@ -43,31 +51,36 @@ interface CalendarStore extends CalendarData {
     name: string,
     kind: CalendarSource["kind"],
     color: CalendarSource["color"]
-  ) => CalendarSource
+  ) => void
   setAttendeeResponse: (
     eventId: string,
     memberId: string,
     response: CalendarEvent["attendees"][number]["response"]
   ) => void
-  reset: () => void
 }
 
 const CalendarContext = React.createContext<CalendarStore | null>(null)
 
 export function CalendarsProvider({
   children,
-  initialData = seedData,
+  initialData,
+  currentUserId,
+  members = [],
 }: {
   children: React.ReactNode
-  initialData?: CalendarData
+  initialData: CalendarData
+  currentUserId: string
+  members?: Member[]
 }) {
   const [calendars, setCalendars] = React.useState<CalendarSource[]>(
     initialData.calendars
   )
   const [events, setEvents] = React.useState<CalendarEvent[]>(initialData.events)
 
-  const members = seedMembers
-  const currentUserId = members[0]?.id ?? "u_aria"
+  React.useEffect(() => {
+    setCalendars(initialData.calendars)
+    setEvents(initialData.events)
+  }, [initialData])
 
   const visibleIds = React.useMemo(
     () =>
@@ -114,30 +127,46 @@ export function CalendarsProvider({
           return eventStart <= dayEnd && eventEnd >= dayStart
         }),
       createEvent: (input) => {
-        const event: CalendarEvent = {
+        const optimistic: CalendarEvent = {
           id: uid("ev"),
           createdBy: currentUserId,
           ...input,
         }
-        setEvents((prev) => [...prev, event])
-        toast.success(`Event “${event.title}” created.`)
-        return event
+        setEvents((prev) => [...prev, optimistic])
+        void createEventAction(input)
+          .then((event) => {
+            setEvents((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? event : item))
+            )
+            toast.success(`Event “${event.title}” created.`)
+          })
+          .catch((error) => {
+            setEvents((prev) => prev.filter((item) => item.id !== optimistic.id))
+            toast.error(error.message ?? "Could not create event.")
+          })
       },
       updateEvent: (id, patch) => {
         setEvents((prev) =>
           prev.map((event) => (event.id === id ? { ...event, ...patch } : event))
         )
-        toast.success("Event updated.")
+        void updateEventAction(id, patch)
+          .then(() => toast.success("Event updated."))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       deleteEvent: (id) => {
         setEvents((prev) => prev.filter((event) => event.id !== id))
-        toast.success("Event deleted.")
+        void deleteEventAction(id)
+          .then(() => toast.success("Event deleted."))
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       moveEvent: (id, startAt, endAt) => {
         setEvents((prev) =>
           prev.map((event) =>
             event.id === id ? { ...event, startAt, endAt } : event
           )
+        )
+        void moveEventAction(id, { startAt, endAt }).catch((error) =>
+          toast.error(error.message ?? "Move failed.")
         )
       },
       toggleCalendar: (id) => {
@@ -148,9 +177,12 @@ export function CalendarsProvider({
               : calendar
           )
         )
+        void toggleCalendarAction(id).catch((error) =>
+          toast.error(error.message ?? "Update failed.")
+        )
       },
       addCalendar: (name, kind, color) => {
-        const calendar: CalendarSource = {
+        const optimistic: CalendarSource = {
           id: uid("cal"),
           name,
           kind,
@@ -158,9 +190,20 @@ export function CalendarsProvider({
           visible: true,
           memberIds: [currentUserId],
         }
-        setCalendars((prev) => [...prev, calendar])
-        toast.success(`Calendar “${name}” added.`)
-        return calendar
+        setCalendars((prev) => [...prev, optimistic])
+        void addCalendarAction({ name, kind, color })
+          .then((calendar) => {
+            setCalendars((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? calendar : item))
+            )
+            toast.success(`Calendar “${name}” added.`)
+          })
+          .catch((error) => {
+            setCalendars((prev) =>
+              prev.filter((item) => item.id !== optimistic.id)
+            )
+            toast.error(error.message ?? "Could not add calendar.")
+          })
       },
       setAttendeeResponse: (eventId, memberId, response) => {
         setEvents((prev) =>
@@ -177,11 +220,9 @@ export function CalendarsProvider({
               : event
           )
         )
-      },
-      reset: () => {
-        setCalendars(seedData.calendars)
-        setEvents(seedData.events)
-        toast.success("Sample calendar restored.")
+        void respondToEventAction(eventId, { memberId, response }).catch(
+          (error) => toast.error(error.message ?? "Update failed.")
+        )
       },
     }
   }, [calendars, events, members, currentUserId, visibleEvents])

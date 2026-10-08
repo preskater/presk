@@ -3,9 +3,20 @@
 import * as React from "react"
 import { toast } from "sonner"
 
+import {
+  addThreadReplyAction,
+  createChannelAction,
+  deleteMessageAction,
+  editMessageAction,
+  markReadAction,
+  sendMessageAction,
+  startDmAction,
+  toggleMuteAction,
+  togglePinAction,
+  toggleReactionAction,
+} from "@/actions/messaging"
 import type { Member } from "@/lib/projects/types"
 
-import { members as seedMembers, messagingData as seedData } from "./mock-data"
 import type {
   Attachment,
   Conversation,
@@ -52,11 +63,7 @@ interface MessagingStore extends MessagingData {
   addThreadReply: (parentId: string, body: string) => void
   markRead: (conversationId: string) => void
   startDirectMessage: (memberId: string) => string
-  createChannel: (
-    teamId: string,
-    name: string,
-    topic?: string
-  ) => string
+  createChannel: (teamId: string, name: string, topic?: string) => string
   setTyping: (
     conversationId: string,
     memberId: string,
@@ -64,21 +71,20 @@ interface MessagingStore extends MessagingData {
   ) => void
   toggleMute: (conversationId: string) => void
   togglePin: (conversationId: string) => void
-  reset: () => void
-}
-
-function selectMember(members: Member[], id?: string) {
-  return id ? members.find((member) => member.id === id) : undefined
 }
 
 const MessagingContext = React.createContext<MessagingStore | null>(null)
 
 export function MessagingProvider({
   children,
-  initialData = seedData,
+  initialData,
+  currentUserId,
+  members: initialMembers = [],
 }: {
   children: React.ReactNode
-  initialData?: MessagingData
+  initialData: MessagingData
+  currentUserId: string
+  members?: Member[]
 }) {
   const [conversations, setConversations] = React.useState<Conversation[]>(
     initialData.conversations
@@ -92,11 +98,18 @@ export function MessagingProvider({
     initialData.typing
   )
 
-  const members = seedMembers
-  const currentUserId = members[0]?.id ?? "u_aria"
+  const members = initialMembers
+
+  React.useEffect(() => {
+    setConversations(initialData.conversations)
+    setMessages(initialData.messages)
+    setTeams(initialData.teams)
+    setTypingState(initialData.typing)
+  }, [initialData])
 
   const store = React.useMemo<MessagingStore>(() => {
-    const getMember = (id?: string) => selectMember(members, id)
+    const getMember = (id?: string) =>
+      id ? members.find((member) => member.id === id) : undefined
     const getTeam = (id?: string) => teams.find((team) => team.id === id)
     const getConversation = (id?: string) =>
       conversations.find((conversation) => conversation.id === id)
@@ -136,7 +149,7 @@ export function MessagingProvider({
         : undefined
 
     function sendMessage(input: SendMessageInput) {
-      const message: Message = {
+      const optimistic: Message = {
         id: uid("m"),
         conversationId: input.conversationId,
         authorId: currentUserId,
@@ -147,20 +160,32 @@ export function MessagingProvider({
         parentId: input.parentId,
         meeting: input.meeting,
       }
-      setMessages((prev) => [...prev, message])
+      setMessages((prev) => [...prev, optimistic])
       if (!input.parentId) {
         setConversations((prev) =>
           prev.map((conversation) =>
             conversation.id === input.conversationId
               ? {
                   ...conversation,
-                  lastMessageAt: message.createdAt,
+                  lastMessageAt: optimistic.createdAt,
                   unreadCount: 0,
                 }
               : conversation
           )
         )
       }
+      void sendMessageAction(input)
+        .then((message) => {
+          setMessages((prev) =>
+            prev.map((item) => (item.id === optimistic.id ? message : item))
+          )
+        })
+        .catch((error) => {
+          setMessages((prev) =>
+            prev.filter((item) => item.id !== optimistic.id)
+          )
+          toast.error(error.message ?? "Message failed to send.")
+        })
     }
 
     return {
@@ -189,7 +214,9 @@ export function MessagingProvider({
             message.id === id ? { ...message, body, edited: true } : message
           )
         )
-        toast.success("Message edited.")
+        void editMessageAction(id, body)
+          .then(() => toast.success("Message edited."))
+          .catch((error) => toast.error(error.message ?? "Edit failed."))
       },
       deleteMessage: (id) => {
         setMessages((prev) =>
@@ -197,7 +224,9 @@ export function MessagingProvider({
             (message) => message.id !== id && message.parentId !== id
           )
         )
-        toast.success("Message deleted.")
+        void deleteMessageAction(id)
+          .then(() => toast.success("Message deleted."))
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       toggleReaction: (messageId, emoji) => {
         setMessages((prev) =>
@@ -212,6 +241,9 @@ export function MessagingProvider({
               ),
             }
           })
+        )
+        void toggleReactionAction(messageId, { emoji }).catch((error) =>
+          toast.error(error.message ?? "Reaction failed.")
         )
       },
       toggleReactionMember: (messageId, emoji, memberId) => {
@@ -229,11 +261,14 @@ export function MessagingProvider({
               : message
           )
         )
+        void toggleReactionAction(messageId, { emoji, memberId }).catch(
+          (error) => toast.error(error.message ?? "Reaction failed.")
+        )
       },
       addThreadReply: (parentId, body) => {
         const parentMessage = messages.find((message) => message.id === parentId)
         if (!parentMessage) return
-        const reply: Message = {
+        const optimistic: Message = {
           id: uid("m"),
           conversationId: parentMessage.conversationId,
           authorId: currentUserId,
@@ -243,7 +278,16 @@ export function MessagingProvider({
           attachments: [],
           parentId,
         }
-        setMessages((prev) => [...prev, reply])
+        setMessages((prev) => [...prev, optimistic])
+        void addThreadReplyAction(parentId, body)
+          .then((message) => {
+            setMessages((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? message : item))
+            )
+          })
+          .catch((error) =>
+            toast.error(error.message ?? "Reply failed.")
+          )
       },
       markRead: (conversationId) => {
         setConversations((prev) =>
@@ -253,6 +297,7 @@ export function MessagingProvider({
               : conversation
           )
         )
+        void markReadAction(conversationId).catch(() => undefined)
       },
       startDirectMessage: (memberId) => {
         const existing = conversations.find(
@@ -274,7 +319,17 @@ export function MessagingProvider({
           },
           ...prev,
         ])
-        toast.success(`Started a chat with ${member?.name ?? "teammate"}.`)
+        void startDmAction(memberId)
+          .then((conversation) => {
+            setConversations((prev) =>
+              prev.map((item) => (item.id === id ? conversation : item))
+            )
+            toast.success(`Started a chat with ${member?.name ?? "teammate"}.`)
+          })
+          .catch((error) => {
+            setConversations((prev) => prev.filter((item) => item.id !== id))
+            toast.error(error.message ?? "Could not start chat.")
+          })
         return id
       },
       createChannel: (teamId, name, topic) => {
@@ -299,7 +354,17 @@ export function MessagingProvider({
               : team
           )
         )
-        toast.success(`Channel #${name} created.`)
+        void createChannelAction({ teamId, name, topic })
+          .then((conversation) => {
+            setConversations((prev) =>
+              prev.map((item) => (item.id === id ? conversation : item))
+            )
+            toast.success(`Channel #${name} created.`)
+          })
+          .catch((error) => {
+            setConversations((prev) => prev.filter((item) => item.id !== id))
+            toast.error(error.message ?? "Could not create channel.")
+          })
         return id
       },
       setTyping: (conversationId, memberId, isTyping) => {
@@ -312,29 +377,30 @@ export function MessagingProvider({
         })
       },
       toggleMute: (conversationId) => {
+        let muted = false
         setConversations((prev) =>
-          prev.map((conversation) =>
-            conversation.id === conversationId
-              ? { ...conversation, muted: !conversation.muted }
-              : conversation
-          )
+          prev.map((conversation) => {
+            if (conversation.id !== conversationId) return conversation
+            muted = !conversation.muted
+            return { ...conversation, muted }
+          })
+        )
+        void toggleMuteAction(conversationId, muted).catch((error) =>
+          toast.error(error.message ?? "Update failed.")
         )
       },
       togglePin: (conversationId) => {
+        let pinned = false
         setConversations((prev) =>
-          prev.map((conversation) =>
-            conversation.id === conversationId
-              ? { ...conversation, pinned: !conversation.pinned }
-              : conversation
-          )
+          prev.map((conversation) => {
+            if (conversation.id !== conversationId) return conversation
+            pinned = !conversation.pinned
+            return { ...conversation, pinned }
+          })
         )
-      },
-      reset: () => {
-        setConversations(seedData.conversations)
-        setMessages(seedData.messages)
-        setTeams(seedData.teams)
-        setTypingState(seedData.typing)
-        toast.success("Sample conversations restored.")
+        void togglePinAction(conversationId, pinned).catch((error) =>
+          toast.error(error.message ?? "Update failed.")
+        )
       },
     }
   }, [conversations, messages, teams, presence, typing, members, currentUserId])

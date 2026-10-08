@@ -9,6 +9,11 @@ import { SidebarInset, SidebarProvider } from "@workspace/ui/components/sidebar"
 import { TooltipProvider } from "@workspace/ui/components/tooltip"
 
 import { auth } from "@/lib/auth"
+import { calendarService } from "@/lib/calendars"
+import { getRequestContextForOrganization } from "@/lib/core/auth-context"
+import { fileService } from "@/lib/files"
+import { messagingService } from "@/lib/messaging"
+import { projectService } from "@/lib/projects"
 import { CalendarsProvider } from "@/lib/calendars/store"
 import { FilesProvider } from "@/lib/files/store"
 import { MessagingProvider } from "@/lib/messaging/store"
@@ -45,13 +50,42 @@ export default async function DashboardLayout({
       ? (organizations[0]?.id ?? null)
       : sessionOrganizationId
 
+  if (!activeOrganizationId) {
+    redirect("/onboarding")
+  }
+
+  const ctx = await getRequestContextForOrganization(activeOrganizationId)
+
+  const [projectData, calendarData, filesData, messagingData] =
+    await Promise.all([
+      projectService.list(ctx),
+      calendarService.list(ctx),
+      fileService.list(ctx),
+      messagingService.list(ctx),
+    ])
+
   return (
     <TooltipProvider>
       <RecentsProvider>
-        <ProjectStoreProvider>
-          <MessagingProvider>
-            <CalendarsProvider>
-              <FilesProvider>
+        <ProjectStoreProvider
+          initialData={projectData}
+          currentUserId={ctx.userId}
+        >
+          <MessagingProvider
+            initialData={messagingData}
+            currentUserId={ctx.userId}
+            members={projectData.members}
+          >
+            <CalendarsProvider
+              initialData={calendarData}
+              currentUserId={ctx.userId}
+              members={projectData.members}
+            >
+              <FilesProvider
+                initialData={filesData}
+                currentUserId={ctx.userId}
+                members={projectData.members}
+              >
                 <SidebarProvider
                   style={
                     {

@@ -3,7 +3,23 @@
 import * as React from "react"
 import { toast } from "sonner"
 
-import { projectData as seedData } from "./mock-data"
+import {
+  addCommentAction,
+  addLabelAction,
+  addMemberAction,
+  createProjectAction,
+  createTaskAction,
+  deleteProjectAction,
+  deleteTaskAction,
+  moveTaskAction,
+  removeLabelAction,
+  removeMemberAction,
+  toggleSubtaskAction,
+  updateMemberRoleAction,
+  updateProjectAction,
+  updateTaskAction,
+} from "@/actions/projects"
+import type { CreateTaskInput } from "@/lib/projects/schemas"
 import type {
   Activity,
   Comment,
@@ -16,7 +32,7 @@ import type {
   Task,
   TaskPriority,
   TaskStatus,
-} from "./types"
+} from "@/lib/projects/types"
 
 function uid(prefix: string) {
   return `${prefix}_${Math.random().toString(36).slice(2, 9)}`
@@ -44,16 +60,7 @@ function projectKey(name: string, tasks: Task[]) {
   return `${base || "TSK"}-${count + 1}`
 }
 
-export interface CreateTaskInput {
-  projectId: string
-  title: string
-  description?: string
-  status: TaskStatus
-  priority: TaskPriority
-  assigneeId?: string
-  labelIds: string[]
-  dueDate?: string
-}
+export type { CreateTaskInput }
 
 export interface CreateProjectInput {
   name: string
@@ -69,48 +76,62 @@ interface ProjectStore {
   members: Member[]
   labels: Label[]
   activities: Activity[]
+  currentUserId: string
   getProject: (id: string) => Project | undefined
   getMember: (id?: string) => Member | undefined
   getLabel: (id: string) => Label | undefined
   tasksForProject: (projectId: string) => Task[]
   activitiesForProject: (projectId: string) => Activity[]
-  createProject: (input: CreateProjectInput) => Project
+  createProject: (input: CreateProjectInput) => void
   updateProject: (id: string, patch: Partial<Project>) => void
   deleteProject: (id: string) => void
-  createTask: (input: CreateTaskInput) => Task
+  createTask: (input: CreateTaskInput) => void
   updateTask: (
     id: string,
-    patch: Omit<Partial<Task>, "labelIds"> & { labelIds?: string[] },
+    patch: Omit<Partial<Task>, "labelIds" | "dueDate" | "assigneeId"> & {
+      labelIds?: string[]
+      dueDate?: string | null
+      assigneeId?: string | null
+    },
     options?: { silent?: boolean }
   ) => void
   moveTask: (id: string, status: TaskStatus) => void
   deleteTask: (id: string) => void
   toggleSubtask: (taskId: string, subtaskId: string) => void
   addComment: (taskId: string, authorId: string, body: string) => void
-  addMember: (input: { name: string; email: string; role: MemberRole }) => Member
+  addMember: (input: { name: string; email: string; role: MemberRole }) => void
   updateMemberRole: (id: string, role: MemberRole) => void
   removeMember: (id: string) => void
-  addLabel: (name: string, color: string) => Label
+  addLabel: (name: string, color: string) => void
   removeLabel: (id: string) => void
-  reset: () => void
 }
 
 const ProjectStoreContext = React.createContext<ProjectStore | null>(null)
 
 export function ProjectStoreProvider({
   children,
-  initialData = seedData,
+  initialData,
+  currentUserId,
 }: {
   children: React.ReactNode
-  initialData?: ProjectData
+  initialData: ProjectData
+  currentUserId: string
 }) {
   const [projects, setProjects] = React.useState<Project[]>(initialData.projects)
   const [tasks, setTasks] = React.useState<Task[]>(initialData.tasks)
   const [members, setMembers] = React.useState<Member[]>(initialData.members)
   const [labels, setLabels] = React.useState<Label[]>(initialData.labels)
-  const [activities, setActivities] = React.useState<Activity[]>(initialData.activities)
+  const [activities, setActivities] = React.useState<Activity[]>(
+    initialData.activities
+  )
 
-  const currentUserId = members[0]?.id ?? "u_aria"
+  React.useEffect(() => {
+    setProjects(initialData.projects)
+    setTasks(initialData.tasks)
+    setMembers(initialData.members)
+    setLabels(initialData.labels)
+    setActivities(initialData.activities)
+  }, [initialData])
 
   const pushActivity = React.useCallback(
     (projectId: string, action: string, target: string) => {
@@ -141,6 +162,7 @@ export function ProjectStoreProvider({
       members,
       labels,
       activities,
+      currentUserId,
       getProject,
       getMember,
       getLabel,
@@ -149,7 +171,7 @@ export function ProjectStoreProvider({
       activitiesForProject: (projectId) =>
         activities.filter((activity) => activity.projectId === projectId),
       createProject: (input) => {
-        const project: Project = {
+        const optimistic: Project = {
           id: uid("p"),
           name: input.name,
           description: input.description,
@@ -160,9 +182,20 @@ export function ProjectStoreProvider({
           labelIds: input.labelIds ?? [],
           createdAt: new Date().toISOString(),
         }
-        setProjects((prev) => [project, ...prev])
-        toast.success(`Project “${project.name}” created.`)
-        return project
+        setProjects((prev) => [optimistic, ...prev])
+        void createProjectAction(input)
+          .then((project) => {
+            setProjects((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? project : item))
+            )
+            toast.success(`Project “${project.name}” created.`)
+          })
+          .catch((error) => {
+            setProjects((prev) =>
+              prev.filter((item) => item.id !== optimistic.id)
+            )
+            toast.error(error.message ?? "Could not create project.")
+          })
       },
       updateProject: (id, patch) => {
         setProjects((prev) =>
@@ -170,7 +203,9 @@ export function ProjectStoreProvider({
             project.id === id ? { ...project, ...patch } : project
           )
         )
-        toast.success("Project updated.")
+        void updateProjectAction(id, patch)
+          .then(() => toast.success("Project updated."))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       deleteProject: (id) => {
         setProjects((prev) => prev.filter((project) => project.id !== id))
@@ -178,37 +213,64 @@ export function ProjectStoreProvider({
         setActivities((prev) =>
           prev.filter((activity) => activity.projectId !== id)
         )
-        toast.success("Project deleted.")
+        void deleteProjectAction(id)
+          .then(() => toast.success("Project deleted."))
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       createTask: (input) => {
         const project = getProject(input.projectId)
-        const task: Task = {
+        const optimistic: Task = {
           id: uid("t"),
           identifier: projectKey(project?.name ?? "Task", tasks),
           projectId: input.projectId,
           title: input.title,
           description: input.description,
-          status: input.status,
-          priority: input.priority,
-          assigneeId: input.assigneeId,
-          labelIds: input.labelIds,
-          dueDate: input.dueDate,
+          status: input.status ?? "todo",
+          priority: input.priority ?? "medium",
+          assigneeId: input.assigneeId ?? undefined,
+          labelIds: input.labelIds ?? [],
+          dueDate: input.dueDate ?? undefined,
           createdAt: new Date().toISOString(),
           subtasks: [],
           comments: [],
         }
-        setTasks((prev) => [task, ...prev])
-        pushActivity(input.projectId, "created", task.identifier)
-        toast.success(`Task ${task.identifier} created.`)
-        return task
+        setTasks((prev) => [optimistic, ...prev])
+        void createTaskAction({
+          ...input,
+          status: input.status ?? "todo",
+          priority: input.priority ?? "medium",
+          labelIds: input.labelIds ?? [],
+        })
+          .then((task) => {
+            setTasks((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? task : item))
+            )
+            toast.success(`Task ${task.identifier} created.`)
+          })
+          .catch((error) => {
+            setTasks((prev) => prev.filter((item) => item.id !== optimistic.id))
+            toast.error(error.message ?? "Could not create task.")
+          })
+        pushActivity(input.projectId, "created", optimistic.identifier)
       },
       updateTask: (id, patch, options) => {
         setTasks((prev) =>
-          prev.map((task) => (task.id === id ? { ...task, ...patch } : task))
+          prev.map((task) =>
+            task.id === id
+              ? {
+                  ...task,
+                  ...patch,
+                  assigneeId: patch.assigneeId ?? undefined,
+                  dueDate: patch.dueDate ?? undefined,
+                }
+              : task
+          )
         )
-        if (!options?.silent) {
-          toast.success("Task updated.")
-        }
+        void updateTaskAction(id, patch)
+          .then(() => {
+            if (!options?.silent) toast.success("Task updated.")
+          })
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       moveTask: (id, status) => {
         const task = tasks.find((t) => t.id === id)
@@ -221,12 +283,17 @@ export function ProjectStoreProvider({
           "moved",
           `${task.identifier} to ${status.replace("_", " ")}`
         )
+        void moveTaskAction(id, { status }).catch((error) =>
+          toast.error(error.message ?? "Move failed.")
+        )
       },
       deleteTask: (id) => {
         const task = tasks.find((t) => t.id === id)
         setTasks((prev) => prev.filter((t) => t.id !== id))
         if (task) pushActivity(task.projectId, "deleted", task.identifier)
-        toast.success("Task deleted.")
+        void deleteTaskAction(id)
+          .then(() => toast.success("Task deleted."))
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       toggleSubtask: (taskId, subtaskId) => {
         setTasks((prev) =>
@@ -243,11 +310,14 @@ export function ProjectStoreProvider({
               : task
           )
         )
+        void toggleSubtaskAction(taskId, subtaskId).catch((error) =>
+          toast.error(error.message ?? "Update failed.")
+        )
       },
-      addComment: (taskId, authorId, body) => {
+      addComment: (taskId, _authorId, body) => {
         const comment: Comment = {
           id: uid("c"),
-          authorId,
+          authorId: currentUserId,
           body,
           createdAt: new Date().toISOString(),
         }
@@ -260,17 +330,31 @@ export function ProjectStoreProvider({
         )
         const task = tasks.find((t) => t.id === taskId)
         if (task) pushActivity(task.projectId, "commented on", task.identifier)
+        void addCommentAction(taskId, body).catch((error) =>
+          toast.error(error.message ?? "Comment failed.")
+        )
       },
       addMember: (input) => {
-        const member: Member = {
+        const optimistic: Member = {
           id: uid("u"),
           name: input.name,
           email: input.email,
           role: input.role,
         }
-        setMembers((prev) => [...prev, member])
-        toast.success(`${member.name} added to the workspace.`)
-        return member
+        setMembers((prev) => [...prev, optimistic])
+        void addMemberAction(input)
+          .then((member) => {
+            setMembers((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? member : item))
+            )
+            toast.success(`${member.name} added to the workspace.`)
+          })
+          .catch((error) => {
+            setMembers((prev) =>
+              prev.filter((item) => item.id !== optimistic.id)
+            )
+            toast.error(error.message ?? "Could not add member.")
+          })
       },
       updateMemberRole: (id, role) => {
         setMembers((prev) =>
@@ -278,7 +362,9 @@ export function ProjectStoreProvider({
             member.id === id ? { ...member, role } : member
           )
         )
-        toast.success("Role updated.")
+        void updateMemberRoleAction(id, { role })
+          .then(() => toast.success("Role updated."))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       removeMember: (id) => {
         setMembers((prev) => prev.filter((member) => member.id !== id))
@@ -288,13 +374,26 @@ export function ProjectStoreProvider({
             memberIds: project.memberIds.filter((memberId) => memberId !== id),
           }))
         )
-        toast.success("Member removed.")
+        void removeMemberAction(id)
+          .then(() => toast.success("Member removed."))
+          .catch((error) => toast.error(error.message ?? "Remove failed."))
       },
       addLabel: (name, color) => {
-        const label: Label = { id: uid("l"), name, color }
-        setLabels((prev) => [...prev, label])
-        toast.success(`Label “${name}” created.`)
-        return label
+        const optimistic: Label = { id: uid("l"), name, color }
+        setLabels((prev) => [...prev, optimistic])
+        void addLabelAction({ name, color })
+          .then((label) => {
+            setLabels((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? label : item))
+            )
+            toast.success(`Label “${name}” created.`)
+          })
+          .catch((error) => {
+            setLabels((prev) =>
+              prev.filter((item) => item.id !== optimistic.id)
+            )
+            toast.error(error.message ?? "Could not add label.")
+          })
       },
       removeLabel: (id) => {
         setLabels((prev) => prev.filter((label) => label.id !== id))
@@ -304,15 +403,9 @@ export function ProjectStoreProvider({
             labelIds: task.labelIds.filter((labelId) => labelId !== id),
           }))
         )
-        toast.success("Label deleted.")
-      },
-      reset: () => {
-        setProjects(seedData.projects)
-        setTasks(seedData.tasks)
-        setMembers(seedData.members)
-        setLabels(seedData.labels)
-        setActivities(seedData.activities)
-        toast.success("Sample data restored.")
+        void removeLabelAction(id)
+          .then(() => toast.success("Label deleted."))
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
     }
   }, [projects, tasks, members, labels, activities, currentUserId, pushActivity])
@@ -333,3 +426,4 @@ export function useProjectStore() {
 }
 
 export { initialsFor }
+export type { TaskPriority, TaskStatus }

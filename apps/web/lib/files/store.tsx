@@ -3,9 +3,25 @@
 import * as React from "react"
 import { toast } from "sonner"
 
+import {
+  addShareAction,
+  bulkDeleteAction,
+  bulkRestoreAction,
+  bulkTrashAction,
+  createFilesAction,
+  createFolderAction,
+  deleteFileAction,
+  duplicateFileAction,
+  moveFileAction,
+  removeShareAction,
+  renameFileAction,
+  restoreFileAction,
+  toggleStarAction,
+  trashFileAction,
+  updateShareAction,
+} from "@/actions/files"
 import type { Member } from "@/lib/projects/types"
 
-import { filesData as seedData, members as seedMembers } from "./mock-data"
 import { kindFromName } from "./file-utils"
 import type {
   FileLocation,
@@ -34,8 +50,11 @@ interface FilesStore extends FilesData {
   ) => FileNode[]
   sharesFor: (id: string) => ShareEntry[]
   locationCounts: Record<FileLocation, number>
-  createFolder: (parentId: string | null, name: string) => FileNode
-  createFiles: (parentId: string | null, files: { name: string; sizeBytes: number }[]) => void
+  createFolder: (parentId: string | null, name: string) => void
+  createFiles: (
+    parentId: string | null,
+    files: { name: string; sizeBytes: number }[]
+  ) => void
   renameFile: (id: string, name: string) => void
   moveFile: (id: string, parentId: string | null) => void
   duplicateFile: (id: string) => void
@@ -47,23 +66,33 @@ interface FilesStore extends FilesData {
   restoreMany: (ids: string[]) => void
   deleteMany: (ids: string[]) => void
   addShare: (id: string, memberId: string, permission: SharePermission) => void
-  setPermission: (id: string, memberId: string, permission: SharePermission) => void
+  setPermission: (
+    id: string,
+    memberId: string,
+    permission: SharePermission
+  ) => void
   removeShare: (id: string, memberId: string) => void
-  enqueueUploads: (items: { name: string; sizeBytes: number }[], parentId: string | null) => void
+  enqueueUploads: (
+    items: { name: string; sizeBytes: number }[],
+    parentId: string | null
+  ) => void
   advanceUploads: () => void
   removeUpload: (id: string) => void
   clearCompletedUploads: () => void
-  reset: () => void
 }
 
 const FilesContext = React.createContext<FilesStore | null>(null)
 
 export function FilesProvider({
   children,
-  initialData = seedData,
+  initialData,
+  currentUserId,
+  members = [],
 }: {
   children: React.ReactNode
-  initialData?: FilesData
+  initialData: FilesData
+  currentUserId: string
+  members?: Member[]
 }) {
   const [files, setFiles] = React.useState<FileNode[]>(initialData.files)
   const [shares, setShares] = React.useState<Record<string, ShareEntry[]>>(
@@ -79,8 +108,12 @@ export function FilesProvider({
     )
   const [uploads, setUploads] = React.useState<UploadItem[]>([])
 
-  const members = seedMembers
-  const currentUserId = members[0]?.id ?? "u_aria"
+  React.useEffect(() => {
+    setFiles(initialData.files)
+    setShares(initialData.shares)
+    setVersions(initialData.versions)
+    setActivities(initialData.activities)
+  }, [initialData])
 
   const store = React.useMemo<FilesStore>(() => {
     const getMember = (id?: string) =>
@@ -163,7 +196,12 @@ export function FilesProvider({
       setActivities((prev) => ({
         ...prev,
         [id]: [
-          { id: uid("t"), memberId: currentUserId, action, at: new Date().toISOString() },
+          {
+            id: uid("t"),
+            memberId: currentUserId,
+            action,
+            at: new Date().toISOString(),
+          },
           ...(prev[id] ?? []),
         ],
       }))
@@ -178,6 +216,44 @@ export function FilesProvider({
             : file
         )
       )
+    }
+
+    function createFiles(
+      parentId: string | null,
+      items: { name: string; sizeBytes: number }[]
+    ) {
+      const created: FileNode[] = items.map((item) => ({
+        id: uid("file"),
+        name: item.name,
+        kind: kindFromName(item.name),
+        parentId,
+        ownerId: currentUserId,
+        modifiedAt: new Date().toISOString(),
+        sizeBytes: item.sizeBytes,
+        starred: false,
+        trashed: false,
+        shared: false,
+        restricted: false,
+      }))
+      setFiles((prev) => [...prev, ...created])
+      void createFilesAction({ parentId, files: items })
+        .then((result) => {
+          setFiles((prev) => {
+            const byName = new Map(result.map((file) => [file.name, file]))
+            return prev.map((file) => {
+              const match = created.find((item) => item.id === file.id)
+              return match ? (byName.get(match.name) ?? file) : file
+            })
+          })
+          toast.success(
+            `${created.length} file${created.length === 1 ? "" : "s"} uploaded.`
+          )
+        })
+        .catch((error) => {
+          const ids = new Set(created.map((file) => file.id))
+          setFiles((prev) => prev.filter((file) => !ids.has(file.id)))
+          toast.error(error.message ?? "Upload failed.")
+        })
     }
 
     return {
@@ -195,7 +271,7 @@ export function FilesProvider({
       sharesFor: (id) => shares[id] ?? [],
       locationCounts,
       createFolder: (parentId, name) => {
-        const folder: FileNode = {
+        const optimistic: FileNode = {
           id: uid("folder"),
           name: name.trim(),
           kind: "folder",
@@ -207,39 +283,38 @@ export function FilesProvider({
           shared: false,
           restricted: false,
         }
-        setFiles((prev) => [...prev, folder])
-        toast.success(`Folder “${folder.name}” created.`)
-        return folder
+        setFiles((prev) => [...prev, optimistic])
+        void createFolderAction({ parentId, name })
+          .then((folder) => {
+            setFiles((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? folder : item))
+            )
+            toast.success(`Folder “${folder.name}” created.`)
+          })
+          .catch((error) => {
+            setFiles((prev) =>
+              prev.filter((item) => item.id !== optimistic.id)
+            )
+            toast.error(error.message ?? "Could not create folder.")
+          })
       },
-      createFiles: (parentId, items) => {
-        const created: FileNode[] = items.map((item) => ({
-          id: uid("file"),
-          name: item.name,
-          kind: kindFromName(item.name),
-          parentId,
-          ownerId: currentUserId,
-          modifiedAt: new Date().toISOString(),
-          sizeBytes: item.sizeBytes,
-          starred: false,
-          trashed: false,
-          shared: false,
-          restricted: false,
-        }))
-        setFiles((prev) => [...prev, ...created])
-        toast.success(
-          `${created.length} file${created.length === 1 ? "" : "s"} uploaded.`
-        )
-      },
+      createFiles,
       renameFile: (id, name) => {
         setFiles((prev) =>
           prev.map((file) =>
             file.id === id
-              ? { ...file, name: name.trim(), modifiedAt: new Date().toISOString() }
+              ? {
+                  ...file,
+                  name: name.trim(),
+                  modifiedAt: new Date().toISOString(),
+                }
               : file
           )
         )
         logActivity(id, "renamed this file")
-        toast.success("File renamed.")
+        void renameFileAction(id, { name })
+          .then(() => toast.success("File renamed."))
+          .catch((error) => toast.error(error.message ?? "Rename failed."))
       },
       moveFile: (id, parentId) => {
         setFiles((prev) =>
@@ -249,7 +324,9 @@ export function FilesProvider({
               : file
           )
         )
-        toast.success("File moved.")
+        void moveFileAction(id, { parentId })
+          .then(() => toast.success("File moved."))
+          .catch((error) => toast.error(error.message ?? "Move failed."))
       },
       duplicateFile: (id) => {
         const source = getFile(id)
@@ -259,19 +336,29 @@ export function FilesProvider({
           dotIndex > 0
             ? `${source.name.slice(0, dotIndex)} (copy)${source.name.slice(dotIndex)}`
             : `${source.name} (copy)`
-        setFiles((prev) => [
-          ...prev,
-          {
-            ...source,
-            id: uid("file"),
-            name: copyName,
-            ownerId: currentUserId,
-            modifiedAt: new Date().toISOString(),
-            starred: false,
-            trashed: false,
-          },
-        ])
-        toast.success("Duplicate created.")
+        const optimistic: FileNode = {
+          ...source,
+          id: uid("file"),
+          name: copyName,
+          ownerId: currentUserId,
+          modifiedAt: new Date().toISOString(),
+          starred: false,
+          trashed: false,
+        }
+        setFiles((prev) => [...prev, optimistic])
+        void duplicateFileAction(id)
+          .then((file) => {
+            setFiles((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? file : item))
+            )
+            toast.success("Duplicate created.")
+          })
+          .catch((error) => {
+            setFiles((prev) =>
+              prev.filter((item) => item.id !== optimistic.id)
+            )
+            toast.error(error.message ?? "Duplicate failed.")
+          })
       },
       toggleStar: (id) => {
         let starred = false
@@ -282,42 +369,76 @@ export function FilesProvider({
             return { ...file, starred }
           })
         )
-        toast.success(starred ? "Added to favorites." : "Removed from favorites.")
+        void toggleStarAction(id)
+          .then(() =>
+            toast.success(
+              starred ? "Added to favorites." : "Removed from favorites."
+            )
+          )
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       trashFile: (id) => {
         trashIds([id])
         logActivity(id, "moved this file to trash")
-        toast.success("Moved to trash.")
+        void trashFileAction(id)
+          .then(() => toast.success("Moved to trash."))
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       restoreFile: (id) => {
         setFiles((prev) =>
           prev.map((file) =>
-            file.id === id ? { ...file, trashed: false, trashedAt: undefined } : file
+            file.id === id
+              ? { ...file, trashed: false, trashedAt: undefined }
+              : file
           )
         )
-        toast.success("File restored.")
+        void restoreFileAction(id)
+          .then(() => toast.success("File restored."))
+          .catch((error) => toast.error(error.message ?? "Restore failed."))
       },
       deleteForever: (id) => {
         setFiles((prev) => prev.filter((file) => file.id !== id))
-        toast.success("File permanently deleted.")
+        void deleteFileAction(id)
+          .then(() => toast.success("File permanently deleted."))
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       moveToTrashMany: (ids) => {
         trashIds(ids)
-        toast.success(`${ids.length} item${ids.length === 1 ? "" : "s"} moved to trash.`)
+        void bulkTrashAction({ ids })
+          .then(() =>
+            toast.success(
+              `${ids.length} item${ids.length === 1 ? "" : "s"} moved to trash.`
+            )
+          )
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       restoreMany: (ids) => {
         const set = new Set(ids)
         setFiles((prev) =>
           prev.map((file) =>
-            set.has(file.id) ? { ...file, trashed: false, trashedAt: undefined } : file
+            set.has(file.id)
+              ? { ...file, trashed: false, trashedAt: undefined }
+              : file
           )
         )
-        toast.success(`${ids.length} item${ids.length === 1 ? "" : "s"} restored.`)
+        void bulkRestoreAction({ ids })
+          .then(() =>
+            toast.success(
+              `${ids.length} item${ids.length === 1 ? "" : "s"} restored.`
+            )
+          )
+          .catch((error) => toast.error(error.message ?? "Restore failed."))
       },
       deleteMany: (ids) => {
         const set = new Set(ids)
         setFiles((prev) => prev.filter((file) => !set.has(file.id)))
-        toast.success(`${ids.length} item${ids.length === 1 ? "" : "s"} deleted.`)
+        void bulkDeleteAction({ ids })
+          .then(() =>
+            toast.success(
+              `${ids.length} item${ids.length === 1 ? "" : "s"} deleted.`
+            )
+          )
+          .catch((error) => toast.error(error.message ?? "Delete failed."))
       },
       addShare: (id, memberId, permission) => {
         setShares((prev) => {
@@ -330,6 +451,9 @@ export function FilesProvider({
         setFiles((prev) =>
           prev.map((file) => (file.id === id ? { ...file, shared: true } : file))
         )
+        void addShareAction(id, { memberId, permission }).catch((error) =>
+          toast.error(error.message ?? "Share failed.")
+        )
       },
       setPermission: (id, memberId, permission) => {
         setShares((prev) => ({
@@ -338,14 +462,18 @@ export function FilesProvider({
             entry.memberId === memberId ? { ...entry, permission } : entry
           ),
         }))
-        toast.success("Permission updated.")
+        void updateShareAction(id, { memberId, permission })
+          .then(() => toast.success("Permission updated."))
+          .catch((error) => toast.error(error.message ?? "Update failed."))
       },
       removeShare: (id, memberId) => {
         setShares((prev) => ({
           ...prev,
           [id]: (prev[id] ?? []).filter((entry) => entry.memberId !== memberId),
         }))
-        toast.success("Access removed.")
+        void removeShareAction(id, { memberId })
+          .then(() => toast.success("Access removed."))
+          .catch((error) => toast.error(error.message ?? "Remove failed."))
       },
       enqueueUploads: (items, parentId) => {
         const queued: UploadItem[] = items.map((item) => ({
@@ -357,23 +485,7 @@ export function FilesProvider({
         }))
         setUploads((prev) => [...prev, ...queued])
         window.setTimeout(() => {
-          const created = items.map((item) => ({ name: item.name, sizeBytes: item.sizeBytes }))
-          setFiles((prev) => [
-            ...prev,
-            ...created.map((item) => ({
-              id: uid("file"),
-              name: item.name,
-              kind: kindFromName(item.name),
-              parentId,
-              ownerId: currentUserId,
-              modifiedAt: new Date().toISOString(),
-              sizeBytes: item.sizeBytes,
-              starred: false,
-              trashed: false,
-              shared: false,
-              restricted: false,
-            })),
-          ])
+          createFiles(parentId, items)
         }, 1600)
       },
       advanceUploads: () => {
@@ -391,14 +503,6 @@ export function FilesProvider({
       },
       clearCompletedUploads: () => {
         setUploads((prev) => prev.filter((item) => item.status !== "done"))
-      },
-      reset: () => {
-        setFiles(seedData.files)
-        setShares(seedData.shares)
-        setVersions(seedData.versions)
-        setActivities(seedData.activities)
-        setUploads([])
-        toast.success("Sample files restored.")
       },
     }
   }, [files, shares, versions, activities, uploads, members, currentUserId])
