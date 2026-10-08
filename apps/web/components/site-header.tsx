@@ -1,25 +1,27 @@
 "use client"
 
-import { usePathname } from "next/navigation"
+import { useTranslations } from "next-intl"
 
 import { ThemeToggle } from "@/components/theme-toggle"
 import { Separator } from "@workspace/ui/components/separator"
 import { SidebarTrigger } from "@workspace/ui/components/sidebar"
 
+import { usePathname } from "@/i18n/navigation"
 import { useProjectStore } from "@/lib/projects/store"
 
-const titles: Record<string, string> = {
-  "": "Dashboard",
-  "/projects": "Projects",
-  "/messages": "Messages",
-  "/calendars": "Calendars",
-  "/files": "Files",
-  "/settings": "Settings",
-  "/search": "Search",
-  "/help": "Get Help",
-}
+const titleKeys = {
+  "": "dashboard",
+  "/projects": "projects",
+  "/messages": "messages",
+  "/calendars": "calendars",
+  "/files": "files",
+  "/settings": "settings",
+  "/search": "search",
+  "/help": "getHelp",
+} as const satisfies Record<string, string>
 
 function usePageTitle(orgSlug: string, pathname: string) {
+  const t = useTranslations("Sidebar")
   const { getProject } = useProjectStore()
 
   const prefix = `/${orgSlug}`
@@ -27,12 +29,13 @@ function usePageTitle(orgSlug: string, pathname: string) {
     ? pathname.slice(prefix.length)
     : pathname
 
-  if (titles[relative] !== undefined) return titles[relative]
+  const titleKey = titleKeys[relative as keyof typeof titleKeys]
+  if (titleKey !== undefined) return t(titleKey)
   if (relative.startsWith("/projects/")) {
     const projectId = relative.split("/")[2]
-    return projectId ? (getProject(projectId)?.name ?? "Project") : "Projects"
+    return projectId ? (getProject(projectId)?.name ?? t("projects")) : t("projects")
   }
-  return "Dashboard"
+  return t("dashboard")
 }
 
 export function SiteHeader({ orgSlug }: { orgSlug: string }) {

@@ -1,9 +1,12 @@
-import Link from "next/link"
 import { ArrowLeftIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
+import { Link } from "@/i18n/navigation"
 
 export function AuthHomeButton() {
+  const t = useTranslations("Auth")
+
   return (
     <Button
       variant="ghost"
@@ -12,7 +15,7 @@ export function AuthHomeButton() {
       render={<Link href="/" />}
     >
       <ArrowLeftIcon data-icon="inline-start" />
-      Back to home
+      {t("backToHome")}
     </Button>
   )
 }

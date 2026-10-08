@@ -1,7 +1,5 @@
 "use client"
 
-import Link from "next/link"
-import { useRouter } from "next/navigation"
 import {
   BellIcon,
   CircleUserRoundIcon,
@@ -9,8 +7,10 @@ import {
   EllipsisVerticalIcon,
   LogOutIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { authClient } from "@/lib/auth-client"
+import { Link, useRouter } from "@/i18n/navigation"
 import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import {
   Avatar,
@@ -53,6 +53,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
+  const t = useTranslations("UserMenu")
   const router = useRouter()
   const orgSlug = useOrgSlug()
   const initials = getInitials(user.name)
@@ -112,21 +113,21 @@ export function NavUser({
             <DropdownMenuGroup>
               <DropdownMenuItem render={<Link href={`/${orgSlug}/settings`} />}>
                 <CircleUserRoundIcon />
-                Account
+                {t("account")}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <CreditCardIcon />
-                Billing
+                {t("billing")}
               </DropdownMenuItem>
               <DropdownMenuItem>
                 <BellIcon />
-                Notifications
+                {t("notifications")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem onClick={handleSignOut}>
               <LogOutIcon />
-              Log out
+              {t("logOut")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

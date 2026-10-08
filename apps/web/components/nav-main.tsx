@@ -1,11 +1,11 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
-import { usePathname, useRouter } from "next/navigation"
 import { CirclePlusIcon, MailIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { ProjectFormDialog } from "@/components/project/project-dialog"
+import { Link, usePathname, useRouter } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   SidebarGroup,
@@ -32,6 +32,7 @@ export interface NavApp {
 }
 
 export function NavMain({ items }: { items: NavApp[] }) {
+  const t = useTranslations("Sidebar")
   const pathname = usePathname()
   const router = useRouter()
   const orgSlug = useOrgSlug()
@@ -46,18 +47,18 @@ export function NavMain({ items }: { items: NavApp[] }) {
 
   return (
     <SidebarGroup>
-      <SidebarGroupLabel>Workspace</SidebarGroupLabel>
+      <SidebarGroupLabel>{t("workspace")}</SidebarGroupLabel>
       <SidebarGroupContent className="flex flex-col gap-2">
         <SidebarMenu>
           <SidebarMenuItem className="flex items-center gap-2">
             <ProjectFormDialog
               trigger={
                 <SidebarMenuButton
-                  tooltip="Quick Create"
+                  tooltip={t("quickCreate")}
                   className="min-w-8 bg-primary text-primary-foreground duration-200 ease-linear hover:bg-primary/90 hover:text-primary-foreground active:bg-primary/90 active:text-primary-foreground"
                 >
                   <CirclePlusIcon />
-                  <span>Quick Create</span>
+                  <span>{t("quickCreate")}</span>
                 </SidebarMenuButton>
               }
             />
@@ -69,7 +70,7 @@ export function NavMain({ items }: { items: NavApp[] }) {
               nativeButton={false}
             >
               <MailIcon />
-              <span className="sr-only">Messages</span>
+              <span className="sr-only">{t("messages")}</span>
             </Button>
           </SidebarMenuItem>
         </SidebarMenu>

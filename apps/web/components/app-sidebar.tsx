@@ -1,6 +1,5 @@
 "use client"
 
-import Link from "next/link"
 import {
   CalendarIcon,
   CircleHelpIcon,
@@ -12,11 +11,13 @@ import {
   SearchIcon,
   Settings2Icon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { NavMain, type NavApp } from "@/components/nav-main"
 import { NavSecondary } from "@/components/nav-secondary"
 import { NavUser } from "@/components/nav-user"
 import { OrgSwitcher } from "@/components/organization/org-switcher"
+import { Link } from "@/i18n/navigation"
 import {
   Sidebar,
   SidebarContent,
@@ -28,54 +29,56 @@ import {
   SidebarRail,
 } from "@workspace/ui/components/sidebar"
 
-function buildNavMain(orgSlug: string): NavApp[] {
+function useNavMain(orgSlug: string): NavApp[] {
+  const t = useTranslations("Sidebar")
   return [
     {
-      title: "Dashboard",
+      title: t("dashboard"),
       url: `/${orgSlug}`,
       icon: <LayoutDashboardIcon />,
     },
     {
       key: "projects",
-      title: "Projects",
+      title: t("projects"),
       url: `/${orgSlug}/projects`,
       icon: <FolderIcon />,
     },
     {
       key: "messages",
-      title: "Messages",
+      title: t("messages"),
       url: `/${orgSlug}/messages`,
       icon: <MessageSquareIcon />,
     },
     {
       key: "calendars",
-      title: "Calendars",
+      title: t("calendars"),
       url: `/${orgSlug}/calendars`,
       icon: <CalendarIcon />,
     },
     {
       key: "files",
-      title: "Files",
+      title: t("files"),
       url: `/${orgSlug}/files`,
       icon: <FileIcon />,
     },
   ]
 }
 
-function buildNavSecondary(orgSlug: string) {
+function useNavSecondary(orgSlug: string) {
+  const t = useTranslations("Sidebar")
   return [
     {
-      title: "Settings",
+      title: t("settings"),
       url: `/${orgSlug}/settings`,
       icon: <Settings2Icon />,
     },
     {
-      title: "Search",
+      title: t("search"),
       url: `/${orgSlug}/search`,
       icon: <SearchIcon />,
     },
     {
-      title: "Get Help",
+      title: t("getHelp"),
       url: `/${orgSlug}/help`,
       icon: <CircleHelpIcon />,
     },
@@ -96,8 +99,8 @@ export function AppSidebar({
   orgSlug: string
   activeOrganizationId: string | null
 }) {
-  const navMain = buildNavMain(orgSlug)
-  const navSecondary = buildNavSecondary(orgSlug)
+  const navMain = useNavMain(orgSlug)
+  const navSecondary = useNavSecondary(orgSlug)
   return (
     <Sidebar collapsible="offcanvas" {...props}>
       <SidebarHeader className="gap-2">

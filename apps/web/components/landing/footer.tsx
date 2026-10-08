@@ -1,12 +1,15 @@
-import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import { Container } from "@/components/landing/section"
 import { Wordmark } from "@/components/landing/wordmark"
 import { NewsletterForm } from "@/components/forms/newsletter-form"
+import { Link } from "@/i18n/navigation"
 import { Separator } from "@workspace/ui/components/separator"
 import { footerColumns } from "@/lib/landing/content"
 
 export function Footer() {
+  const t = useTranslations("Footer")
+
   return (
     <footer id="footer" className="border-t bg-muted/30">
       <Container className="py-14">
@@ -14,11 +17,10 @@ export function Footer() {
           <div className="flex flex-col gap-4">
             <Wordmark />
             <p className="max-w-xs text-sm text-muted-foreground">
-              The AI-native productivity platform. Projects, messaging,
-              calendars and files — in one workspace.
+              {t("description")}
             </p>
             <div className="flex flex-col gap-2">
-              <span className="text-sm font-medium">Get product updates</span>
+              <span className="text-sm font-medium">{t("updatesHeading")}</span>
               <NewsletterForm />
             </div>
           </div>
@@ -48,11 +50,9 @@ export function Footer() {
 
         <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-sm text-muted-foreground">
-            © {new Date().getFullYear()} Presk. All rights reserved.
+            {t("copyright", { year: new Date().getFullYear() })}
           </p>
-          <p className="text-sm text-muted-foreground">
-            Built with Next.js and shadcn/ui.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("builtWith")}</p>
         </div>
       </Container>
     </footer>

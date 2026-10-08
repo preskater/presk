@@ -1,15 +1,42 @@
 "use client"
 
 import { Geist, Geist_Mono } from "next/font/google"
+import { NextIntlClientProvider, useTranslations } from "next-intl"
 
 import "@workspace/ui/globals.css"
 import { ErrorState } from "@/components/states/error-state"
 import { cn } from "@workspace/ui/lib/utils"
 
+import en from "../messages/en.json"
+
 const fontSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })
 
 const themeScript = `(function(){try{var t=localStorage.getItem('theme');var d=t==='system'||!t?window.matchMedia('(prefers-color-scheme: dark)').matches:t==='dark';document.documentElement.classList.toggle('dark',d)}catch(e){}})()`
+
+function GlobalErrorContent({
+  error,
+  retry,
+}: {
+  error: Error & { digest?: string }
+  retry: () => void
+}) {
+  const t = useTranslations("Error")
+
+  return (
+    <ErrorState
+      error={error}
+      retry={retry}
+      title={t("title")}
+      description={t("globalDescription")}
+      referenceLabel={
+        error.digest ? t("reference", { digest: error.digest }) : undefined
+      }
+      retryLabel={t("retry")}
+      className="min-h-svh"
+    />
+  )
+}
 
 export default function GlobalError({
   error,
@@ -28,13 +55,9 @@ export default function GlobalError({
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
       <body className="bg-background text-foreground">
-        <ErrorState
-          error={error}
-          retry={retry}
-          title="Something went wrong"
-          description="The application hit an unexpected error while rendering. You can try again."
-          className="min-h-svh"
-        />
+        <NextIntlClientProvider locale="en" messages={en}>
+          <GlobalErrorContent error={error} retry={retry} />
+        </NextIntlClientProvider>
       </body>
     </html>
   )

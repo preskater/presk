@@ -2,6 +2,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import createMDX from "@next/mdx"
+import createNextIntlPlugin from "next-intl/plugin"
 
 import type { NextConfig } from "next"
 
@@ -12,6 +13,9 @@ const nextConfig: NextConfig = {
   outputFileTracingRoot: path.join(projectRoot, "../../"),
   transpilePackages: ["@workspace/ui"],
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
+  experimental: {
+    globalNotFound: true,
+  },
 }
 
 const withMDX = createMDX({
@@ -23,4 +27,6 @@ const withMDX = createMDX({
   },
 })
 
-export default withMDX(nextConfig)
+const withNextIntl = createNextIntlPlugin()
+
+export default withNextIntl(withMDX(nextConfig))

@@ -1,11 +1,12 @@
 "use client"
 
-import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useTranslations } from "next-intl"
 import { Controller, useForm } from "react-hook-form"
 import * as z from "zod"
 
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -26,17 +27,19 @@ import { Input } from "@workspace/ui/components/input"
 import { authClient } from "@/lib/auth-client"
 import { cn } from "@workspace/ui/lib/utils"
 
-const formSchema = z.object({
-  email: z.email("Please enter a valid email address."),
-  password: z.string().min(1, "Password is required."),
-})
-
 export function SignInForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
+  const t = useTranslations("Auth.signIn")
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const formSchema = z.object({
+    email: z.email(t("invalidEmail")),
+    password: z.string().min(1, t("passwordRequired")),
+  })
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -50,7 +53,7 @@ export function SignInForm({
 
     if (error) {
       form.setError("root", {
-        message: error.message ?? "Unable to sign in.",
+        message: error.message ?? t("genericError"),
       })
       return
     }
@@ -64,10 +67,8 @@ export function SignInForm({
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Sign in to your account</CardTitle>
-          <CardDescription>
-            Enter your email below to sign in to your account
-          </CardDescription>
+          <CardTitle>{t("title")}</CardTitle>
+          <CardDescription>{t("description")}</CardDescription>
         </CardHeader>
         <CardContent>
           <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -77,7 +78,7 @@ export function SignInForm({
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>{t("email")}</FieldLabel>
                     <Input
                       {...field}
                       id={field.name}
@@ -97,7 +98,7 @@ export function SignInForm({
                 control={form.control}
                 render={({ field, fieldState }) => (
                   <Field data-invalid={fieldState.invalid}>
-                    <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                    <FieldLabel htmlFor={field.name}>{t("password")}</FieldLabel>
                     <Input
                       {...field}
                       id={field.name}
@@ -113,13 +114,13 @@ export function SignInForm({
               />
               <Field>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting ? "Signing in..." : "Sign in"}
+                  {form.formState.isSubmitting ? t("submitting") : t("submit")}
                 </Button>
                 {form.formState.errors.root && (
                   <FieldError errors={[form.formState.errors.root]} />
                 )}
                 <FieldDescription className="text-center">
-                  Don&apos;t have an account?{" "}
+                  {t("noAccount")}{" "}
                   <Link
                     href={
                       searchParams.get("redirect")
@@ -129,7 +130,7 @@ export function SignInForm({
                         : "/sign-up"
                     }
                   >
-                    Sign up
+                    {t("signUpLink")}
                   </Link>
                 </FieldDescription>
               </Field>

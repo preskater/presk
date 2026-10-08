@@ -1,11 +1,12 @@
 "use client"
 
-import Link from "next/link"
 import { useRouter, useSearchParams } from "next/navigation"
 import { zodResolver } from "@hookform/resolvers/zod"
+import { useTranslations } from "next-intl"
 import { Controller, useForm } from "react-hook-form"
 import * as z from "zod"
 
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -25,21 +26,23 @@ import { Input } from "@workspace/ui/components/input"
 
 import { authClient } from "@/lib/auth-client"
 
-const formSchema = z
-  .object({
-    name: z.string().min(1, "Name is required."),
-    email: z.email("Please enter a valid email address."),
-    password: z.string().min(8, "Password must be at least 8 characters long."),
-    confirmPassword: z.string(),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Passwords do not match.",
-    path: ["confirmPassword"],
-  })
-
 export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
+  const t = useTranslations("Auth.signUp")
   const router = useRouter()
   const searchParams = useSearchParams()
+
+  const formSchema = z
+    .object({
+      name: z.string().min(1, t("nameRequired")),
+      email: z.email(t("invalidEmail")),
+      password: z.string().min(8, t("passwordLength")),
+      confirmPassword: z.string(),
+    })
+    .refine((data) => data.password === data.confirmPassword, {
+      message: t("passwordsMismatch"),
+      path: ["confirmPassword"],
+    })
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
@@ -59,7 +62,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
 
     if (error) {
       form.setError("root", {
-        message: error.message ?? "Unable to create your account.",
+        message: error.message ?? t("genericError"),
       })
       return
     }
@@ -72,10 +75,8 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
   return (
     <Card {...props}>
       <CardHeader>
-        <CardTitle>Create an account</CardTitle>
-        <CardDescription>
-          Enter your information below to create your account
-        </CardDescription>
+        <CardTitle>{t("title")}</CardTitle>
+        <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={form.handleSubmit(onSubmit)}>
@@ -85,7 +86,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Full Name</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>{t("name")}</FieldLabel>
                   <Input
                     {...field}
                     id={field.name}
@@ -105,7 +106,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Email</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>{t("email")}</FieldLabel>
                   <Input
                     {...field}
                     id={field.name}
@@ -114,10 +115,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                     autoComplete="email"
                     aria-invalid={fieldState.invalid}
                   />
-                  <FieldDescription>
-                    We&apos;ll use this to contact you. We will not share your
-                    email with anyone else.
-                  </FieldDescription>
+                  <FieldDescription>{t("emailHint")}</FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -129,7 +127,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Password</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>{t("password")}</FieldLabel>
                   <Input
                     {...field}
                     id={field.name}
@@ -137,9 +135,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                     autoComplete="new-password"
                     aria-invalid={fieldState.invalid}
                   />
-                  <FieldDescription>
-                    Must be at least 8 characters long.
-                  </FieldDescription>
+                  <FieldDescription>{t("passwordHint")}</FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -151,7 +147,9 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
               control={form.control}
               render={({ field, fieldState }) => (
                 <Field data-invalid={fieldState.invalid}>
-                  <FieldLabel htmlFor={field.name}>Confirm Password</FieldLabel>
+                  <FieldLabel htmlFor={field.name}>
+                    {t("confirmPassword")}
+                  </FieldLabel>
                   <Input
                     {...field}
                     id={field.name}
@@ -159,9 +157,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                     autoComplete="new-password"
                     aria-invalid={fieldState.invalid}
                   />
-                  <FieldDescription>
-                    Please confirm your password.
-                  </FieldDescription>
+                  <FieldDescription>{t("confirmHint")}</FieldDescription>
                   {fieldState.invalid && (
                     <FieldError errors={[fieldState.error]} />
                   )}
@@ -171,15 +167,13 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
             <FieldGroup>
               <Field>
                 <Button type="submit" disabled={form.formState.isSubmitting}>
-                  {form.formState.isSubmitting
-                    ? "Creating account..."
-                    : "Sign up"}
+                  {form.formState.isSubmitting ? t("submitting") : t("submit")}
                 </Button>
                 {form.formState.errors.root && (
                   <FieldError errors={[form.formState.errors.root]} />
                 )}
                 <FieldDescription className="px-6 text-center">
-                  Already have an account?{" "}
+                  {t("hasAccount")}{" "}
                   <Link
                     href={
                       searchParams.get("redirect")
@@ -189,7 +183,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                         : "/sign-in"
                     }
                   >
-                    Sign in
+                    {t("signInLink")}
                   </Link>
                 </FieldDescription>
               </Field>

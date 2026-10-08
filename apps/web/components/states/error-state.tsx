@@ -20,12 +20,16 @@ export function ErrorState({
   retry,
   title = "Something went wrong",
   description = "An unexpected error occurred. You can try again, or head back and continue working.",
+  retryLabel = "Try again",
+  referenceLabel,
   className,
 }: {
   error: Error & { digest?: string }
   retry: () => void
   title?: string
   description?: string
+  retryLabel?: string
+  referenceLabel?: string
   className?: string
 }) {
   useEffect(() => {
@@ -49,13 +53,13 @@ export function ErrorState({
             {description}
             {error.digest ? (
               <span className="mt-1 block text-xs opacity-70">
-                Reference: {error.digest}
+                {referenceLabel ?? `Reference: ${error.digest}`}
               </span>
             ) : null}
           </EmptyDescription>
         </EmptyHeader>
         <EmptyContent>
-          <Button onClick={() => retry()}>Try again</Button>
+          <Button onClick={() => retry()}>{retryLabel}</Button>
         </EmptyContent>
       </Empty>
     </div>
