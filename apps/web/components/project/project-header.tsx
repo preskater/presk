@@ -1,7 +1,7 @@
 "use client"
 
-import Link from "next/link"
 import { EllipsisIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { TaskFormDialog } from "@/components/task/task-dialog"
@@ -41,19 +41,11 @@ import {
   TooltipTrigger,
 } from "@workspace/ui/components/tooltip"
 
+import { Link } from "@/i18n/navigation"
 import { useProjectStore } from "@/lib/projects/store"
 import { useOrgSlug } from "@/lib/organization/use-org-slug"
-import {
-  formatDate,
-  type Project,
-  type ProjectStatus,
-} from "@/lib/projects/types"
-
-const PROJECT_STATUS_LABEL: Record<ProjectStatus, string> = {
-  active: "Active",
-  paused: "Paused",
-  completed: "Completed",
-}
+import { useEnumLabel } from "@/lib/i18n/labels"
+import { formatDate, type Project } from "@/lib/projects/types"
 
 export function ProjectHeader({
   project,
@@ -62,6 +54,9 @@ export function ProjectHeader({
   project: Project
   onDeleted: () => void
 }) {
+  const t = useTranslations("Projects")
+  const locale = useLocale()
+  const L = useEnumLabel()
   const { getMember, deleteProject } = useProjectStore()
   const orgSlug = useOrgSlug()
   const members = project.memberIds
@@ -74,7 +69,7 @@ export function ProjectHeader({
         <BreadcrumbList>
           <BreadcrumbItem>
             <BreadcrumbLink render={<Link href={`/${orgSlug}/projects`} />}>
-              Projects
+              {t("projects")}
             </BreadcrumbLink>
           </BreadcrumbItem>
           <BreadcrumbSeparator />
@@ -88,12 +83,10 @@ export function ProjectHeader({
         <div className="flex flex-col gap-2">
           <div className="flex flex-wrap items-center gap-2">
             <h2 className="text-xl font-semibold">{project.name}</h2>
-            <Badge variant="outline">
-              {PROJECT_STATUS_LABEL[project.status]}
-            </Badge>
+            <Badge variant="outline">{L.projectStatus(project.status)}</Badge>
           </div>
           <p className="max-w-2xl text-sm text-muted-foreground">
-            {project.description ?? "No description"}
+            {project.description ?? t("noDescription")}
           </p>
           <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             <div className="flex items-center gap-2">
@@ -109,12 +102,12 @@ export function ProjectHeader({
                   </Tooltip>
                 ))}
               </div>
-              <span>
-                {members.length} member{members.length === 1 ? "" : "s"}
-              </span>
+              <span>{t("memberCount", { count: members.length })}</span>
             </div>
             {project.dueDate ? (
-              <span>Target {formatDate(project.dueDate)}</span>
+              <span>
+                {t("target", { date: formatDate(project.dueDate, locale) ?? "" })}
+              </span>
             ) : null}
           </div>
         </div>
@@ -125,7 +118,7 @@ export function ProjectHeader({
             trigger={
               <Button>
                 <PlusIcon data-icon="inline-start" />
-                Create task
+                {t("createTask")}
               </Button>
             }
           />
@@ -134,7 +127,7 @@ export function ProjectHeader({
               render={<Button variant="outline" size="icon" />}
             >
               <EllipsisIcon />
-              <span className="sr-only">Project actions</span>
+              <span className="sr-only">{t("projectActions")}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
@@ -143,7 +136,7 @@ export function ProjectHeader({
                   trigger={
                     <DropdownMenuItem>
                       <PencilIcon />
-                      Edit project
+                      {t("editProject")}
                     </DropdownMenuItem>
                   }
                 />
@@ -153,20 +146,21 @@ export function ProjectHeader({
                     render={
                       <DropdownMenuItem variant="destructive">
                         <Trash2Icon />
-                        Delete project
+                        {t("deleteProject")}
                       </DropdownMenuItem>
                     }
                   />
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete project?</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        {t("deleteProjectQuestion")}
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will permanently remove “{project.name}” and all of
-                        its tasks. This action cannot be undone.
+                        {t("deleteProjectDescription", { name: project.name })}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                       <AlertDialogAction
                         variant="destructive"
                         onClick={() => {
@@ -174,7 +168,7 @@ export function ProjectHeader({
                           onDeleted()
                         }}
                       >
-                        Delete
+                        {t("delete")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>

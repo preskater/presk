@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 import { CalendarIcon } from "lucide-react"
 
 import {
@@ -28,14 +29,17 @@ export function CalendarsSearchCommand({
   onOpenChange: (open: boolean) => void
   onSelectEvent: (event: CalendarEvent) => void
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Calendars")
+  const tc = useTranslations("Common")
   const { events, getCalendar } = useCalendars()
 
   return (
     <CommandDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Search events"
-      description="Search across all calendars"
+      title={t("searchEvents")}
+      description={t("searchAcross")}
       className="sm:max-w-lg"
     >
       <Command
@@ -43,10 +47,10 @@ export function CalendarsSearchCommand({
           value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
         }
       >
-        <CommandInput placeholder="Search events..." />
+        <CommandInput placeholder={t("searchEventsPlaceholder")} />
         <CommandList>
-          <CommandEmpty>No events found.</CommandEmpty>
-          <CommandGroup heading="Events">
+          <CommandEmpty>{t("noEventsFound")}</CommandEmpty>
+          <CommandGroup heading={t("events")}>
             {events.map((event) => {
               const calendar = getCalendar(event.calendarId)
               return (
@@ -68,8 +72,8 @@ export function CalendarsSearchCommand({
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate">{event.title}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {formatDayLabel(new Date(event.startAt))} ·{" "}
-                      {formatEventRange(event)}
+                      {formatDayLabel(new Date(event.startAt), locale, tc)} ·{" "}
+                      {formatEventRange(event, locale, tc("allDay"))}
                       {calendar ? ` · ${calendar.name}` : ""}
                     </span>
                   </span>

@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "product": {
+      "title": "Product"
+    },
+    "solutions": {
+      "title": "Solutions"
+    },
+    "resources": {
+      "title": "Resources"
+    },
+    "company": {
+      "title": "Company"
+    }
+  },
+  "productNav": {
+    "projects": "Projects",
+    "projectsDescription": "Kanban boards, tasks and progress",
+    "messaging": "Messaging",
+    "messagingDescription": "Channels, threads and direct messages",
+    "calendars": "Calendars",
+    "calendarsDescription": "Team scheduling and availability",
+    "files": "Files",
+    "filesDescription": "Documents, sharing and permissions"
+  },
+  "solutionNav": {
+    "engineering": "Engineering",
+    "engineeringDescription": "Ship faster together",
+    "design": "Design",
+    "designDescription": "Keep work in sync",
+    "operations": "Operations",
+    "operationsDescription": "Run the business",
+    "startups": "Startups",
+    "startupsDescription": "Scale from day one"
+  },
+  "resourceNav": {
+    "documentation": "Documentation",
+    "documentationDescription": "Guides and references",
+    "blog": "Blog",
+    "blogDescription": "Product updates",
+    "community": "Community",
+    "communityDescription": "Join the conversation",
+    "support": "Support",
+    "supportDescription": "We're here to help"
+  },
+  "companyNav": {
+    "about": "About",
+    "aboutDescription": "Our mission and team",
+    "careers": "Careers",
+    "careersDescription": "Join the team",
+    "contact": "Contact",
+    "contactDescription": "Talk to sales",
+    "pricing": "Pricing",
+    "pricingDescription": "Plans and billing"
+  },
+  "footerColumns": {
+    "product": "Product",
+    "company": "Company",
+    "resources": "Resources",
+    "legal": "Legal",
+    "features": "Features",
+    "pricing": "Pricing",
+    "faq": "FAQ",
+    "blog": "Blog",
+    "about": "About",
+    "careers": "Careers",
+    "contact": "Contact",
+    "documentation": "Documentation",
+    "support": "Support",
+    "community": "Community",
+    "changelog": "Changelog",
+    "privacy": "Privacy",
+    "terms": "Terms",
+    "security": "Security",
+    "cookies": "Cookies"
+  },
+  "hero": {
+    "badge": "New: AI-powered workflows",
+    "title": "Build better products with your entire team",
+    "description": "Plan projects, collaborate with your team, and ship faster from one unified workspace — projects, messaging, calendars and files with built-in AI assistants.",
+    "dashboard": "Go to dashboard",
+    "startBuilding": "Start building free",
+    "bookDemo": "Book a demo",
+    "waitlistPrompt": "Be first in line — join the waitlist"
+  },
+  "logoCloud": {
+    "heading": "Trusted by fast-moving teams at"
+  },
+  "features": {
+    "eyebrow": "Why Presk",
+    "title": "Everything your team needs, in one workspace",
+    "description": "Stop stitching together five tools. Presk keeps your work, conversations and files connected by default.",
+    "explore": "Explore all features",
+    "aiWorkflows": "AI-native workflows",
+    "aiWorkflowsDescription": "Automate standups, summaries and task updates so your team stays focused on the work that matters.",
+    "onePlace": "Everything in one place",
+    "onePlaceDescription": "Projects, messaging, calendars and files share the same people, context and permissions.",
+    "security": "Enterprise-grade security",
+    "securityDescription": "Organizations, roles and granular permissions built in — with SSO-ready authentication.",
+    "scheduling": "Scheduling that just works",
+    "schedulingDescription": "See team availability, schedule meetings and sync events across every calendar view.",
+    "filePermissions": "Files with real permissions",
+    "filePermissionsDescription": "Share documents with view, comment or edit access — down to the individual file.",
+    "conversations": "Conversations with context",
+    "conversationsDescription": "Threads, reactions and mentions keep discussions attached to the work they're about."
+  },
+  "showcase": {
+    "eyebrow": "Product",
+    "title": "One workspace, every workflow",
+    "description": "Jump between projects, conversations, scheduling and files without ever losing context.",
+    "projects": "Projects",
+    "projectsHeading": "Plan and ship with Kanban boards",
+    "projectsDescription": "Organize work into boards, track progress and keep every task tied to the people and files it touches.",
+    "messages": "Messages",
+    "messagesHeading": "Chat that stays in context",
+    "messagesDescription": "Channels, direct messages and threads keep your team aligned without losing the thread.",
+    "calendars": "Calendars",
+    "calendarsHeading": "One calendar for the whole team",
+    "calendarsDescription": "Schedule across projects with shared availability, reminders and meeting cards.",
+    "files": "Files",
+    "filesHeading": "Documents with real permissions",
+    "filesDescription": "Store, preview and share files with granular access — right next to your projects.",
+    "tasksShipped": "Tasks shipped",
+    "messagesSent": "Messages sent",
+    "meetingsSynced": "Meetings synced",
+    "teamAdoption": "Team adoption",
+    "todo": "Todo",
+    "inProgress": "In progress",
+    "done": "Done",
+    "medium": "Medium",
+    "membersCount": "{count, plural, one {# member} other {# members}}",
+    "mon": "Mon",
+    "tue": "Tue",
+    "wed": "Wed",
+    "thu": "Thu",
+    "fri": "Fri",
+    "name": "Name",
+    "owner": "Owner",
+    "size": "Size",
+    "taskApiKey": "API key rotation",
+    "taskSandbox": "Sandbox environment",
+    "taskRateLimit": "Rate limiting and quotas",
+    "taskOpenApi": "Publish OpenAPI spec",
+    "msg1": "The API key rotation flow is ready for review.",
+    "msg2": "Nice — I'll take a look this afternoon 🎉",
+    "msg3": "Great, let's ship the release candidate after.",
+    "channelEngineering": "engineering",
+    "eventStandup": "Engineering standup",
+    "eventCritique": "Design critique",
+    "eventRoadmap": "Roadmap review",
+    "fileRoadmap": "roadmap-2026.pdf",
+    "fileHero": "hero-banner.png",
+    "fileTokens": "design-tokens.fig"
+  },
+  "testimonials": {
+    "eyebrow": "Customers",
+    "title": "Loved by teams who ship",
+    "description": "From startups to enterprises, teams use Presk to stay aligned and move faster.",
+    "q1": "Presk replaced four tools for us. Projects, chat and files finally live in the same place, so context never gets lost.",
+    "q1Role": "Head of Product, Northwind",
+    "q2": "The AI assistants handle the busywork — standups, summaries, task updates. My team got a full day back every week.",
+    "q2Role": "Engineering Lead, Globex",
+    "q3": "Permissions and organizations were ready out of the box. We rolled it out to 200 people in an afternoon.",
+    "q3Role": "COO, Initech",
+    "q4": "It feels like a single product instead of a bundle. The calendar and files are as good as the project boards.",
+    "q4Role": "Design Director, Umbrella"
+  },
+  "cta": {
+    "title": "Bring your whole team into one workspace",
+    "description": "Projects, messaging, calendars and files — with AI built in. Free to start, no credit card required.",
+    "dashboard": "Go to dashboard",
+    "startBuilding": "Start building free",
+    "signIn": "Sign in"
+  }
+}

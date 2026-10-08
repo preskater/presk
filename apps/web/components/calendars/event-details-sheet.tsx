@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 import {
   BellIcon,
   CalendarIcon,
@@ -38,9 +39,18 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import { formatDayLabel, formatEventRange } from "@/lib/calendars/date-utils"
-import { EVENT_COLOR_CLASSES, RESPONSE_LABEL, RESPONSE_VARIANT } from "@/lib/calendars/event-colors"
+import { EVENT_COLOR_CLASSES, RESPONSE_VARIANT } from "@/lib/calendars/event-colors"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import { useCalendars } from "@/lib/calendars/store"
 import type { CalendarEvent } from "@/lib/calendars/types"
+
+const REMINDER_KEY: Record<number, string> = {
+  0: "at_start",
+  5: "m5",
+  15: "m15",
+  30: "m30",
+  60: "h1",
+}
 
 function DetailRow({
   icon: Icon,
@@ -68,6 +78,10 @@ export function EventDetailsSheet({
   onOpenChange: (open: boolean) => void
   onDeleted?: () => void
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Calendars")
+  const tc = useTranslations("Common")
+  const L = useEnumLabel()
   const { getCalendar, getMember, deleteEvent, setAttendeeResponse } =
     useCalendars()
 
@@ -88,16 +102,18 @@ export function EventDetailsSheet({
             <SheetTitle className="truncate">{event.title}</SheetTitle>
           </div>
           <SheetDescription>
-            {calendar ? calendar.name : "Calendar event"}
+            {calendar ? calendar.name : t("calendarEvent")}
           </SheetDescription>
         </SheetHeader>
 
         <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
           <div className="flex flex-col gap-3">
             <DetailRow icon={CalendarIcon}>
-              {formatDayLabel(start)}
+              {formatDayLabel(start, locale, tc)}
             </DetailRow>
-            <DetailRow icon={ClockIcon}>{formatEventRange(event)}</DetailRow>
+            <DetailRow icon={ClockIcon}>
+              {formatEventRange(event, locale, tc("allDay"))}
+            </DetailRow>
             {event.location ? (
               <DetailRow icon={MapPinIcon}>{event.location}</DetailRow>
             ) : null}
@@ -109,15 +125,15 @@ export function EventDetailsSheet({
                   rel="noreferrer"
                   className="text-primary underline-offset-4 hover:underline"
                 >
-                  Join online meeting
+                  {t("joinOnline")}
                 </a>
               </DetailRow>
             ) : null}
             {event.reminderMinutes !== undefined ? (
               <DetailRow icon={BellIcon}>
-                {event.reminderMinutes === 0
-                  ? "At start"
-                  : `${event.reminderMinutes} minutes before`}
+                {REMINDER_KEY[event.reminderMinutes]
+                  ? L.reminder(REMINDER_KEY[event.reminderMinutes] as string)
+                  : t("minutesBefore", { count: event.reminderMinutes })}
               </DetailRow>
             ) : null}
           </div>
@@ -137,7 +153,7 @@ export function EventDetailsSheet({
               <div className="flex flex-col gap-2">
                 <div className="flex items-center gap-2 text-sm font-medium">
                   <UsersIcon className="size-4 text-muted-foreground" />
-                  Attendees
+                  {t("attendees")}
                   <span className="text-muted-foreground">
                     ({event.attendees.length})
                   </span>
@@ -161,7 +177,7 @@ export function EventDetailsSheet({
                           </span>
                         </div>
                         <Badge variant={RESPONSE_VARIANT[attendee.response]}>
-                          {RESPONSE_LABEL[attendee.response]}
+                          {L.response(attendee.response)}
                         </Badge>
                       </div>
                     )
@@ -180,10 +196,10 @@ export function EventDetailsSheet({
                         }
                       >
                         {response === "accepted"
-                          ? "Accept"
+                          ? t("accept")
                           : response === "tentative"
-                            ? "Tentative"
-                            : "Decline"}
+                            ? t("tentative")
+                            : t("decline")}
                       </Button>
                     )
                   )}
@@ -199,7 +215,7 @@ export function EventDetailsSheet({
             trigger={
               <Button variant="outline" size="sm">
                 <PencilIcon data-icon="inline-start" />
-                Edit
+                {t("edit")}
               </Button>
             }
           />
@@ -208,20 +224,19 @@ export function EventDetailsSheet({
               render={
                 <Button variant="destructive" size="sm">
                   <Trash2Icon data-icon="inline-start" />
-                  Delete
+                  {t("delete")}
                 </Button>
               }
             />
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete event?</AlertDialogTitle>
+                <AlertDialogTitle>{t("deleteEventQuestion")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  “{event.title}” will be removed from your calendar. This
-                  action cannot be undone.
+                  {t("deleteEventDescription", { title: event.title })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                 <AlertDialogAction
                   variant="destructive"
                   onClick={() => {
@@ -230,7 +245,7 @@ export function EventDetailsSheet({
                     onDeleted?.()
                   }}
                 >
-                  Delete
+                  {t("delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 
 import { PageHeader } from "@/components/landing/page-header"
 import { Section } from "@/components/landing/section"
@@ -7,24 +8,35 @@ import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/componen
 
 import { contactChannels } from "@/lib/landing/content"
 
-export const metadata: Metadata = {
-  title: "Contact",
-  description: "Talk to the Presk team about plans, demos and support.",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Marketing.contact")
+  return {
+    title: t("metadataTitle"),
+    description: t("metadataDescription"),
+  }
 }
 
-export default function ContactPage() {
+const channelKeys = [
+  { title: "sales", description: "salesDescription" },
+  { title: "support", description: "supportDescription" },
+  { title: "careers", description: "careersDescription" },
+] as const
+
+export default async function ContactPage() {
+  const t = await getTranslations("Marketing.contact")
+
   return (
     <>
       <PageHeader
-        eyebrow="Contact"
-        title="Talk to the Presk team"
-        description="Book a demo, ask about plans, or just say hello. We usually respond within one business day."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <Section>
         <div className="grid gap-10 lg:grid-cols-[1.5fr_1fr]">
           <Card>
             <CardHeader>
-              <CardTitle>Send us a message</CardTitle>
+              <CardTitle>{t("cardTitle")}</CardTitle>
             </CardHeader>
             <CardContent>
               <ContactForm />
@@ -32,17 +44,24 @@ export default function ContactPage() {
           </Card>
 
           <div className="flex flex-col gap-4">
-            {contactChannels.map((channel) => (
-              <Card key={channel.title}>
-                <CardHeader>
-                  <CardTitle className="text-base">{channel.title}</CardTitle>
-                </CardHeader>
-                <CardContent className="flex flex-col gap-1 text-sm">
-                  <p className="text-muted-foreground">{channel.description}</p>
-                  <span className="font-medium">{channel.detail}</span>
-                </CardContent>
-              </Card>
-            ))}
+            {contactChannels.map((channel, index) => {
+              const keys = channelKeys[index]
+              return (
+                <Card key={channel.key}>
+                  <CardHeader>
+                    <CardTitle className="text-base">
+                      {keys ? t(keys.title) : channel.key}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent className="flex flex-col gap-1 text-sm">
+                    <p className="text-muted-foreground">
+                      {keys ? t(keys.description) : ""}
+                    </p>
+                    <span className="font-medium">{channel.detail}</span>
+                  </CardContent>
+                </Card>
+              )
+            })}
           </div>
         </div>
       </Section>

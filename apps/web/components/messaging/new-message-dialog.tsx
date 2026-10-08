@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import {
@@ -29,6 +30,7 @@ export function NewMessageDialog({
   trigger: React.ReactElement
   onStart: (conversationId: string) => void
 }) {
+  const t = useTranslations("Messaging")
   const { startDirectMessage } = useMessaging()
   const [open, setOpen] = React.useState(false)
 
@@ -37,14 +39,14 @@ export function NewMessageDialog({
       <DialogTrigger render={trigger} />
       <DialogContent className="overflow-hidden p-0">
         <DialogHeader className="sr-only">
-          <DialogTitle>New message</DialogTitle>
-          <DialogDescription>Start a direct message with a teammate.</DialogDescription>
+          <DialogTitle>{t("newMessage")}</DialogTitle>
+          <DialogDescription>{t("newMessageDescription")}</DialogDescription>
         </DialogHeader>
         <Command>
-          <CommandInput placeholder="Search teammates..." />
+          <CommandInput placeholder={t("searchTeammates")} />
           <CommandList>
-            <CommandEmpty>No teammates found.</CommandEmpty>
-            <CommandGroup heading="Teammates">
+            <CommandEmpty>{t("noTeammates")}</CommandEmpty>
+            <CommandGroup heading={t("teammates")}>
               <NewMessageItem
                 onPick={(id) => {
                   const conversationId = startDirectMessage(id)

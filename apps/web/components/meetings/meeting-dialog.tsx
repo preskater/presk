@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { CalendarPlusIcon } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { DatePicker } from "@/components/task/date-picker"
 import { Button } from "@workspace/ui/components/button"
@@ -31,18 +32,19 @@ import {
   SelectValue,
 } from "@workspace/ui/components/select"
 
+import { formatTime } from "@/lib/messaging/format"
 import { useMessaging } from "@/lib/messaging/store"
 
-const DURATIONS = [15, 30, 45, 60].map((minutes) => ({
-  label: minutes >= 60 ? "1 hour" : `${minutes} minutes`,
-  value: String(minutes),
-}))
+const DURATION_MINUTES = [15, 30, 45, 60]
 
-const TIMES = Array.from({ length: 11 }).map((_, index) => {
-  const hour = 8 + index
-  const label = `${hour % 12 === 0 ? 12 : hour % 12}:00 ${hour < 12 ? "AM" : "PM"}`
-  return { label, value: String(hour) }
-})
+function buildTimes(locale: string) {
+  return Array.from({ length: 11 }).map((_, index) => {
+    const hour = 8 + index
+    const date = new Date()
+    date.setHours(hour, 0, 0, 0)
+    return { label: formatTime(date, locale), value: String(hour) }
+  })
+}
 
 export function MeetingDialog({
   conversationId,
@@ -55,26 +57,35 @@ export function MeetingDialog({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
+  const t = useTranslations("Meetings")
+  const locale = useLocale()
   const { sendMessage } = useMessaging()
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
   const open = controlledOpen ?? uncontrolledOpen
   const setOpen = onOpenChange ?? setUncontrolledOpen
-  const [title, setTitle] = React.useState("Team sync")
+  const [title, setTitle] = React.useState(() => t("defaultTitle"))
   const [date, setDate] = React.useState<string | undefined>(
     new Date().toISOString()
   )
   const [hour, setHour] = React.useState("15")
   const [duration, setDuration] = React.useState("30")
 
+  const durations = DURATION_MINUTES.map((minutes) => ({
+    label:
+      minutes >= 60
+        ? t("oneHour")
+        : t("minutesCount", { count: minutes }),
+    value: String(minutes),
+  }))
+  const times = buildTimes(locale)
+
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={trigger} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Schedule a meeting</DialogTitle>
-          <DialogDescription>
-            Posts a meeting card to this conversation.
-          </DialogDescription>
+          <DialogTitle>{t("title")}</DialogTitle>
+          <DialogDescription>{t("description")}</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
@@ -97,7 +108,7 @@ export function MeetingDialog({
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="meeting-title">Title</FieldLabel>
+              <FieldLabel htmlFor="meeting-title">{t("titleLabel")}</FieldLabel>
               <Input
                 id="meeting-title"
                 value={title}
@@ -106,14 +117,14 @@ export function MeetingDialog({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="meeting-date">Date</FieldLabel>
+              <FieldLabel htmlFor="meeting-date">{t("date")}</FieldLabel>
               <DatePicker value={date} onChange={setDate} />
             </Field>
             <div className="grid grid-cols-2 gap-4">
               <Field>
-                <FieldLabel htmlFor="meeting-time">Start time</FieldLabel>
+                <FieldLabel htmlFor="meeting-time">{t("startTime")}</FieldLabel>
                 <Select
-                  items={TIMES}
+                  items={times}
                   value={hour}
                   onValueChange={(value) => setHour(value as string)}
                 >
@@ -122,7 +133,7 @@ export function MeetingDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {TIMES.map((time) => (
+                      {times.map((time) => (
                         <SelectItem key={time.value} value={time.value}>
                           {time.label}
                         </SelectItem>
@@ -132,9 +143,9 @@ export function MeetingDialog({
                 </Select>
               </Field>
               <Field>
-                <FieldLabel htmlFor="meeting-duration">Duration</FieldLabel>
+                <FieldLabel htmlFor="meeting-duration">{t("duration")}</FieldLabel>
                 <Select
-                  items={DURATIONS}
+                  items={durations}
                   value={duration}
                   onValueChange={(value) => setDuration(value as string)}
                 >
@@ -143,7 +154,7 @@ export function MeetingDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {DURATIONS.map((item) => (
+                      {durations.map((item) => (
                         <SelectItem key={item.value} value={item.value}>
                           {item.label}
                         </SelectItem>
@@ -154,16 +165,16 @@ export function MeetingDialog({
               </Field>
             </div>
             <FieldDescription>
-              Everyone in the conversation will be invited.
+              {t("everyoneInvited")}
             </FieldDescription>
           </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
             <Button type="submit">
               <CalendarPlusIcon data-icon="inline-start" />
-              Schedule
+              {t("schedule")}
             </Button>
           </DialogFooter>
         </form>

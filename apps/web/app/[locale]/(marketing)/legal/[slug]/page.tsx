@@ -1,8 +1,9 @@
 import type { Metadata } from "next"
 import { notFound } from "next/navigation"
+import { getTranslations } from "next-intl/server"
 
 import { LegalPage } from "@/components/landing/legal-page"
-import { legalDocuments, legalSlugs } from "@/lib/landing/legal"
+import { isLegalSlug, legalSlugs } from "@/lib/landing/legal"
 
 export function generateStaticParams() {
   return legalSlugs.map((slug) => ({ slug }))
@@ -16,9 +17,9 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>
 }): Promise<Metadata> {
   const { slug } = await params
-  const document = legalDocuments[slug]
-  if (!document) return {}
-  return { title: document.title, description: document.description }
+  if (!isLegalSlug(slug)) return {}
+  const t = await getTranslations(`Legal.${slug}`)
+  return { title: t("title"), description: t("description") }
 }
 
 export default async function LegalDocumentPage({
@@ -27,8 +28,7 @@ export default async function LegalDocumentPage({
   params: Promise<{ slug: string }>
 }) {
   const { slug } = await params
-  const document = legalDocuments[slug]
-  if (!document) notFound()
+  if (!isLegalSlug(slug)) notFound()
 
-  return <LegalPage document={document} />
+  return <LegalPage slug={slug} />
 }

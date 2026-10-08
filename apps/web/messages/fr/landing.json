@@ -1,0 +1,175 @@
+{
+  "nav": {
+    "product": {
+      "title": "Produit"
+    },
+    "solutions": {
+      "title": "Solutions"
+    },
+    "resources": {
+      "title": "Ressources"
+    },
+    "company": {
+      "title": "Entreprise"
+    }
+  },
+  "productNav": {
+    "projects": "Projets",
+    "projectsDescription": "Tableaux Kanban, tâches et progression",
+    "messaging": "Messagerie",
+    "messagingDescription": "Canaux, fils de discussion et messages directs",
+    "calendars": "Calendriers",
+    "calendarsDescription": "Planification d'équipe et disponibilités",
+    "files": "Fichiers",
+    "filesDescription": "Documents, partage et permissions"
+  },
+  "solutionNav": {
+    "engineering": "Ingénierie",
+    "engineeringDescription": "Livrez plus vite, ensemble",
+    "design": "Design",
+    "designDescription": "Gardez le travail synchronisé",
+    "operations": "Opérations",
+    "operationsDescription": "Pilotez l'entreprise",
+    "startups": "Startups",
+    "startupsDescription": "Évoluez dès le premier jour"
+  },
+  "resourceNav": {
+    "documentation": "Documentation",
+    "documentationDescription": "Guides et références",
+    "blog": "Blog",
+    "blogDescription": "Nouveautés produit",
+    "community": "Communauté",
+    "communityDescription": "Rejoignez la conversation",
+    "support": "Assistance",
+    "supportDescription": "Nous sommes là pour vous aider"
+  },
+  "companyNav": {
+    "about": "À propos",
+    "aboutDescription": "Notre mission et notre équipe",
+    "careers": "Carrières",
+    "careersDescription": "Rejoignez l'équipe",
+    "contact": "Contact",
+    "contactDescription": "Parlez aux ventes",
+    "pricing": "Tarifs",
+    "pricingDescription": "Offres et facturation"
+  },
+  "footerColumns": {
+    "product": "Produit",
+    "company": "Entreprise",
+    "resources": "Ressources",
+    "legal": "Mentions légales",
+    "features": "Fonctionnalités",
+    "pricing": "Tarifs",
+    "faq": "FAQ",
+    "blog": "Blog",
+    "about": "À propos",
+    "careers": "Carrières",
+    "contact": "Contact",
+    "documentation": "Documentation",
+    "support": "Assistance",
+    "community": "Communauté",
+    "changelog": "Journal des modifications",
+    "privacy": "Confidentialité",
+    "terms": "Conditions",
+    "security": "Sécurité",
+    "cookies": "Cookies"
+  },
+  "hero": {
+    "badge": "Nouveau : les workflows propulsés par l'IA",
+    "title": "Créez de meilleurs produits avec toute votre équipe",
+    "description": "Planifiez vos projets, collaborez avec votre équipe et livrez plus vite depuis un espace de travail unifié — projets, messagerie, calendriers et fichiers avec assistants IA intégrés.",
+    "dashboard": "Aller au tableau de bord",
+    "startBuilding": "Commencer gratuitement",
+    "bookDemo": "Réserver une démo",
+    "waitlistPrompt": "Soyez parmi les premiers — rejoignez la liste d'attente"
+  },
+  "logoCloud": {
+    "heading": "La confiance d'équipes qui avancent vite"
+  },
+  "features": {
+    "eyebrow": "Pourquoi Presk",
+    "title": "Tout ce dont votre équipe a besoin, dans un seul espace",
+    "description": "Arrêtez d'assembler cinq outils. Presk garde votre travail, vos conversations et vos fichiers connectés par défaut.",
+    "explore": "Découvrir toutes les fonctionnalités",
+    "aiWorkflows": "Workflows natifs IA",
+    "aiWorkflowsDescription": "Automatisez les mêlées, les résumés et les mises à jour de tâches pour que votre équipe reste concentrée sur l'essentiel.",
+    "onePlace": "Tout au même endroit",
+    "onePlaceDescription": "Projets, messagerie, calendriers et fichiers partagent les mêmes personnes, le même contexte et les mêmes permissions.",
+    "security": "Sécurité de niveau entreprise",
+    "securityDescription": "Organisations, rôles et permissions granulaires intégrés — avec authentification prête pour le SSO.",
+    "scheduling": "Une planification qui fonctionne",
+    "schedulingDescription": "Consultez les disponibilités, planifiez des réunions et synchronisez les événements dans toutes les vues du calendrier.",
+    "filePermissions": "Des fichiers avec de vraies permissions",
+    "filePermissionsDescription": "Partagez des documents en lecture, commentaire ou modification — jusqu'au fichier individuel.",
+    "conversations": "Des conversations avec contexte",
+    "conversationsDescription": "Fils, réactions et mentions gardent les discussions attachées au travail concerné."
+  },
+  "showcase": {
+    "eyebrow": "Produit",
+    "title": "Un espace de travail, tous les workflows",
+    "description": "Passez des projets aux conversations, à la planification et aux fichiers sans jamais perdre le contexte.",
+    "projects": "Projets",
+    "projectsHeading": "Planifiez et livrez avec des tableaux Kanban",
+    "projectsDescription": "Organisez le travail en tableaux, suivez la progression et reliez chaque tâche aux personnes et fichiers concernés.",
+    "messages": "Messages",
+    "messagesHeading": "Une discussion qui reste dans le contexte",
+    "messagesDescription": "Canaux, messages directs et fils gardent votre équipe alignée sans perdre le fil.",
+    "calendars": "Calendriers",
+    "calendarsHeading": "Un calendrier pour toute l'équipe",
+    "calendarsDescription": "Planifiez à travers les projets avec disponibilités partagées, rappels et fiches de réunion.",
+    "files": "Fichiers",
+    "filesHeading": "Des documents avec de vraies permissions",
+    "filesDescription": "Stockez, prévisualisez et partagez des fichiers avec un accès granulaire — juste à côté de vos projets.",
+    "tasksShipped": "Tâches livrées",
+    "messagesSent": "Messages envoyés",
+    "meetingsSynced": "Réunions synchronisées",
+    "teamAdoption": "Adoption par l'équipe",
+    "todo": "À faire",
+    "inProgress": "En cours",
+    "done": "Terminé",
+    "medium": "Moyenne",
+    "membersCount": "{count, plural, one {# membre} other {# membres}}",
+    "mon": "Lun",
+    "tue": "Mar",
+    "wed": "Mer",
+    "thu": "Jeu",
+    "fri": "Ven",
+    "name": "Nom",
+    "owner": "Propriétaire",
+    "size": "Taille",
+    "taskApiKey": "Rotation des clés API",
+    "taskSandbox": "Environnement de test",
+    "taskRateLimit": "Limitation et quotas",
+    "taskOpenApi": "Publier la spécification OpenAPI",
+    "msg1": "Le flux de rotation des clés API est prêt pour relecture.",
+    "msg2": "Super — je regarde cet après-midi 🎉",
+    "msg3": "Parfait, livrons la release candidate ensuite.",
+    "channelEngineering": "ingénierie",
+    "eventStandup": "Mêlée d'ingénierie",
+    "eventCritique": "Critique de design",
+    "eventRoadmap": "Revue de la feuille de route",
+    "fileRoadmap": "feuille-de-route-2026.pdf",
+    "fileHero": "banniere-hero.png",
+    "fileTokens": "design-tokens.fig"
+  },
+  "testimonials": {
+    "eyebrow": "Clients",
+    "title": "Adoré par les équipes qui livrent",
+    "description": "Des startups aux grandes entreprises, les équipes utilisent Presk pour rester alignées et avancer plus vite.",
+    "q1": "Presk a remplacé quatre outils chez nous. Projets, discussion et fichiers vivent enfin au même endroit, donc le contexte ne se perd plus.",
+    "q1Role": "Directrice produit, Northwind",
+    "q2": "Les assistants IA gèrent le travail fastidieux — mêlées, résumés, mises à jour de tâches. Mon équipe a gagné une journée complète chaque semaine.",
+    "q2Role": "Responsable ingénierie, Globex",
+    "q3": "Les permissions et les organisations étaient prêtes d'emblée. Nous avons déployé pour 200 personnes en un après-midi.",
+    "q3Role": "Directrice des opérations, Initech",
+    "q4": "On a l'impression d'un seul produit plutôt que d'un assemblage. Le calendrier et les fichiers sont aussi bons que les tableaux de projet.",
+    "q4Role": "Directrice design, Umbrella"
+  },
+  "cta": {
+    "title": "Réunissez toute votre équipe dans un seul espace",
+    "description": "Projets, messagerie, calendriers et fichiers — avec l'IA intégrée. Gratuit pour commencer, sans carte bancaire.",
+    "dashboard": "Aller au tableau de bord",
+    "startBuilding": "Commencer gratuitement",
+    "signIn": "Se connecter"
+  }
+}

@@ -15,6 +15,7 @@ import {
   UsersIcon,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useLocale, useTranslations } from "next-intl"
 
 import { FileIcon } from "@/components/files/file-icon"
 import { MemberAvatar } from "@/components/task/member-avatar"
@@ -41,8 +42,9 @@ import {
 } from "@workspace/ui/components/sheet"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 
-import { formatBytes, formatRelativeDate, FILE_KIND_LABEL } from "@/lib/files/file-utils"
+import { formatBytes, formatRelativeDate } from "@/lib/files/file-utils"
 import { useFiles } from "@/lib/files/store"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import type { FileNode } from "@/lib/files/types"
 
 function DetailRow({
@@ -78,6 +80,11 @@ export function FilePreviewSheet({
 }) {
   const { getMember, sharesFor, versions, activities, toggleStar, trashFile } =
     useFiles()
+  const t = useTranslations("Files")
+  const tc = useTranslations("Common")
+  const tActivity = useTranslations("Activity")
+  const locale = useLocale()
+  const L = useEnumLabel()
 
   if (!file) return null
   const owner = getMember(file.ownerId)
@@ -91,7 +98,7 @@ export function FilePreviewSheet({
         <SheetHeader className="border-b">
           <SheetTitle className="truncate">{file.name}</SheetTitle>
           <SheetDescription>
-            {FILE_KIND_LABEL[file.kind]} · {formatBytes(file.sizeBytes)}
+            {L.fileKind(file.kind)} · {formatBytes(file.sizeBytes)}
           </SheetDescription>
         </SheetHeader>
 
@@ -101,46 +108,46 @@ export function FilePreviewSheet({
           </div>
 
           <div className="flex flex-wrap gap-2">
-            <Button variant="outline" size="sm" onClick={() => toast.success(`Downloading “${file.name}”.`)}>
+            <Button variant="outline" size="sm" onClick={() => toast.success(t("downloading", { name: file.name }))}>
               <DownloadIcon data-icon="inline-start" />
-              Download
+              {t("download")}
             </Button>
             <Button variant="outline" size="sm" onClick={() => onOpenShare(file)}>
               <Share2Icon data-icon="inline-start" />
-              Share
+              {t("share")}
             </Button>
             <Button variant="outline" size="sm" onClick={() => toggleStar(file.id)}>
               <StarIcon data-icon="inline-start" />
-              {file.starred ? "Favorited" : "Favorite"}
+              {file.starred ? t("favorited") : t("favorite")}
             </Button>
           </div>
 
           <Separator />
 
           <div className="flex flex-col gap-3">
-            <DetailRow icon={UsersIcon} label="Owner" value={owner?.name ?? "Unknown"} />
+            <DetailRow icon={UsersIcon} label={t("owner")} value={owner?.name ?? t("unknown")} />
             <DetailRow
               icon={CalendarIcon}
-              label="Modified"
-              value={formatRelativeDate(file.modifiedAt)}
+              label={t("modified")}
+              value={formatRelativeDate(file.modifiedAt, locale, tc)}
             />
             <DetailRow
               icon={HardDriveIcon}
-              label="Size"
+              label={t("size")}
               value={formatBytes(file.sizeBytes)}
             />
             <DetailRow
               icon={ShieldIcon}
-              label="Type"
-              value={FILE_KIND_LABEL[file.kind]}
+              label={t("type")}
+              value={L.fileKind(file.kind)}
             />
           </div>
 
           <Tabs defaultValue="details">
             <TabsList variant="line">
-              <TabsTrigger value="details">People</TabsTrigger>
-              <TabsTrigger value="versions">Versions</TabsTrigger>
-              <TabsTrigger value="activity">Activity</TabsTrigger>
+              <TabsTrigger value="details">{t("people")}</TabsTrigger>
+              <TabsTrigger value="versions">{t("versions")}</TabsTrigger>
+              <TabsTrigger value="activity">{t("activity")}</TabsTrigger>
             </TabsList>
 
             <TabsContent value="details" className="pt-3">
@@ -148,7 +155,7 @@ export function FilePreviewSheet({
                 <div className="flex items-center gap-3">
                   <MemberAvatar member={owner} size="sm" />
                   <span className="flex-1 text-sm">{owner?.name}</span>
-                  <Badge variant="secondary">Owner</Badge>
+                  <Badge variant="secondary">{t("owner")}</Badge>
                 </div>
                 {entries.map((entry) => {
                   const member = getMember(entry.memberId)
@@ -157,7 +164,9 @@ export function FilePreviewSheet({
                     <div key={entry.memberId} className="flex items-center gap-3">
                       <MemberAvatar member={member} size="sm" />
                       <span className="flex-1 text-sm">{member.name}</span>
-                      <Badge variant="outline">{entry.permission}</Badge>
+                      <Badge variant="outline">
+                        {L.sharePermission(entry.permission)}
+                      </Badge>
                     </div>
                   )
                 })}
@@ -168,7 +177,7 @@ export function FilePreviewSheet({
                   onClick={() => onOpenPermissions(file)}
                 >
                   <LockIcon data-icon="inline-start" />
-                  Manage permissions
+                  {t("managePermissions")}
                 </Button>
               </div>
             </TabsContent>
@@ -177,7 +186,7 @@ export function FilePreviewSheet({
               <div className="flex flex-col gap-3">
                 {fileVersions.length === 0 ? (
                   <p className="text-sm text-muted-foreground">
-                    No version history yet.
+                    {t("versionsEmpty")}
                   </p>
                 ) : (
                   fileVersions.map((version) => {
@@ -190,7 +199,7 @@ export function FilePreviewSheet({
                         <div className="flex flex-col">
                           <span className="text-sm">{version.note}</span>
                           <span className="text-xs text-muted-foreground">
-                            {author?.name} · {formatRelativeDate(version.at)}
+                            {author?.name} · {formatRelativeDate(version.at, locale, tc)}
                           </span>
                         </div>
                       </div>
@@ -203,7 +212,7 @@ export function FilePreviewSheet({
             <TabsContent value="activity" className="pt-3">
               <div className="flex flex-col gap-3">
                 {fileActivities.length === 0 ? (
-                  <p className="text-sm text-muted-foreground">No activity yet.</p>
+                  <p className="text-sm text-muted-foreground">{t("activityEmpty")}</p>
                 ) : (
                   fileActivities.map((activity) => {
                     const actor = getMember(activity.memberId)
@@ -214,11 +223,11 @@ export function FilePreviewSheet({
                           <span className="text-sm">
                             <span className="font-medium">{actor?.name}</span>{" "}
                             <span className="text-muted-foreground">
-                              {activity.action}
+                              {tActivity(activity.action as never)}
                             </span>
                           </span>
                           <span className="text-xs text-muted-foreground">
-                            {formatRelativeDate(activity.at)}
+                            {formatRelativeDate(activity.at, locale, tc)}
                           </span>
                         </div>
                       </div>
@@ -236,19 +245,19 @@ export function FilePreviewSheet({
               render={
                 <Button variant="ghost" size="sm">
                   <Trash2Icon data-icon="inline-start" />
-                  Move to trash
+                  {t("moveToTrash")}
                 </Button>
               }
             />
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Move to trash?</AlertDialogTitle>
+                <AlertDialogTitle>{t("moveToTrashQuestion")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  “{file.name}” will be moved to trash. You can restore it later.
+                  {t("moveToTrashDescription", { name: file.name })}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                 <AlertDialogAction
                   variant="destructive"
                   onClick={() => {
@@ -256,14 +265,14 @@ export function FilePreviewSheet({
                     onOpenChange(false)
                   }}
                 >
-                  Move to trash
+                  {t("moveToTrash")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
           </AlertDialog>
           <Button variant="outline" size="sm" onClick={() => onOpenPermissions(file)}>
             <PencilIcon data-icon="inline-start" />
-            Permissions
+            {t("permissions")}
           </Button>
         </div>
       </SheetContent>

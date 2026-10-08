@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { LogOutIcon, Trash2Icon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -43,6 +44,7 @@ export function OrganizationDangerZone({
   isOnlyOwner: boolean
 }) {
   const router = useRouter()
+  const t = useTranslations("Org")
   const [confirmName, setConfirmName] = React.useState("")
   const [deleting, setDeleting] = React.useState(false)
   const [leaving, setLeaving] = React.useState(false)
@@ -53,11 +55,11 @@ export function OrganizationDangerZone({
       organizationId: organization.id,
     })
     if (error) {
-      toast.error(error.message ?? "Unable to delete the organization.")
+      toast.error(error.message ?? t("unableToDeleteOrganization"))
       setDeleting(false)
       return
     }
-    toast.success("Organization deleted.")
+    toast.success(t("organizationDeleted"))
     router.push("/onboarding")
     router.refresh()
   }
@@ -68,11 +70,11 @@ export function OrganizationDangerZone({
       organizationId: organization.id,
     })
     if (error) {
-      toast.error(error.message ?? "Unable to leave the organization.")
+      toast.error(error.message ?? t("unableToLeaveOrganization"))
       setLeaving(false)
       return
     }
-    toast.success("You left the organization.")
+    toast.success(t("youLeftOrganization"))
     const { data: remaining } = await authClient.organization.list()
     router.push(remaining?.[0]?.slug ? `/${remaining[0].slug}` : "/onboarding")
     router.refresh()
@@ -84,18 +86,18 @@ export function OrganizationDangerZone({
   return (
     <Card className="border-destructive/40">
       <CardHeader>
-        <CardTitle className="text-destructive">Danger zone</CardTitle>
+        <CardTitle className="text-destructive">{t("dangerZone")}</CardTitle>
         <CardDescription>
-          Irreversible and destructive actions.
+          {t("dangerZoneDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-6">
         {canLeave ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium">Leave organization</span>
+              <span className="text-sm font-medium">{t("leaveOrganization")}</span>
               <span className="text-sm text-muted-foreground">
-                You will lose access to all projects and files.
+                {t("leaveOrganizationDescription")}
               </span>
             </div>
             <AlertDialog>
@@ -103,25 +105,24 @@ export function OrganizationDangerZone({
                 render={<Button variant="outline" disabled={leaving} />}
               >
                 <LogOutIcon data-icon="inline-start" />
-                Leave
+                {t("leave")}
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Leave {organization.name}?
+                    {t("leaveConfirmTitle", { name: organization.name })}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    You can be invited again later, but you will lose access
-                    immediately.
+                    {t("leaveConfirmDescription")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                   <AlertDialogAction
                     variant="destructive"
                     onClick={leaveOrganization}
                   >
-                    Leave organization
+                    {t("leaveOrganization")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -132,9 +133,9 @@ export function OrganizationDangerZone({
         {canDelete ? (
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-col gap-1">
-              <span className="text-sm font-medium">Delete organization</span>
+              <span className="text-sm font-medium">{t("deleteOrganization")}</span>
               <span className="text-sm text-muted-foreground">
-                Permanently delete the organization and all of its data.
+                {t("deleteOrganizationData")}
               </span>
             </div>
             <AlertDialog>
@@ -142,21 +143,20 @@ export function OrganizationDangerZone({
                 render={<Button variant="destructive" disabled={deleting} />}
               >
                 <Trash2Icon data-icon="inline-start" />
-                Delete
+                {t("delete")}
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
                   <AlertDialogTitle>
-                    Delete {organization.name}?
+                    {t("deleteConfirmTitle", { name: organization.name })}
                   </AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. All members, invitations and
-                    data will be removed.
+                    {t("deleteConfirmDescription")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <Field>
                   <FieldLabel htmlFor="confirm-org-name">
-                    Type &quot;{organization.name}&quot; to confirm
+                    {t("typeToConfirm", { name: organization.name })}
                   </FieldLabel>
                   <Input
                     id="confirm-org-name"
@@ -164,17 +164,17 @@ export function OrganizationDangerZone({
                     onChange={(event) => setConfirmName(event.target.value)}
                   />
                   <FieldDescription>
-                    This helps prevent accidental deletion.
+                    {t("deletePreventHint")}
                   </FieldDescription>
                 </Field>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                   <AlertDialogAction
                     variant="destructive"
                     disabled={confirmName !== organization.name}
                     onClick={deleteOrganization}
                   >
-                    Delete organization
+                    {t("deleteOrganization")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -184,8 +184,7 @@ export function OrganizationDangerZone({
 
         {isOnlyOwner ? (
           <FieldDescription>
-            You are the only owner. Transfer ownership to another member before
-            deleting or leaving the organization.
+            {t("onlyOwnerWarning")}
           </FieldDescription>
         ) : null}
       </CardContent>

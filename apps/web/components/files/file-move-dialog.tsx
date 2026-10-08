@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { FolderIcon, HomeIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -31,6 +32,7 @@ export function FileMoveDialog({
   onOpenChange?: (open: boolean) => void
 }) {
   const { files, moveFile } = useFiles()
+  const t = useTranslations("Files")
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
   const open = controlledOpen ?? uncontrolledOpen
   const setOpen = onOpenChange ?? setUncontrolledOpen
@@ -45,7 +47,7 @@ export function FileMoveDialog({
       <DialogTrigger render={children} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Move “{file.name}”</DialogTitle>
+          <DialogTitle>{t("moveTitle", { name: file.name })}</DialogTitle>
         </DialogHeader>
         <ScrollArea className="max-h-72 rounded-lg border p-1">
           <div className="flex flex-col gap-0.5">
@@ -58,7 +60,7 @@ export function FileMoveDialog({
               )}
             >
               <HomeIcon className="size-4 text-muted-foreground" />
-              My files
+              {t("myFiles")}
             </button>
             {folders.map((folder) => (
               <button
@@ -78,7 +80,7 @@ export function FileMoveDialog({
         </ScrollArea>
         <DialogFooter>
           <DialogClose render={<Button variant="outline" type="button" />}>
-            Cancel
+            {t("cancel")}
           </DialogClose>
           <Button
             type="button"
@@ -87,7 +89,7 @@ export function FileMoveDialog({
               setOpen(false)
             }}
           >
-            Move here
+            {t("moveHere")}
           </Button>
         </DialogFooter>
       </DialogContent>

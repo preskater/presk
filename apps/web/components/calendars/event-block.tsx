@@ -1,5 +1,7 @@
 "use client"
 
+import { useLocale, useTranslations } from "next-intl"
+
 import { formatEventRange, formatTime } from "@/lib/calendars/date-utils"
 import { EVENT_COLOR_CLASSES } from "@/lib/calendars/event-colors"
 import type { CalendarEvent } from "@/lib/calendars/types"
@@ -15,6 +17,7 @@ export function EventChip({
   showTime?: boolean
   className?: string
 }) {
+  const locale = useLocale()
   const styles = EVENT_COLOR_CLASSES[event.color]
   return (
     <button
@@ -31,7 +34,7 @@ export function EventChip({
       />
       {showTime && !event.allDay ? (
         <span className="shrink-0 text-muted-foreground">
-          {formatTime(new Date(event.startAt))}
+          {formatTime(new Date(event.startAt), locale)}
         </span>
       ) : null}
       <span className="truncate font-medium">{event.title}</span>
@@ -54,6 +57,8 @@ export function EventBlock({
   widthPct: number
   onClick: (event: CalendarEvent) => void
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Common")
   const styles = EVENT_COLOR_CLASSES[event.color]
   return (
     <button
@@ -73,7 +78,7 @@ export function EventBlock({
       <span className="truncate font-medium">{event.title}</span>
       {height > 34 ? (
         <span className="truncate text-muted-foreground">
-          {formatEventRange(event)}
+          {formatEventRange(event, locale, t("allDay"))}
         </span>
       ) : null}
     </button>

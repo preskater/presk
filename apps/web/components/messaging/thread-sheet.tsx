@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { MessageItem } from "@/components/messaging/message-item"
 import { MessageComposer } from "@/components/messaging/message-composer"
@@ -24,6 +25,7 @@ export function ThreadSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useTranslations("Messaging")
   const { messages, repliesFor } = useMessaging()
   const parent = messageId
     ? messages.find((message) => message.id === messageId)
@@ -36,15 +38,15 @@ export function ThreadSheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-md">
         <SheetHeader className="border-b">
-          <SheetTitle>Thread</SheetTitle>
+          <SheetTitle>{t("thread")}</SheetTitle>
           <SheetDescription className="line-clamp-1">
-            {parent.body || "Shared a meeting"}
+            {parent.body || t("sharedAMeeting")}
           </SheetDescription>
         </SheetHeader>
         <div className="min-h-0 flex-1 overflow-y-auto py-2">
           <MessageItem message={parent} onReply={() => {}} compact />
           <div className="my-2 px-4 text-xs font-medium text-muted-foreground">
-            {replies.length} {replies.length === 1 ? "reply" : "replies"}
+            {t("replyCount", { count: replies.length })}
           </div>
           {replies.map((reply) => (
             <MessageItem key={reply.id} message={reply} onReply={() => {}} compact />

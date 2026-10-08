@@ -29,7 +29,9 @@ const ROLE_RANK: Record<string, number> = {
 
 function canWrite(ctx: RequestContext) {
   if ((ROLE_RANK[ctx.role] ?? 0) >= 2) return
-  throw new ForbiddenError("Your role cannot send messages.")
+  throw new ForbiddenError("Your role cannot send messages.", {
+    code: "role_cannot_send_messages",
+  })
 }
 
 type ConversationRow = Awaited<

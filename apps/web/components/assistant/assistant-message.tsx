@@ -7,6 +7,7 @@ import {
   getToolName,
   type UIMessage,
 } from "ai"
+import { useTranslations } from "next-intl"
 import { SparklesIcon, WrenchIcon } from "lucide-react"
 
 import {
@@ -21,6 +22,7 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 
 export function AssistantMessage({ message }: { message: UIMessage }) {
+  const t = useTranslations("Assistant")
   const isUser = message.role === "user"
 
   return (
@@ -54,7 +56,7 @@ export function AssistantMessage({ message }: { message: UIMessage }) {
                 <BubbleContent className="flex items-start gap-1.5 text-xs text-muted-foreground italic">
                   <SparklesIcon className="mt-0.5 size-3 shrink-0" />
                   <span className={part.state === "streaming" ? "shimmer" : ""}>
-                    {part.text || "Thinking…"}
+                    {part.text || t("thinkingEllipsis")}
                   </span>
                 </BubbleContent>
               </Bubble>

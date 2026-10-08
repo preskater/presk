@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { useTranslations } from "next-intl"
 
 import { Section, SectionHeading } from "@/components/landing/section"
 import { PricingGrid } from "@/components/landing/pricing-section"
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
 
@@ -15,14 +16,15 @@ export function PricingPreview({
   isAuthenticated: boolean
   dashboardHref: string
 }) {
+  const t = useTranslations("Pricing")
   const [yearly, setYearly] = React.useState(false)
 
   return (
     <Section id="pricing" className="bg-muted/30">
       <SectionHeading
-        eyebrow="Pricing"
-        title="Simple, transparent pricing"
-        description="Start free and upgrade when your team is ready. Save 20% with annual billing."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <div className="mt-8 flex justify-center">
         <ToggleGroup
@@ -32,10 +34,10 @@ export function PricingPreview({
           className="rounded-lg bg-muted p-1"
         >
           <ToggleGroupItem value="monthly" variant="outline" size="sm">
-            Monthly
+            {t("monthly")}
           </ToggleGroupItem>
           <ToggleGroupItem value="yearly" variant="outline" size="sm">
-            Yearly
+            {t("yearly")}
           </ToggleGroupItem>
         </ToggleGroup>
       </div>
@@ -52,7 +54,7 @@ export function PricingPreview({
           render={<Link href="/pricing" />}
           nativeButton={false}
         >
-          Compare all plans
+          {t("compareAll")}
         </Button>
       </div>
     </Section>

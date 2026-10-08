@@ -1,0 +1,39 @@
+---
+title: "Pourquoi nous avons construit un seul espace de travail au lieu de cinq outils"
+description: "Le contexte est la chose la plus coûteuse à perdre. Voici la réflexion derrière l'unification des projets, de la discussion, du calendrier et des fichiers."
+date: "2026-09-22"
+author: "Marcus Reid"
+tag: "Ingénierie"
+---
+
+Quand nous avons lancé Presk, la plupart des équipes à qui nous parlions avaient
+la même stack : un outil de suivi de projet, une application de discussion, un
+calendrier, un lecteur de fichiers et un wiki. Aucun d'entre eux ne communiquait
+avec les autres.
+
+## Le coût du contexte
+
+Chaque frontière entre outils est un endroit où le contexte fuit. Une décision
+prise dans la discussion n'atteint jamais le projet. Un fichier partagé à un
+endroit est invisible à un autre.
+
+Nous l'avons mesuré dans notre propre équipe : les gens passaient environ **40
+minutes par jour** à reconstruire un contexte qui aurait dû être automatique.
+
+## Une base commune
+
+Plutôt que de synchroniser cinq produits, nous avons construit une seule base —
+personnes, permissions et contexte — et quatre workflows par-dessus :
+
+1. Projets pour la planification et la progression
+2. Messagerie pour la discussion
+3. Calendriers pour le temps
+4. Fichiers pour les livrables
+
+Parce qu'ils partagent le même socle, une tâche peut référencer la conversation
+qui l'a créée, et une réunion peut joindre le fichier que vous avez relu.
+
+## Ce que nous avons appris
+
+L'unification ne consiste pas à entasser des fonctionnalités. Il s'agit de faire
+disparaître les coutures, pour que la bonne information soit toujours à un clic.

@@ -17,6 +17,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable"
 import { CirclePlusIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { TaskCard, TaskCardContent } from "@/components/task/task-card"
 import { TaskFormDialog } from "@/components/task/task-dialog"
@@ -24,8 +25,9 @@ import { Button } from "@workspace/ui/components/button"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import {
-  TASK_STATUSES,
+  TASK_STATUS_VALUES,
   type Task,
   type TaskStatus,
 } from "@/lib/projects/types"
@@ -51,6 +53,7 @@ function TaskColumn({
   projectId: string
   onOpen: (taskId: string) => void
 }) {
+  const t = useTranslations("Projects")
   const { setNodeRef, isOver } = useDroppable({
     id: status,
     data: { status },
@@ -68,7 +71,11 @@ function TaskColumn({
         <TaskFormDialog
           projectId={projectId}
           trigger={
-            <Button variant="ghost" size="icon-xs" aria-label={`Add to ${label}`}>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              aria-label={t("addTo", { label })}
+            >
               <CirclePlusIcon />
             </Button>
           }
@@ -109,6 +116,7 @@ export function TaskBoard({
   tasks: Task[]
   onOpen: (taskId: string) => void
 }) {
+  const L = useEnumLabel()
   const { moveTask } = useProjectStore()
   const [activeId, setActiveId] = React.useState<string | null>(null)
   const sensors = useSensors(
@@ -120,8 +128,9 @@ export function TaskBoard({
     : undefined
 
   function resolveStatus(overId: string): TaskStatus | undefined {
-    const column = TASK_STATUSES.find((status) => status.value === overId)
-    if (column) return column.value
+    if (TASK_STATUS_VALUES.includes(overId as TaskStatus)) {
+      return overId as TaskStatus
+    }
     return tasks.find((task) => task.id === overId)?.status
   }
 
@@ -148,13 +157,13 @@ export function TaskBoard({
       onDragCancel={() => setActiveId(null)}
     >
       <div className="flex flex-1 gap-4 overflow-x-auto pb-4">
-        {TASK_STATUSES.map((status) => (
+        {TASK_STATUS_VALUES.map((status) => (
           <TaskColumn
-            key={status.value}
-            status={status.value}
-            label={status.label}
+            key={status}
+            status={status}
+            label={L.taskStatus(status)}
             projectId={projectId}
-            tasks={tasks.filter((task) => task.status === status.value)}
+            tasks={tasks.filter((task) => task.status === status)}
             onOpen={onOpen}
           />
         ))}

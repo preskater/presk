@@ -34,21 +34,25 @@ import {
   type NavColumn,
 } from "@/lib/landing/content"
 
-function NavMenuColumn({ column }: { column: NavColumn }) {
+function NavMenuColumn({
+  column,
+  label,
+}: {
+  column: NavColumn
+  label: (key: string) => string
+}) {
   return (
     <div className="grid gap-1 p-1">
       {column.links.map((link) => (
         <NavigationMenuLink
-          key={link.title}
+          key={link.key}
           render={<Link href={link.href} />}
         >
           <span className="flex flex-col gap-0.5">
-            <span className="font-medium">{link.title}</span>
-            {link.description ? (
-              <span className="text-xs text-muted-foreground">
-                {link.description}
-              </span>
-            ) : null}
+            <span className="font-medium">{label(link.key)}</span>
+            <span className="text-xs text-muted-foreground">
+              {label(`${link.key}Description`)}
+            </span>
           </span>
         </NavigationMenuLink>
       ))}
@@ -66,15 +70,13 @@ export function Navbar({
   dashboardHref: string
 }) {
   const t = useTranslations("Navbar")
+  const tLanding = useTranslations("Landing")
   const [mobileOpen, setMobileOpen] = React.useState(false)
 
-  const columnTitle = (title: string) => {
-    const key = title.toLowerCase()
-    if (key === "product" || key === "solutions" || key === "resources" || key === "company") {
-      return t(`columns.${key}`)
-    }
-    return title
-  }
+  const columnTitle = (key: string) =>
+    tLanding(`nav.${key}.title` as never)
+  const columnLabel = (columnKey: string) => (linkKey: string) =>
+    tLanding(`${columnKey}Nav.${linkKey}` as never)
 
   return (
     <header className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-md">
@@ -88,12 +90,15 @@ export function Navbar({
         <NavigationMenu className="hidden md:flex">
           <NavigationMenuList>
             {columns.map((column) => (
-              <NavigationMenuItem key={column.title}>
+              <NavigationMenuItem key={column.key}>
                 <NavigationMenuTrigger>
-                  {columnTitle(column.title)}
+                  {columnTitle(column.key)}
                 </NavigationMenuTrigger>
                 <NavigationMenuContent className="w-72">
-                  <NavMenuColumn column={column} />
+                  <NavMenuColumn
+                    column={column}
+                    label={columnLabel(column.key)}
+                  />
                 </NavigationMenuContent>
               </NavigationMenuItem>
             ))}
@@ -160,18 +165,18 @@ export function Navbar({
               </SheetHeader>
               <div className="flex flex-col gap-6 overflow-y-auto p-4">
                 {columns.map((column) => (
-                  <div key={column.title} className="flex flex-col gap-1">
+                  <div key={column.key} className="flex flex-col gap-1">
                     <p className="px-1 text-xs font-medium text-muted-foreground">
-                      {columnTitle(column.title)}
+                      {columnTitle(column.key)}
                     </p>
                     {column.links.map((link) => (
                       <Link
-                        key={link.title}
+                        key={link.key}
                         href={link.href}
                         onClick={() => setMobileOpen(false)}
                         className="rounded-md px-2 py-1.5 text-sm hover:bg-muted"
                       >
-                        {link.title}
+                        {columnLabel(column.key)(link.key)}
                       </Link>
                     ))}
                   </div>

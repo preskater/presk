@@ -1,7 +1,7 @@
 "use client"
 
 import { LanguagesIcon } from "lucide-react"
-import { useLocale } from "next-intl"
+import { useLocale, useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -20,6 +20,7 @@ const labels: Record<string, string> = {
 
 export function LocaleSwitcher() {
   const locale = useLocale()
+  const t = useTranslations("Navbar")
   const pathname = usePathname()
 
   return (
@@ -29,7 +30,7 @@ export function LocaleSwitcher() {
           <Button
             variant="ghost"
             size="icon-sm"
-            aria-label="Change language"
+            aria-label={t("changeLanguage")}
           />
         }
       >

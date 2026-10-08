@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { MoreHorizontalIcon, UserMinusIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -36,6 +37,7 @@ import {
 } from "@workspace/ui/components/table"
 
 import { authClient } from "@/lib/auth-client"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import { ORG_ROLES, type OrgRole } from "@/lib/organization/roles"
 import { getInitials, parseRoles } from "@/lib/organization/utils"
 
@@ -62,6 +64,8 @@ export function MembersTable({
   onChanged: () => void
 }) {
   const [pendingId, setPendingId] = React.useState<string | null>(null)
+  const t = useTranslations("Org")
+  const L = useEnumLabel()
 
   async function updateRole(memberId: string, role: OrgRole) {
     setPendingId(memberId)
@@ -71,10 +75,10 @@ export function MembersTable({
     })
     setPendingId(null)
     if (error) {
-      toast.error(error.message ?? "Unable to update the role.")
+      toast.error(error.message ?? t("unableToUpdateRole"))
       return
     }
-    toast.success("Role updated.")
+    toast.success(t("roleUpdated"))
     onChanged()
   }
 
@@ -85,10 +89,10 @@ export function MembersTable({
     })
     setPendingId(null)
     if (error) {
-      toast.error(error.message ?? "Unable to remove the member.")
+      toast.error(error.message ?? t("unableToRemoveMember"))
       return
     }
-    toast.success(`${member.user.name} removed.`)
+    toast.success(t("memberRemoved", { name: member.user.name }))
     onChanged()
   }
 
@@ -96,9 +100,9 @@ export function MembersTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Member</TableHead>
-          <TableHead className="hidden sm:table-cell">Email</TableHead>
-          <TableHead>Role</TableHead>
+          <TableHead>{t("member")}</TableHead>
+          <TableHead className="hidden sm:table-cell">{t("email")}</TableHead>
+          <TableHead>{t("role")}</TableHead>
           <TableHead className="w-10" />
         </TableRow>
       </TableHeader>
@@ -128,7 +132,7 @@ export function MembersTable({
                     <span className="font-medium">{member.user.name}</span>
                     {isSelf ? (
                       <span className="text-xs text-muted-foreground">
-                        You
+                        {t("you")}
                       </span>
                     ) : null}
                   </div>
@@ -142,7 +146,10 @@ export function MembersTable({
                   <Select
                     items={ORG_ROLES.filter(
                       (item) => item.value !== "owner" || canTransferOwnership
-                    )}
+                    ).map((item) => ({
+                      value: item.value,
+                      label: L.orgRole(item.value),
+                    }))}
                     value={
                       memberRoles[0] && memberRoles[0] !== "owner"
                         ? memberRoles[0]
@@ -163,7 +170,7 @@ export function MembersTable({
                             item.value !== "owner" || canTransferOwnership
                         ).map((item) => (
                           <SelectItem key={item.value} value={item.value}>
-                            {item.label}
+                            {L.orgRole(item.value)}
                           </SelectItem>
                         ))}
                       </SelectGroup>
@@ -171,8 +178,9 @@ export function MembersTable({
                   </Select>
                 ) : (
                   <Badge variant={isOwner ? "default" : "secondary"}>
-                    {ORG_ROLES.find((item) => item.value === memberRoles[0])
-                      ?.label ?? "Member"}
+                    {memberRoles[0]
+                      ? L.orgRole(memberRoles[0])
+                      : t("member")}
                   </Badge>
                 )}
               </TableCell>
@@ -184,7 +192,9 @@ export function MembersTable({
                         <Button
                           variant="ghost"
                           size="icon-sm"
-                          aria-label={`Manage ${member.user.name}`}
+                          aria-label={t("manageMember", {
+                            name: member.user.name,
+                          })}
                         />
                       }
                     >
@@ -197,7 +207,7 @@ export function MembersTable({
                           onClick={() => removeMember(member)}
                         >
                           <UserMinusIcon />
-                          Remove from organization
+                          {t("removeFromOrganization")}
                         </DropdownMenuItem>
                       </DropdownMenuGroup>
                     </DropdownMenuContent>

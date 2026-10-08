@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -30,6 +31,7 @@ export function FileRenameDialog({
   onOpenChange?: (open: boolean) => void
 }) {
   const { renameFile } = useFiles()
+  const t = useTranslations("Files")
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
   const open = controlledOpen ?? uncontrolledOpen
   const setOpen = onOpenChange ?? setUncontrolledOpen
@@ -47,7 +49,7 @@ export function FileRenameDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            Rename {file.kind === "folder" ? "folder" : "file"}
+            {file.kind === "folder" ? t("renameFolder") : t("renameFile")}
           </DialogTitle>
         </DialogHeader>
         <form
@@ -61,7 +63,7 @@ export function FileRenameDialog({
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor={`rename-${file.id}`}>Name</FieldLabel>
+              <FieldLabel htmlFor={`rename-${file.id}`}>{t("name")}</FieldLabel>
               <Input
                 id={`rename-${file.id}`}
                 value={name}
@@ -72,9 +74,9 @@ export function FileRenameDialog({
           </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
-            <Button type="submit">Save</Button>
+            <Button type="submit">{t("save")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>

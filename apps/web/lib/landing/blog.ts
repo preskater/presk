@@ -1,6 +1,8 @@
 import fs from "node:fs"
 import path from "node:path"
 
+import { routing } from "@/i18n/routing"
+
 export interface BlogFrontmatter {
   title: string
   description: string
@@ -13,7 +15,13 @@ export interface BlogPostMeta extends BlogFrontmatter {
   slug: string
 }
 
-const blogDir = path.join(process.cwd(), "content", "blog")
+const contentRoot = path.join(process.cwd(), "content", "blog")
+
+function blogDir(locale: string) {
+  const dir = path.join(contentRoot, locale)
+  if (fs.existsSync(dir)) return dir
+  return path.join(contentRoot, routing.defaultLocale)
+}
 
 function parseFrontmatter(source: string): Record<string, string> {
   const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/)
@@ -31,15 +39,19 @@ function parseFrontmatter(source: string): Record<string, string> {
 }
 
 export function getBlogSlugs(): string[] {
-  if (!fs.existsSync(blogDir)) return []
+  const dir = path.join(contentRoot, routing.defaultLocale)
+  if (!fs.existsSync(dir)) return []
   return fs
-    .readdirSync(blogDir)
+    .readdirSync(dir)
     .filter((file) => file.endsWith(".mdx"))
     .map((file) => file.replace(/\.mdx$/, ""))
 }
 
-export function getPost(slug: string): BlogPostMeta | undefined {
-  const filePath = path.join(blogDir, `${slug}.mdx`)
+export function getPost(
+  slug: string,
+  locale: string = routing.defaultLocale
+): BlogPostMeta | undefined {
+  const filePath = path.join(blogDir(locale), `${slug}.mdx`)
   if (!fs.existsSync(filePath)) return undefined
   const source = fs.readFileSync(filePath, "utf8")
   const data = parseFrontmatter(source)
@@ -53,18 +65,11 @@ export function getPost(slug: string): BlogPostMeta | undefined {
   }
 }
 
-export function getAllPosts(): BlogPostMeta[] {
+export function getAllPosts(
+  locale: string = routing.defaultLocale
+): BlogPostMeta[] {
   return getBlogSlugs()
-    .map((slug) => getPost(slug))
+    .map((slug) => getPost(slug, locale))
     .filter((post): post is BlogPostMeta => post !== undefined)
     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-}
-
-export function formatPostDate(value: string) {
-  if (!value) return ""
-  return new Date(value).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-  })
 }

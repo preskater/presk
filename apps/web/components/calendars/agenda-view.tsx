@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 import { CalendarX2Icon, MapPinIcon, VideoIcon } from "lucide-react"
 
 import {
@@ -35,6 +36,9 @@ function EventRow({
   onOpen: (event: CalendarEvent) => void
   colorClass: string
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Calendars")
+  const tc = useTranslations("Common")
   const { getCalendar, getMember } = useCalendars()
   const calendar = getCalendar(event.calendarId)
   return (
@@ -50,7 +54,7 @@ function EventRow({
           {calendar ? <Badge variant="outline">{calendar.name}</Badge> : null}
         </div>
         <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
-          <span>{formatEventRange(event)}</span>
+          <span>{formatEventRange(event, locale, tc("allDay"))}</span>
           {event.location ? (
             <span className="inline-flex items-center gap-1">
               <MapPinIcon className="size-3" />
@@ -60,7 +64,7 @@ function EventRow({
           {event.meetingUrl ? (
             <span className="inline-flex items-center gap-1">
               <VideoIcon className="size-3" />
-              Online
+              {t("online")}
             </span>
           ) : null}
         </div>
@@ -87,6 +91,9 @@ export function AgendaView({
   focusDate: Date
   onOpenEvent: (event: CalendarEvent) => void
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Calendars")
+  const tc = useTranslations("Common")
   const { eventsOnDay } = useCalendars()
   const days = eachDay(focusDate, new Date(focusDate.getTime() + 13 * 86400000))
   const groups = days
@@ -100,9 +107,9 @@ export function AgendaView({
           <EmptyMedia variant="icon">
             <CalendarX2Icon />
           </EmptyMedia>
-          <EmptyTitle>No events scheduled</EmptyTitle>
+          <EmptyTitle>{t("noEventsScheduled")}</EmptyTitle>
           <EmptyDescription>
-            Nothing on the calendar for the next two weeks.
+            {t("nothingNextTwoWeeks")}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -115,10 +122,10 @@ export function AgendaView({
         <Card key={group.day.toISOString()}>
           <CardHeader className="pb-0">
             <CardTitle className="text-sm">
-              {formatDayLabel(group.day)}
+              {formatDayLabel(group.day, locale, tc)}
               {!isSameDay(group.day, new Date()) ? (
                 <span className="ms-2 text-xs font-normal text-muted-foreground">
-                  {group.day.toLocaleDateString("en-US", {
+                  {group.day.toLocaleDateString(locale, {
                     month: "short",
                     day: "numeric",
                   })}

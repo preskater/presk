@@ -7,7 +7,7 @@ import "@workspace/ui/globals.css"
 import { ErrorState } from "@/components/states/error-state"
 import { cn } from "@workspace/ui/lib/utils"
 
-import en from "../messages/en.json"
+import en from "../messages/en/index"
 
 const fontSans = Geist({ subsets: ["latin"], variable: "--font-sans" })
 const fontMono = Geist_Mono({ subsets: ["latin"], variable: "--font-mono" })

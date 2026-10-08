@@ -1,10 +1,11 @@
 "use client"
 
 import * as React from "react"
-import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { CheckIcon } from "lucide-react"
 
 import { Section, SectionHeading } from "@/components/landing/section"
+import { Link } from "@/i18n/navigation"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -18,31 +19,37 @@ import {
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
 import { pricingTiers, type PricingTier } from "@/lib/landing/content"
 
-function priceLabel(tier: PricingTier, yearly: boolean) {
-  if (tier.name === "Enterprise") return "Custom"
-  const amount = yearly ? tier.yearly : tier.monthly
-  if (amount === 0) return "Free"
-  return `$${amount}`
+const TIER_KEYS = ["starter", "team", "enterprise"] as const
+
+function tierKey(index: number): (typeof TIER_KEYS)[number] {
+  return TIER_KEYS[index] ?? "starter"
 }
 
 function PricingCard({
   tier,
+  index,
   yearly,
   isAuthenticated,
   dashboardHref,
 }: {
   tier: PricingTier
+  index: number
   yearly: boolean
   isAuthenticated: boolean
   dashboardHref: string
 }) {
-  const ctaHref =
-    tier.name === "Enterprise"
-      ? "/contact"
-      : isAuthenticated
-        ? dashboardHref
-        : "/sign-up"
-  const ctaLabel = isAuthenticated ? "Go to dashboard" : tier.cta
+  const t = useTranslations("Pricing")
+  const tCta = useTranslations("Landing.cta")
+  const key = tierKey(index)
+  const isEnterprise = key === "enterprise"
+  const amount = yearly ? tier.yearly : tier.monthly
+  const price = isEnterprise ? t("custom") : amount === 0 ? t("free") : `$${amount}`
+  const ctaHref = isEnterprise
+    ? "/contact"
+    : isAuthenticated
+      ? dashboardHref
+      : "/sign-up"
+  const ctaLabel = isAuthenticated ? tCta("dashboard") : t(`${key}Cta` as never)
 
   return (
     <Card
@@ -53,28 +60,28 @@ function PricingCard({
       }
     >
       {tier.featured ? (
-        <Badge className="absolute -top-2.5 start-6">Most popular</Badge>
+        <Badge className="absolute -top-2.5 start-6">{t("mostPopular")}</Badge>
       ) : null}
       <CardHeader>
-        <CardTitle>{tier.name}</CardTitle>
-        <CardDescription>{tier.description}</CardDescription>
+        <CardTitle>{t(key)}</CardTitle>
+        <CardDescription>{t(`${key}Description` as never)}</CardDescription>
         <div className="mt-4 flex items-baseline gap-1">
           <span className="font-heading text-4xl font-semibold tracking-tight">
-            {priceLabel(tier, yearly)}
+            {price}
           </span>
-          {tier.name !== "Enterprise" ? (
+          {!isEnterprise ? (
             <span className="text-sm text-muted-foreground">
-              {tier.monthly === 0 ? "forever" : "/ user / month"}
+              {tier.monthly === 0 ? t("forever") : t("perUserMonth")}
             </span>
           ) : null}
         </div>
       </CardHeader>
       <CardContent className="flex-1">
         <ul className="flex flex-col gap-2.5 text-sm">
-          {tier.features.map((feature) => (
-            <li key={feature} className="flex items-center gap-2">
+          {tier.features.map((_, featureIndex) => (
+            <li key={featureIndex} className="flex items-center gap-2">
               <CheckIcon className="size-4 shrink-0 text-primary" />
-              {feature}
+              {t(`${key}F${featureIndex + 1}` as never)}
             </li>
           ))}
         </ul>
@@ -104,10 +111,11 @@ export function PricingGrid({
 }) {
   return (
     <div className="grid gap-4 lg:grid-cols-3">
-      {pricingTiers.map((tier) => (
+      {pricingTiers.map((tier, index) => (
         <PricingCard
-          key={tier.name}
+          key={tierKey(index)}
           tier={tier}
+          index={index}
           yearly={yearly}
           isAuthenticated={isAuthenticated}
           dashboardHref={dashboardHref}
@@ -124,14 +132,15 @@ export function PricingSection({
   isAuthenticated: boolean
   dashboardHref: string
 }) {
+  const t = useTranslations("Pricing")
   const [yearly, setYearly] = React.useState(false)
 
   return (
     <Section id="pricing" className="bg-muted/30">
       <SectionHeading
-        eyebrow="Pricing"
-        title="Simple, transparent pricing"
-        description="Start free and upgrade when your team is ready. Save 20% with annual billing."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <div className="mt-8 flex justify-center">
         <ToggleGroup
@@ -141,10 +150,10 @@ export function PricingSection({
           className="rounded-lg bg-muted p-1"
         >
           <ToggleGroupItem value="monthly" variant="outline" size="sm">
-            Monthly
+            {t("monthly")}
           </ToggleGroupItem>
           <ToggleGroupItem value="yearly" variant="outline" size="sm">
-            Yearly
+            {t("yearly")}
           </ToggleGroupItem>
         </ToggleGroup>
       </div>

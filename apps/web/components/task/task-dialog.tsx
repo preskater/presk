@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { TaskForm, type TaskFormValue } from "@/components/task/task-form"
 import { Button } from "@workspace/ui/components/button"
@@ -27,6 +28,7 @@ export function TaskFormDialog({
   task?: Task
   trigger: React.ReactElement
 }) {
+  const t = useTranslations("Projects")
   const { createTask, updateTask } = useProjectStore()
   const [open, setOpen] = React.useState(false)
   const formId = React.useId()
@@ -45,11 +47,13 @@ export function TaskFormDialog({
       <DialogTrigger render={trigger} />
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>{task ? `Edit ${task.identifier}` : "Create task"}</DialogTitle>
-          <DialogDescription>
+          <DialogTitle>
             {task
-              ? "Update the details of this task."
-              : "Add a task to track work for this project."}
+              ? t("editTaskTitle", { identifier: task.identifier })
+              : t("createTaskTitle")}
+          </DialogTitle>
+          <DialogDescription>
+            {task ? t("updateTaskDescription") : t("createTaskDescription")}
           </DialogDescription>
         </DialogHeader>
         <TaskForm
@@ -61,10 +65,10 @@ export function TaskFormDialog({
         />
         <DialogFooter>
           <DialogClose render={<Button variant="outline" type="button" />}>
-            Cancel
+            {t("cancel")}
           </DialogClose>
           <Button type="submit" form={formId}>
-            {task ? "Save" : "Create task"}
+            {task ? t("save") : t("createTask")}
           </Button>
         </DialogFooter>
       </DialogContent>

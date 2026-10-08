@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { UserIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { Button } from "@workspace/ui/components/button"
@@ -25,7 +26,7 @@ import { useProjectStore } from "@/lib/projects/store"
 export function MemberPicker({
   value,
   onChange,
-  placeholder = "Unassigned",
+  placeholder,
   className,
   disabled,
 }: {
@@ -35,6 +36,7 @@ export function MemberPicker({
   className?: string
   disabled?: boolean
 }) {
+  const t = useTranslations("Projects")
   const { members, getMember } = useProjectStore()
   const [open, setOpen] = React.useState(false)
   const selected = getMember(value)
@@ -60,15 +62,15 @@ export function MemberPicker({
         ) : (
           <>
             <UserIcon data-icon="inline-start" />
-            {placeholder}
+            {placeholder ?? t("unassigned")}
           </>
         )}
       </PopoverTrigger>
       <PopoverContent className="w-64 p-0" align="start">
         <Command>
-          <CommandInput placeholder="Search members..." />
+          <CommandInput placeholder={t("searchMembers")} />
           <CommandList>
-            <CommandEmpty>No members found.</CommandEmpty>
+            <CommandEmpty>{t("noMembersFound")}</CommandEmpty>
             <CommandGroup>
               <CommandItem
                 value="unassigned"
@@ -78,7 +80,7 @@ export function MemberPicker({
                 }}
               >
                 <UserIcon />
-                Unassigned
+                {t("unassigned")}
               </CommandItem>
               {members.map((member) => (
                 <CommandItem

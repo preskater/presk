@@ -1,5 +1,7 @@
 "use client"
 
+import { useTranslations } from "next-intl"
+
 import {
   Card,
   CardAction,
@@ -13,28 +15,31 @@ import { Badge } from "@workspace/ui/components/badge"
 import { useProjectStore } from "@/lib/projects/store"
 
 export function SectionCards() {
+  const t = useTranslations("Dashboard")
   const { projects, tasks, members } = useProjectStore()
 
   const metrics = [
     {
-      label: "Active Projects",
+      label: t("activeProjects"),
       value: projects.filter((project) => project.status === "active").length,
-      hint: `${projects.length} total`,
+      hint: t("totalCount", { count: projects.length }),
     },
     {
-      label: "Open Tasks",
+      label: t("openTasks"),
       value: tasks.filter((task) => task.status !== "done").length,
-      hint: `${tasks.filter((task) => task.status === "done").length} completed`,
+      hint: t("completedCount", {
+        count: tasks.filter((task) => task.status === "done").length,
+      }),
     },
     {
-      label: "Team Members",
+      label: t("teamMembers"),
       value: members.length,
-      hint: "Across the workspace",
+      hint: t("acrossWorkspace"),
     },
     {
-      label: "Projects Paused",
+      label: t("projectsPaused"),
       value: projects.filter((project) => project.status === "paused").length,
-      hint: "On hold right now",
+      hint: t("onHold"),
     },
   ]
 
@@ -48,7 +53,7 @@ export function SectionCards() {
               {metric.value}
             </CardTitle>
             <CardAction>
-              <Badge variant="outline">Live</Badge>
+              <Badge variant="outline">{t("live")}</Badge>
             </CardAction>
           </CardHeader>
           <CardFooter className="flex-col items-start gap-1.5 text-sm">

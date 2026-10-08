@@ -1,6 +1,7 @@
 "use client"
 
 import { HashIcon, PinIcon, VolumeXIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { PresenceDot } from "@/components/messaging/presence-dot"
 import { Avatar, AvatarFallback, AvatarImage } from "@workspace/ui/components/avatar"
@@ -20,6 +21,7 @@ export function ConversationItem({
   active: boolean
   onSelect: (id: string) => void
 }) {
+  const t = useTranslations("Messaging")
   const { getMember, dmPartner, lastMessageFor, presence } = useMessaging()
   const partnerId = dmPartner(conversation)
   const partner = getMember(partnerId)
@@ -27,9 +29,9 @@ export function ConversationItem({
   const lastAuthor = last ? getMember(last.authorId) : undefined
   const preview = last
     ? last.meeting
-      ? "Shared a meeting"
+      ? t("sharedAMeeting")
       : last.body
-    : "No messages yet"
+    : t("noMessagesYet")
 
   return (
     <button

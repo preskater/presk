@@ -1,8 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useTranslations } from "next-intl"
 
+import { useRouter } from "@/i18n/navigation"
 import { ProjectFilters, defaultFilters, filterTasks, type TaskFilters } from "@/components/project/project-filters"
 import { ProjectHeader } from "@/components/project/project-header"
 import { ProjectOverview } from "@/components/project/project-overview"
@@ -19,6 +20,7 @@ import { useRecents } from "@/lib/recents/store"
 import type { Project } from "@/lib/projects/types"
 
 export function ProjectView({ project }: { project: Project }) {
+  const t = useTranslations("Projects")
   const router = useRouter()
   const orgSlug = useOrgSlug()
   const store = useProjectStore()
@@ -36,7 +38,7 @@ export function ProjectView({ project }: { project: Project }) {
     record("projects", {
       id: project.id,
       label: project.name,
-      hint: `${projectTasks.length} task${projectTasks.length === 1 ? "" : "s"}`,
+      hint: t("taskCount", { count: projectTasks.length }),
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [project.id])
@@ -60,11 +62,11 @@ export function ProjectView({ project }: { project: Project }) {
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <TabsList variant="line">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="board">Board</TabsTrigger>
-            <TabsTrigger value="list">List</TabsTrigger>
-            <TabsTrigger value="calendar">Calendar</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="overview">{t("overview")}</TabsTrigger>
+            <TabsTrigger value="board">{t("board")}</TabsTrigger>
+            <TabsTrigger value="list">{t("list")}</TabsTrigger>
+            <TabsTrigger value="calendar">{t("calendar")}</TabsTrigger>
+            <TabsTrigger value="settings">{t("settings")}</TabsTrigger>
           </TabsList>
         </div>
 

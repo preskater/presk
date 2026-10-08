@@ -1,10 +1,14 @@
 "use client"
 
 import * as React from "react"
+import { useLocale } from "next-intl"
+import { enUS, fr } from "react-day-picker/locale"
 
 import { Calendar } from "@workspace/ui/components/calendar"
 
 import { useCalendars } from "@/lib/calendars/store"
+
+const DAY_PICKER_LOCALES = { en: enUS, fr }
 
 export function MiniCalendar({
   focusDate,
@@ -13,6 +17,7 @@ export function MiniCalendar({
   focusDate: Date
   onSelectDate: (date: Date) => void
 }) {
+  const locale = useLocale()
   const { eventsOnDay } = useCalendars()
   const eventDates = React.useMemo(() => {
     const dates: Date[] = []
@@ -29,6 +34,7 @@ export function MiniCalendar({
   return (
     <Calendar
       mode="single"
+      locale={DAY_PICKER_LOCALES[locale as keyof typeof DAY_PICKER_LOCALES]}
       selected={focusDate}
       month={focusDate}
       onMonthChange={onSelectDate}

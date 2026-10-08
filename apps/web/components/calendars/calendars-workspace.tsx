@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { AgendaView } from "@/components/calendars/agenda-view"
 import { AvailabilityView } from "@/components/calendars/availability-view"
@@ -27,15 +28,17 @@ import { useCalendars } from "@/lib/calendars/store"
 import { useRecents } from "@/lib/recents/store"
 import type { CalendarEvent, CalendarView } from "@/lib/calendars/types"
 
-const VIEW_LABEL: Record<CalendarView, string> = {
-  day: "Day",
-  week: "Week",
-  month: "Month",
-  agenda: "Agenda",
-  availability: "Availability",
-}
+const VIEWS: CalendarView[] = [
+  "day",
+  "week",
+  "month",
+  "agenda",
+  "availability",
+]
 
 export function CalendarsWorkspace() {
+  const locale = useLocale()
+  const t = useTranslations("Calendars")
   const { moveEvent, members, currentUserId } = useCalendars()
   const { record, active, hydrated } = useRecents()
   const [focusDate, setFocusDate] = React.useState(new Date())
@@ -57,7 +60,7 @@ export function CalendarsWorkspace() {
     restoredRef.current = true
     const separator = active.calendars.indexOf(":")
     const candidate = active.calendars.slice(0, separator) as CalendarView
-    if (candidate in VIEW_LABEL) setView(candidate)
+    if (VIEWS.includes(candidate)) setView(candidate)
     const parsed = new Date(active.calendars.slice(separator + 1))
     if (!Number.isNaN(parsed.getTime())) setFocusDate(parsed)
   }, [hydrated, active.calendars])
@@ -67,8 +70,8 @@ export function CalendarsWorkspace() {
     if (!restoredRef.current && active.calendars) return
     record("calendars", {
       id: `${view}:${focusDate.toISOString()}`,
-      label: VIEW_LABEL[view],
-      hint: focusDate.toLocaleDateString("en-US", {
+      label: t(view),
+      hint: focusDate.toLocaleDateString(locale, {
         month: "short",
         day: "numeric",
       }),
@@ -95,8 +98,8 @@ export function CalendarsWorkspace() {
 
   const rangeLabel =
     view === "week"
-      ? formatRange(startOfWeek(focusDate), endOfWeek(focusDate), "week")
-      : formatRange(focusDate, focusDate, view)
+      ? formatRange(startOfWeek(focusDate), endOfWeek(focusDate), "week", locale)
+      : formatRange(focusDate, focusDate, view, locale)
 
   function shift(direction: -1 | 1) {
     setFocusDate((prev) => {

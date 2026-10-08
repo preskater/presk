@@ -1,10 +1,11 @@
+"use client"
+
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
+import { useEnumLabel } from "@/lib/i18n/labels"
 import {
   PRIORITY_BADGE_VARIANT,
-  TASK_PRIORITIES,
-  TASK_STATUSES,
   type Label,
   type TaskPriority,
   type TaskStatus,
@@ -28,10 +29,10 @@ export function StatusBadge({
   status: TaskStatus
   className?: string
 }) {
-  const label = TASK_STATUSES.find((item) => item.value === status)?.label ?? status
+  const L = useEnumLabel()
   return (
     <Badge variant={STATUS_BADGE_VARIANT[status]} className={cn(className)}>
-      {label}
+      {L.taskStatus(status)}
     </Badge>
   )
 }
@@ -43,14 +44,13 @@ export function PriorityBadge({
   priority: TaskPriority
   className?: string
 }) {
-  const label =
-    TASK_PRIORITIES.find((item) => item.value === priority)?.label ?? priority
+  const L = useEnumLabel()
   return (
     <Badge
       variant={PRIORITY_BADGE_VARIANT[priority]}
       className={cn(className)}
     >
-      {label}
+      {L.taskPriority(priority)}
     </Badge>
   )
 }

@@ -1,0 +1,15 @@
+{
+  "homeLabel": "Presk home",
+  "openMenu": "Open menu",
+  "pricing": "Pricing",
+  "signIn": "Sign in",
+  "signUp": "Start free",
+  "dashboard": "Go to dashboard",
+  "changeLanguage": "Change language",
+  "columns": {
+    "product": "Product",
+    "solutions": "Solutions",
+    "resources": "Resources",
+    "company": "Company"
+  }
+}

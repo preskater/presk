@@ -2,6 +2,7 @@
 
 import { withAction } from "@/lib/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
+import { parseLocalized } from "@/lib/core/validation-server"
 import { revalidateOrgPath } from "@/lib/organization/paths"
 import { messagingService } from "@/lib/messaging"
 import {
@@ -23,7 +24,7 @@ export const listMessagingAction = withAction(async () => {
 
 export const sendMessageAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = sendMessageSchema.parse(input)
+  const parsed = await parseLocalized(sendMessageSchema, input)
   const message = await messagingService.sendMessage(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/messages")
   return message
@@ -31,7 +32,7 @@ export const sendMessageAction = withAction(async (input: unknown) => {
 
 export const editMessageAction = withAction(async (id: string, body: string) => {
   const ctx = await getRequestContext()
-  const parsed = editMessageSchema.parse({ body })
+  const parsed = await parseLocalized(editMessageSchema, { body })
   const message = await messagingService.editMessage(ctx, id, parsed)
   await revalidateOrgPath(ctx.organizationId, "/messages")
   return message
@@ -47,7 +48,7 @@ export const deleteMessageAction = withAction(async (id: string) => {
 export const toggleReactionAction = withAction(
   async (messageId: string, input: unknown) => {
     const ctx = await getRequestContext()
-    const parsed = toggleReactionSchema.parse(input)
+    const parsed = await parseLocalized(toggleReactionSchema, input)
     const message = await messagingService.toggleReaction(
       ctx,
       messageId,
@@ -61,7 +62,7 @@ export const toggleReactionAction = withAction(
 export const addThreadReplyAction = withAction(
   async (parentId: string, body: string) => {
     const ctx = await getRequestContext()
-    const parsed = addThreadReplySchema.parse({ parentId, body })
+    const parsed = await parseLocalized(addThreadReplySchema, { parentId, body })
     const message = await messagingService.addThreadReply(ctx, parsed)
     await revalidateOrgPath(ctx.organizationId, "/messages")
     return message
@@ -75,7 +76,7 @@ export const markReadAction = withAction(async (conversationId: string) => {
 
 export const startDmAction = withAction(async (memberId: string) => {
   const ctx = await getRequestContext()
-  const parsed = startDmSchema.parse({ memberId })
+  const parsed = await parseLocalized(startDmSchema, { memberId })
   const conversation = await messagingService.startDirectMessage(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/messages")
   return conversation
@@ -83,7 +84,7 @@ export const startDmAction = withAction(async (memberId: string) => {
 
 export const createChannelAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = createChannelSchema.parse(input)
+  const parsed = await parseLocalized(createChannelSchema, input)
   const conversation = await messagingService.createChannel(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/messages")
   return conversation
@@ -92,7 +93,7 @@ export const createChannelAction = withAction(async (input: unknown) => {
 export const setTypingAction = withAction(
   async (conversationId: string, input: unknown) => {
     const ctx = await getRequestContext()
-    const parsed = setTypingSchema.parse(input)
+    const parsed = await parseLocalized(setTypingSchema, input)
     void conversationId
     return messagingService.setTyping(ctx, parsed)
   }
@@ -101,7 +102,7 @@ export const setTypingAction = withAction(
 export const toggleMuteAction = withAction(
   async (conversationId: string, muted?: boolean) => {
     const ctx = await getRequestContext()
-    muteSchema.parse({ muted })
+    await parseLocalized(muteSchema, { muted })
     const conversation = await messagingService.toggleMute(
       ctx,
       conversationId,
@@ -115,7 +116,7 @@ export const toggleMuteAction = withAction(
 export const togglePinAction = withAction(
   async (conversationId: string, pinned?: boolean) => {
     const ctx = await getRequestContext()
-    pinSchema.parse({ pinned })
+    await parseLocalized(pinSchema, { pinned })
     const conversation = await messagingService.togglePin(
       ctx,
       conversationId,

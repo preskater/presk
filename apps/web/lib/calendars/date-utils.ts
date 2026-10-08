@@ -207,31 +207,36 @@ function assignColumns(events: CalendarEvent[], day: Date) {
     )
 }
 
-export function formatTime(date: Date) {
-  return date.toLocaleTimeString("en-US", {
+export function formatTime(date: Date, locale = "en") {
+  return date.toLocaleTimeString(locale, {
     hour: "numeric",
     minute: "2-digit",
   })
 }
 
-export function formatTimeShort(date: Date) {
+export function formatTimeShort(date: Date, locale = "en") {
   const minutes = date.getMinutes()
   if (minutes === 0) {
     return date
-      .toLocaleTimeString("en-US", { hour: "numeric" })
+      .toLocaleTimeString(locale, { hour: "numeric" })
       .replace(":00", "")
   }
-  return formatTime(date)
+  return formatTime(date, locale)
 }
 
-export function formatMonthYear(date: Date) {
-  return date.toLocaleDateString("en-US", { month: "long", year: "numeric" })
+export function formatMonthYear(date: Date, locale = "en") {
+  return date.toLocaleDateString(locale, { month: "long", year: "numeric" })
 }
 
-export function formatRange(start: Date, end: Date, view: string) {
-  if (view === "month") return formatMonthYear(start)
+export function formatRange(
+  start: Date,
+  end: Date,
+  view: string,
+  locale = "en"
+) {
+  if (view === "month") return formatMonthYear(start, locale)
   if (view === "day") {
-    return start.toLocaleDateString("en-US", {
+    return start.toLocaleDateString(locale, {
       weekday: "long",
       month: "long",
       day: "numeric",
@@ -239,11 +244,11 @@ export function formatRange(start: Date, end: Date, view: string) {
     })
   }
   const sameMonth = start.getMonth() === end.getMonth()
-  const startLabel = start.toLocaleDateString("en-US", {
+  const startLabel = start.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
   })
-  const endLabel = end.toLocaleDateString("en-US", {
+  const endLabel = end.toLocaleDateString(locale, {
     month: sameMonth ? undefined : "short",
     day: "numeric",
     year: "numeric",
@@ -251,23 +256,38 @@ export function formatRange(start: Date, end: Date, view: string) {
   return `${startLabel} – ${endLabel}`
 }
 
-export function formatDayLabel(date: Date) {
+export type DayLabelTranslator = (...args: never[]) => string
+
+export function formatDayLabel(
+  date: Date,
+  locale = "en",
+  t?: DayLabelTranslator
+) {
   const today = startOfDay(new Date())
-  if (isSameDay(date, today)) return "Today"
+  const label = (key: string, fallback: string) => {
+    if (!t) return fallback
+    const translate = t as unknown as (key: string) => string
+    return translate(`Common.${key}`)
+  }
+  if (isSameDay(date, today)) return label("today", "Today")
   const yesterday = addDays(today, -1)
-  if (isSameDay(date, yesterday)) return "Yesterday"
+  if (isSameDay(date, yesterday)) return label("yesterday", "Yesterday")
   const tomorrow = addDays(today, 1)
-  if (isSameDay(date, tomorrow)) return "Tomorrow"
-  return date.toLocaleDateString("en-US", {
+  if (isSameDay(date, tomorrow)) return label("tomorrow", "Tomorrow")
+  return date.toLocaleDateString(locale, {
     weekday: "long",
     month: "long",
     day: "numeric",
   })
 }
 
-export function formatEventRange(event: CalendarEvent) {
+export function formatEventRange(
+  event: CalendarEvent,
+  locale = "en",
+  allDayLabel = "All day"
+) {
   const start = new Date(event.startAt)
   const end = new Date(event.endAt)
-  if (event.allDay) return "All day"
-  return `${formatTime(start)} – ${formatTime(end)}`
+  if (event.allDay) return allDayLabel
+  return `${formatTime(start, locale)} – ${formatTime(end, locale)}`
 }

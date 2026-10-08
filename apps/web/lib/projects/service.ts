@@ -24,6 +24,7 @@ import type {
   Subtask,
   Task,
 } from "./types"
+import { ACTIVITY_STATUS_SENTINEL } from "./types"
 
 const ROLE_RANK: Record<string, number> = {
   owner: 4,
@@ -71,12 +72,16 @@ export class ProjectService {
 
   private canWrite(ctx: RequestContext) {
     if (roleAtLeast(ctx.role, 2)) return
-    throw new ForbiddenError("Your role cannot modify projects.")
+    throw new ForbiddenError("Your role cannot modify projects.", {
+      code: "role_cannot_modify_projects",
+    })
   }
 
   private canManage(ctx: RequestContext) {
     if (roleAtLeast(ctx.role, 3)) return
-    throw new ForbiddenError("Your role cannot manage workspace members.")
+    throw new ForbiddenError("Your role cannot manage workspace members.", {
+      code: "role_cannot_manage_members",
+    })
   }
 
   private mapMember(row: MemberRow): Member {
@@ -300,7 +305,7 @@ export class ProjectService {
         projectId: existing.projectId,
         actorId: ctx.userId,
         action: "moved",
-        target: `${existing.identifier} to ${input.status.replace("_", " ")}`,
+        target: `${existing.identifier}${ACTIVITY_STATUS_SENTINEL}${input.status}`,
       })
     }
     const fresh = await this.repo.findTask(ctx.organizationId, id)
@@ -346,7 +351,7 @@ export class ProjectService {
     await this.repo.addActivity({
       projectId: existing.projectId,
       actorId: ctx.userId,
-      action: "commented on",
+      action: "commentedOn",
       target: existing.identifier,
     })
     const fresh = await this.repo.findTask(ctx.organizationId, taskId)
@@ -363,7 +368,10 @@ export class ProjectService {
       ctx.organizationId,
       input.email
     )
-    if (existingMember) throw new ConflictError("That email is already a member.")
+    if (existingMember)
+      throw new ConflictError("That email is already a member.", {
+        code: "email_already_member",
+      })
 
     const user = await this.db.user.upsert({
       where: { email: input.email },

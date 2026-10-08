@@ -10,6 +10,7 @@ import {
   Share2Icon,
   StarIcon,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { FileIcon } from "@/components/files/file-icon"
 import { FileMenuItems } from "@/components/files/file-actions"
@@ -107,6 +108,9 @@ export function FilesTable({
   onSortChange: (key: SortOption) => void
 }) {
   const { getMember } = useFiles()
+  const t = useTranslations("Files")
+  const tc = useTranslations("Common")
+  const locale = useLocale()
   const [page, setPage] = React.useState(1)
 
   React.useEffect(() => {
@@ -141,7 +145,7 @@ export function FilesTable({
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox
-                  aria-label="Select all"
+                  aria-label={t("selectAll")}
                   checked={allSelected}
                   onCheckedChange={(checked) =>
                     onSelectedChange(
@@ -152,9 +156,9 @@ export function FilesTable({
                   }
                 />
               </TableHead>
-              <SortHeader label="Name" sortKey="name" activeKey={sortKey} dir={dir} onSort={onSortChange} />
+              <SortHeader label={t("name")} sortKey="name" activeKey={sortKey} dir={dir} onSort={onSortChange} />
               <SortHeader
-                label="Owner"
+                label={t("owner")}
                 sortKey="owner"
                 activeKey={sortKey}
                 dir={dir}
@@ -162,7 +166,7 @@ export function FilesTable({
                 className="hidden md:table-cell"
               />
               <SortHeader
-                label="Modified"
+                label={t("modified")}
                 sortKey="modifiedAt"
                 activeKey={sortKey}
                 dir={dir}
@@ -170,7 +174,7 @@ export function FilesTable({
                 className="hidden sm:table-cell"
               />
               <SortHeader
-                label="Size"
+                label={t("size")}
                 sortKey="sizeBytes"
                 activeKey={sortKey}
                 dir={dir}
@@ -198,7 +202,7 @@ export function FilesTable({
                   >
                     <TableCell onClick={(event) => event.stopPropagation()}>
                       <Checkbox
-                        aria-label={`Select ${file.name}`}
+                        aria-label={t("selectFile", { name: file.name })}
                         checked={selected.includes(file.id)}
                         onCheckedChange={() => toggleOne(file)}
                       />
@@ -213,13 +217,13 @@ export function FilesTable({
                         {file.shared ? (
                           <Badge variant="outline" className="shrink-0">
                             <Share2Icon />
-                            Shared
+                            {t("shared")}
                           </Badge>
                         ) : null}
                         {file.restricted ? (
                           <Badge variant="secondary" className="shrink-0">
                             <LockIcon />
-                            Restricted
+                            {t("restricted")}
                           </Badge>
                         ) : null}
                       </div>
@@ -228,12 +232,12 @@ export function FilesTable({
                       <div className="flex items-center gap-2">
                         <MemberAvatar member={owner} size="sm" />
                         <span className="text-sm text-muted-foreground">
-                          {owner?.name ?? "Unknown"}
+                          {owner?.name ?? t("unknown")}
                         </span>
                       </div>
                     </TableCell>
                     <TableCell className="hidden text-sm text-muted-foreground sm:table-cell">
-                      {formatRelativeDate(file.modifiedAt)}
+                      {formatRelativeDate(file.modifiedAt, locale, tc)}
                     </TableCell>
                     <TableCell className="hidden text-sm text-muted-foreground tabular-nums lg:table-cell">
                       {file.kind === "folder" ? "—" : formatBytes(file.sizeBytes)}
@@ -242,7 +246,7 @@ export function FilesTable({
                       <DropdownMenu>
                         <DropdownMenuTrigger
                           render={
-                            <Button variant="ghost" size="icon-sm" aria-label="File actions" />
+                            <Button variant="ghost" size="icon-sm" aria-label={t("fileActions")} />
                           }
                         >
                           <EllipsisIcon />
@@ -283,7 +287,7 @@ export function FilesTable({
 
       <div className="flex flex-wrap items-center justify-between gap-3 text-sm text-muted-foreground">
         <span>
-          {files.length} item{files.length === 1 ? "" : "s"}
+          {t("itemCount", { count: files.length })}
         </span>
         {pageCount > 1 ? (
           <Pagination className="mx-0 w-auto">

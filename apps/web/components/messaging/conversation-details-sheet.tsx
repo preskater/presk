@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { PresenceDot } from "@/components/messaging/presence-dot"
@@ -25,6 +26,7 @@ export function ConversationDetailsSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
+  const t = useTranslations("Messaging")
   const { getMember, presence } = useMessaging()
   const members = conversation.memberIds
     .map((id) => getMember(id))
@@ -40,14 +42,14 @@ export function ConversationDetailsSheet({
               : conversation.name}
           </SheetTitle>
           <SheetDescription>
-            {conversation.topic ?? "Conversation details"}
+            {conversation.topic ?? t("conversationDetails")}
           </SheetDescription>
         </SheetHeader>
         <div className="flex flex-col gap-4 overflow-y-auto p-4">
           <div className="flex flex-col gap-1">
-            <h3 className="text-sm font-medium">Members</h3>
+            <h3 className="text-sm font-medium">{t("members")}</h3>
             <span className="text-xs text-muted-foreground">
-              {members.length} in this conversation
+              {t("membersInConversation", { count: members.length })}
             </span>
           </div>
           <div className="flex flex-col gap-1">
@@ -74,7 +76,7 @@ export function ConversationDetailsSheet({
             ))}
           </div>
           <Button variant="outline" className="w-full">
-            Add members
+            {t("addMembers")}
           </Button>
         </div>
       </SheetContent>

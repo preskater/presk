@@ -1,6 +1,7 @@
-import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
+import { getFormatter, getTranslations } from "next-intl/server"
 
+import { Link } from "@/i18n/navigation"
 import { Badge } from "@workspace/ui/components/badge"
 import {
   Card,
@@ -9,16 +10,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@workspace/ui/components/card"
-import { formatPostDate, type BlogPostMeta } from "@/lib/landing/blog"
+import { type BlogPostMeta } from "@/lib/landing/blog"
 
-export function BlogCard({ post }: { post: BlogPostMeta }) {
+export async function BlogCard({ post }: { post: BlogPostMeta }) {
+  const t = await getTranslations("Marketing.blog")
+  const format = await getFormatter()
   return (
     <Card className="h-full transition-colors hover:ring-foreground/20">
       <CardHeader>
         <div className="mb-1 flex items-center gap-2">
           <Badge variant="secondary">{post.tag}</Badge>
           <span className="text-xs text-muted-foreground">
-            {formatPostDate(post.date)}
+            {format.dateTime(new Date(post.date), {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+            })}
           </span>
         </div>
         <CardTitle className="text-lg">
@@ -32,7 +39,7 @@ export function BlogCard({ post }: { post: BlogPostMeta }) {
           href={`/blog/${post.slug}`}
           className="ms-auto inline-flex items-center gap-1 font-medium text-primary hover:underline"
         >
-          Read
+          {t("read")}
           <ArrowRightIcon className="size-3.5" />
         </Link>
       </CardFooter>

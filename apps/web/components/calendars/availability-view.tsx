@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import {
@@ -33,6 +34,8 @@ export function AvailabilityView({
   selectedMemberIds: string[]
   onOpenEvent: (event: CalendarEvent) => void
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Calendars")
   const { getMember, eventsOnDay } = useCalendars()
   const weekStart = startOfWeek(focusDate)
   const days = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index))
@@ -42,7 +45,7 @@ export function AvailabilityView({
     <div className="flex min-h-0 flex-1 flex-col overflow-auto">
       <div className="sticky top-0 z-10 flex border-b bg-background">
         <div className="w-44 shrink-0 border-e px-3 py-2 text-xs font-medium text-muted-foreground">
-          Team member
+          {t("teamMember")}
         </div>
         <div className="flex flex-1">
           {days.map((day) => (
@@ -51,7 +54,7 @@ export function AvailabilityView({
               className="flex flex-1 flex-col items-center border-e py-1.5 last:border-e-0"
             >
               <span className="text-xs text-muted-foreground">
-                {day.toLocaleDateString("en-US", { weekday: "short" })}
+                {day.toLocaleDateString(locale, { weekday: "short" })}
               </span>
               <span className="text-sm font-medium tabular-nums">
                 {day.getDate()}

@@ -1,23 +1,25 @@
-import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { CompassIcon } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { NotFoundState } from "@/components/states/not-found-state"
 
 import { getActiveOrgSlug } from "@/lib/organization/paths"
 
 export default async function OrganizationNotFound() {
+  const t = await getTranslations("AppPages")
   const orgSlug = await getActiveOrgSlug()
   const dashboardHref = orgSlug ? `/${orgSlug}` : "/onboarding"
 
   return (
     <NotFoundState
       icon={CompassIcon}
-      title="Page not found"
-      description="This page doesn't exist in your workspace. It may have been moved or deleted."
+      title={t("pageNotFoundTitle")}
+      description={t("pageNotFoundDescription")}
       actions={
         <Button nativeButton={false} render={<Link href={dashboardHref} />}>
-          Back to dashboard
+          {t("backToDashboard")}
         </Button>
       }
     />

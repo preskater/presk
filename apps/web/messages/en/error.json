@@ -1,0 +1,7 @@
+{
+  "title": "Something went wrong",
+  "description": "An unexpected error occurred. You can try again, or head back and continue working.",
+  "globalDescription": "The application hit an unexpected error while rendering. You can try again.",
+  "reference": "Reference: {digest}",
+  "retry": "Try again"
+}

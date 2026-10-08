@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 import { CalendarPlusIcon } from "lucide-react"
 
 import { AttendeePicker, type AttendeeDraft } from "@/components/calendars/attendee-picker"
@@ -37,22 +38,27 @@ import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-gr
 
 import { EVENT_COLOR_VAR } from "@/lib/calendars/event-colors"
 import { useCalendars, type EventInput } from "@/lib/calendars/store"
-import {
-  EVENT_COLORS,
-  REMINDERS,
-  type CalendarEvent,
-  type EventColor,
-} from "@/lib/calendars/types"
+import { useEnumLabel } from "@/lib/i18n/labels"
+import type { CalendarEvent, EventColor } from "@/lib/calendars/types"
 
-const HOURS = Array.from({ length: 24 }).map((_, hour) => ({
-  label:
-    hour === 0
-      ? "12 AM"
-      : hour === 12
-        ? "12 PM"
-        : `${hour % 12} ${hour < 12 ? "AM" : "PM"}`,
-  value: String(hour),
-}))
+const EVENT_COLOR_VALUES = [
+  "blue",
+  "green",
+  "orange",
+  "red",
+  "purple",
+] as const
+
+const REMINDER_VALUES = ["none", "0", "5", "15", "30", "60"] as const
+
+const REMINDER_KEY: Record<string, string> = {
+  none: "none",
+  "0": "at_start",
+  "5": "m5",
+  "15": "m15",
+  "30": "m30",
+  "60": "h1",
+}
 
 const MINUTES = [0, 15, 30, 45].map((minute) => ({
   label: `:${minute.toString().padStart(2, "0")}`,
@@ -81,6 +87,9 @@ export function EventDialog({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Calendars")
+  const L = useEnumLabel()
   const { calendars, createEvent, updateEvent, currentUserId } = useCalendars()
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
   const open = controlledOpen ?? uncontrolledOpen
@@ -138,6 +147,23 @@ export function EventDialog({
     value: calendar.id,
   }))
 
+  const hourItems = Array.from({ length: 24 }).map((_, hour) => ({
+    label: new Date(2026, 0, 1, hour).toLocaleTimeString(locale, {
+      hour: "numeric",
+    }),
+    value: String(hour),
+  }))
+
+  const reminderItems = REMINDER_VALUES.map((value) => ({
+    label: L.reminder(REMINDER_KEY[value] as string),
+    value,
+  }))
+
+  const colorItems = EVENT_COLOR_VALUES.map((value) => ({
+    label: L.eventColor(value),
+    value,
+  }))
+
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault()
     if (!title.trim() || !date) return
@@ -180,27 +206,25 @@ export function EventDialog({
       <DialogTrigger render={trigger} />
       <DialogContent className="max-h-[88vh] overflow-y-auto sm:max-w-xl">
         <DialogHeader>
-          <DialogTitle>{event ? "Edit event" : "Create event"}</DialogTitle>
-          <DialogDescription>
-            Schedule a meeting or team event.
-          </DialogDescription>
+          <DialogTitle>{event ? t("editEvent") : t("createEvent")}</DialogTitle>
+          <DialogDescription>{t("eventDescription")}</DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="event-title">Title</FieldLabel>
+              <FieldLabel htmlFor="event-title">{t("title")}</FieldLabel>
               <Input
                 id="event-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Sprint planning"
+                placeholder={t("titlePlaceholder")}
                 autoFocus
               />
             </Field>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>
-                <FieldLabel htmlFor="event-calendar">Calendar</FieldLabel>
+                <FieldLabel htmlFor="event-calendar">{t("calendar")}</FieldLabel>
                 <Select
                   items={calendarItems}
                   value={calendarId}
@@ -221,7 +245,7 @@ export function EventDialog({
                 </Select>
               </Field>
               <Field>
-                <FieldLabel htmlFor="event-date">Date</FieldLabel>
+                <FieldLabel htmlFor="event-date">{t("date")}</FieldLabel>
                 <DatePicker value={date} onChange={setDate} />
               </Field>
             </div>
@@ -233,17 +257,17 @@ export function EventDialog({
                 onCheckedChange={(checked) => setAllDay(checked === true)}
               />
               <FieldLabel htmlFor="event-allday" className="font-normal">
-                All day
+                {t("allDay")}
               </FieldLabel>
             </Field>
 
             {!allDay ? (
               <div className="grid grid-cols-2 gap-4">
                 <Field>
-                  <FieldLabel>Start</FieldLabel>
+                  <FieldLabel>{t("start")}</FieldLabel>
                   <div className="flex gap-2">
                     <Select
-                      items={HOURS}
+                      items={hourItems}
                       value={startHour}
                       onValueChange={(value) => setStartHour(value as string)}
                     >
@@ -252,7 +276,7 @@ export function EventDialog({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          {HOURS.map((item) => (
+                          {hourItems.map((item) => (
                             <SelectItem key={item.value} value={item.value}>
                               {item.label}
                             </SelectItem>
@@ -281,10 +305,10 @@ export function EventDialog({
                   </div>
                 </Field>
                 <Field>
-                  <FieldLabel>End</FieldLabel>
+                  <FieldLabel>{t("end")}</FieldLabel>
                   <div className="flex gap-2">
                     <Select
-                      items={HOURS}
+                      items={hourItems}
                       value={endHour}
                       onValueChange={(value) => setEndHour(value as string)}
                     >
@@ -293,7 +317,7 @@ export function EventDialog({
                       </SelectTrigger>
                       <SelectContent>
                         <SelectGroup>
-                          {HOURS.map((item) => (
+                          {hourItems.map((item) => (
                             <SelectItem key={item.value} value={item.value}>
                               {item.label}
                             </SelectItem>
@@ -325,46 +349,46 @@ export function EventDialog({
             ) : null}
 
             <Field>
-              <FieldLabel>Attendees</FieldLabel>
+              <FieldLabel>{t("attendees")}</FieldLabel>
               <AttendeePicker value={attendees} onChange={setAttendees} />
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="event-location">Location</FieldLabel>
+              <FieldLabel htmlFor="event-location">{t("location")}</FieldLabel>
               <Input
                 id="event-location"
                 value={location}
                 onChange={(e) => setLocation(e.target.value)}
-                placeholder="Room or building"
+                placeholder={t("locationPlaceholder")}
               />
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="event-meeting">Meeting URL</FieldLabel>
+              <FieldLabel htmlFor="event-meeting">{t("meetingUrl")}</FieldLabel>
               <Input
                 id="event-meeting"
                 value={meetingUrl}
                 onChange={(e) => setMeetingUrl(e.target.value)}
-                placeholder="https://teams.microsoft.com/..."
+                placeholder={t("meetingUrlPlaceholder")}
               />
-              <FieldDescription>
-                Paste a Teams link to make this a hybrid meeting.
-              </FieldDescription>
+              <FieldDescription>{t("meetingUrlHint")}</FieldDescription>
             </Field>
 
             <Field>
-              <FieldLabel htmlFor="event-description">Description</FieldLabel>
+              <FieldLabel htmlFor="event-description">
+                {t("description")}
+              </FieldLabel>
               <Textarea
                 id="event-description"
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-                placeholder="Agenda, notes, links..."
+                placeholder={t("descriptionPlaceholder")}
               />
             </Field>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
               <Field>
-                <FieldLabel>Color</FieldLabel>
+                <FieldLabel>{t("color")}</FieldLabel>
                 <ToggleGroup
                   value={[color]}
                   onValueChange={(value) => {
@@ -372,7 +396,7 @@ export function EventDialog({
                   }}
                   spacing={2}
                 >
-                  {EVENT_COLORS.map((item) => (
+                  {colorItems.map((item) => (
                     <ToggleGroupItem
                       key={item.value}
                       value={item.value}
@@ -392,9 +416,9 @@ export function EventDialog({
                 </ToggleGroup>
               </Field>
               <Field>
-                <FieldLabel htmlFor="event-reminder">Reminder</FieldLabel>
+                <FieldLabel htmlFor="event-reminder">{t("reminder")}</FieldLabel>
                 <Select
-                  items={REMINDERS}
+                  items={reminderItems}
                   value={reminder}
                   onValueChange={(value) => setReminder(value as string)}
                 >
@@ -403,7 +427,7 @@ export function EventDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectGroup>
-                      {REMINDERS.map((item) => (
+                      {reminderItems.map((item) => (
                         <SelectItem key={item.value} value={item.value}>
                           {item.label}
                         </SelectItem>
@@ -417,11 +441,11 @@ export function EventDialog({
 
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
             <Button type="submit">
               <CalendarPlusIcon data-icon="inline-start" />
-              {event ? "Save" : "Create event"}
+              {event ? t("save") : t("createEvent")}
             </Button>
           </DialogFooter>
         </form>

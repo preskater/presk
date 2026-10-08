@@ -1,5 +1,6 @@
 "use client"
 
+import { useTranslations } from "next-intl"
 import { QuoteIcon } from "lucide-react"
 
 import { Section, SectionHeading } from "@/components/landing/section"
@@ -14,20 +15,23 @@ import {
 } from "@workspace/ui/components/carousel"
 import { testimonials } from "@/lib/landing/content"
 
+const TESTIMONIAL_KEYS = ["q1", "q2", "q3", "q4"]
+
 export function Testimonials() {
+  const t = useTranslations("Landing.testimonials")
   return (
     <Section id="testimonials">
       <SectionHeading
-        eyebrow="Customers"
-        title="Loved by teams who ship"
-        description="From startups to enterprises, teams use Presk to stay aligned and move faster."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <Carousel
         opts={{ align: "start", loop: true }}
         className="mx-auto mt-12 w-full max-w-5xl"
       >
         <CarouselContent>
-          {testimonials.map((testimonial) => (
+          {testimonials.map((testimonial, index) => (
             <CarouselItem
               key={testimonial.name}
               className="md:basis-1/2 lg:basis-1/3"
@@ -36,7 +40,7 @@ export function Testimonials() {
                 <CardContent className="flex h-full flex-col gap-4 pt-6">
                   <QuoteIcon className="size-6 text-primary/40" />
                   <p className="flex-1 text-sm text-pretty">
-                    {testimonial.quote}
+                    {t((TESTIMONIAL_KEYS[index] ?? "q1") as never)}
                   </p>
                   <div className="flex items-center gap-3">
                     <Avatar>
@@ -47,7 +51,7 @@ export function Testimonials() {
                         {testimonial.name}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {testimonial.role}
+                        {t(`${TESTIMONIAL_KEYS[index] ?? "q1"}Role` as never)}
                       </span>
                     </div>
                   </div>

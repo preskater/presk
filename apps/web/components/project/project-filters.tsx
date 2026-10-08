@@ -1,6 +1,7 @@
 "use client"
 
 import { SearchIcon, XIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import type { Task } from "@/lib/projects/types"
@@ -19,26 +20,13 @@ import {
 } from "@workspace/ui/components/select"
 import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-group"
 
+import { useEnumLabel } from "@/lib/i18n/labels"
 import {
-  TASK_PRIORITIES,
-  TASK_STATUSES,
+  TASK_PRIORITY_VALUES,
+  TASK_STATUS_VALUES,
   type TaskPriority,
   type TaskStatus,
 } from "@/lib/projects/types"
-
-const statusItems = [
-  { label: "All statuses", value: "all" },
-  ...TASK_STATUSES.map((status) => ({
-    label: status.label,
-    value: status.value,
-  })),
-]
-
-const assigneeItems = [
-  { label: "All assignees", value: "all" },
-  { label: "Assigned to me", value: "me" },
-  { label: "Unassigned", value: "unassigned" },
-]
 
 export interface TaskFilters {
   search: string
@@ -61,6 +49,20 @@ export function ProjectFilters({
   filters: TaskFilters
   onChange: (filters: TaskFilters) => void
 }) {
+  const t = useTranslations("Projects")
+  const L = useEnumLabel()
+  const statusItems = [
+    { label: t("allStatuses"), value: "all" },
+    ...TASK_STATUS_VALUES.map((value) => ({
+      label: L.taskStatus(value),
+      value,
+    })),
+  ]
+  const assigneeItems = [
+    { label: t("allAssignees"), value: "all" },
+    { label: t("assignedToMe"), value: "me" },
+    { label: t("unassigned"), value: "unassigned" },
+  ]
   const active =
     filters.search !== "" ||
     filters.status !== "all" ||
@@ -71,7 +73,7 @@ export function ProjectFilters({
     <div className="flex flex-wrap items-center gap-2">
       <InputGroup className="w-full sm:w-64">
         <InputGroupInput
-          placeholder="Search tasks..."
+          placeholder={t("searchTasks")}
           value={filters.search}
           onChange={(event) =>
             onChange({ ...filters, search: event.target.value })
@@ -136,14 +138,14 @@ export function ProjectFilters({
         spacing={2}
         className="flex-wrap"
       >
-        {TASK_PRIORITIES.map((priority) => (
+        {TASK_PRIORITY_VALUES.map((priority) => (
           <ToggleGroupItem
-            key={priority.value}
-            value={priority.value}
+            key={priority}
+            value={priority}
             variant="outline"
             size="sm"
           >
-            {priority.label}
+            {L.taskPriority(priority)}
           </ToggleGroupItem>
         ))}
       </ToggleGroup>
@@ -155,7 +157,7 @@ export function ProjectFilters({
           onClick={() => onChange(defaultFilters)}
         >
           <XIcon data-icon="inline-start" />
-          Clear
+          {t("clear")}
         </Button>
       ) : null}
     </div>

@@ -56,6 +56,34 @@ export const FILE_KIND_COLOR: Record<FileKind, string> = {
   other: "text-muted-foreground",
 }
 
+export type CommonTranslator = (...args: never[]) => string
+
+const FALLBACK: Record<string, string> = {
+  justNow: "Just now",
+  yesterday: "Yesterday",
+  minutesAgo: "{count} min ago",
+  hoursAgo: "{count}h ago",
+  daysAgo: "{count} days ago",
+}
+
+function word(
+  t: CommonTranslator | undefined,
+  key: keyof typeof FALLBACK,
+  values?: Record<string, string | number>
+) {
+  if (t) {
+    const translate = t as unknown as (
+      key: string,
+      values?: Record<string, string | number>
+    ) => string
+    return translate(`Common.${key}`, values)
+  }
+  const template = FALLBACK[key] ?? ""
+  return values
+    ? template.replace(/\{(\w+)\}/g, (_, name) => String(values[name] ?? ""))
+    : template
+}
+
 export function formatBytes(bytes?: number) {
   if (bytes === undefined || bytes === null) return "—"
   if (bytes === 0) return "0 B"
@@ -68,19 +96,23 @@ export function formatBytes(bytes?: number) {
   return `${value >= 10 || exponent === 0 ? Math.round(value) : value.toFixed(1)} ${units[exponent]}`
 }
 
-export function formatRelativeDate(value: string) {
+export function formatRelativeDate(
+  value: string,
+  locale = "en",
+  t?: CommonTranslator
+) {
   const date = new Date(value)
   const now = new Date()
   const diffMs = now.getTime() - date.getTime()
   const diffMins = Math.round(diffMs / 60000)
-  if (diffMins < 1) return "Just now"
-  if (diffMins < 60) return `${diffMins} min ago`
+  if (diffMins < 1) return word(t, "justNow")
+  if (diffMins < 60) return word(t, "minutesAgo", { count: diffMins })
   const diffHours = Math.round(diffMins / 60)
-  if (diffHours < 24) return `${diffHours}h ago`
+  if (diffHours < 24) return word(t, "hoursAgo", { count: diffHours })
   const diffDays = Math.round(diffHours / 24)
-  if (diffDays === 1) return "Yesterday"
-  if (diffDays < 7) return `${diffDays} days ago`
-  return date.toLocaleDateString("en-US", {
+  if (diffDays === 1) return word(t, "yesterday")
+  if (diffDays < 7) return word(t, "daysAgo", { count: diffDays })
+  return date.toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
     year: date.getFullYear() === now.getFullYear() ? undefined : "numeric",

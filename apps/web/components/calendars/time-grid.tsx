@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { EventBlock } from "@/components/calendars/event-block"
 import { useTimeGridInteraction } from "@/components/calendars/use-calendars-drag"
@@ -35,6 +36,7 @@ function TimeColumn({
   onCreate: (start: Date, end: Date) => void
   onMove: (id: string, startAt: string, endAt: string) => void
 }) {
+  const t = useTranslations("Calendars")
   const {
     columnRef,
     draft,
@@ -89,7 +91,7 @@ function TimeColumn({
             {isActive ? null : (
               <button
                 type="button"
-                aria-label="Resize event"
+                aria-label={t("resizeEvent")}
                 onPointerDown={(event) =>
                   onResizePointerDown(event, item.event)
                 }
@@ -134,6 +136,8 @@ export function TimeGrid({
   onMove: (id: string, startAt: string, endAt: string) => void
   onSelectDate: (day: Date) => void
 }) {
+  const locale = useLocale()
+  const t = useTranslations("Calendars")
   const { visibleEvents } = useCalendars()
   const today = new Date()
   const multiDay = days.length > 1
@@ -150,7 +154,7 @@ export function TimeGrid({
             className="flex flex-1 flex-col items-center gap-0.5 border-e py-2 last:border-e-0"
           >
             <span className="text-xs text-muted-foreground">
-              {day.toLocaleDateString("en-US", { weekday: "short" })}
+              {day.toLocaleDateString(locale, { weekday: "short" })}
             </span>
             <button
               type="button"
@@ -169,7 +173,7 @@ export function TimeGrid({
 
       <div className="flex border-b bg-muted/20">
         <div className="w-16 shrink-0 border-e py-1 pe-2 text-end text-xs text-muted-foreground">
-          all-day
+          {t("allDayShort")}
         </div>
         {days.map((day) => {
           const dayAllDay = allDayEvents.filter((event) => {
@@ -211,7 +215,7 @@ export function TimeGrid({
             >
               {hour === 0
                 ? ""
-                : new Date(2026, 0, 1, hour).toLocaleTimeString("en-US", {
+                : new Date(2026, 0, 1, hour).toLocaleTimeString(locale, {
                     hour: "numeric",
                   })}
             </div>

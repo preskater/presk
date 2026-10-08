@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { SendIcon } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { DatePicker } from "@/components/task/date-picker"
 import { MemberAvatar } from "@/components/task/member-avatar"
@@ -42,22 +43,25 @@ import { ToggleGroup, ToggleGroupItem } from "@workspace/ui/components/toggle-gr
 import { useIsMobile } from "@workspace/ui/hooks/use-mobile"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import {
   formatDate,
-  TASK_PRIORITIES,
-  TASK_STATUSES,
+  TASK_PRIORITY_VALUES,
+  TASK_STATUS_VALUES,
   type TaskPriority,
   type TaskStatus,
 } from "@/lib/projects/types"
 
-const statusItems = TASK_STATUSES.map((status) => ({
-  label: status.label,
-  value: status.value,
-}))
-
 const SILENT = { silent: true } as const
 
 function TaskDetailsBody({ taskId }: { taskId: string }) {
+  const t = useTranslations("Projects")
+  const locale = useLocale()
+  const L = useEnumLabel()
+  const statusItems = TASK_STATUS_VALUES.map((value) => ({
+    label: L.taskStatus(value),
+    value,
+  }))
   const store = useProjectStore()
   const {
     labels,
@@ -88,7 +92,7 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
         </div>
         <Field>
           <FieldLabel htmlFor="detail-title" className="sr-only">
-            Title
+            {t("title")}
           </FieldLabel>
           <Textarea
             id="detail-title"
@@ -103,7 +107,7 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <Field>
-          <FieldLabel htmlFor="detail-status">Status</FieldLabel>
+          <FieldLabel htmlFor="detail-status">{t("status")}</FieldLabel>
           <Select
             items={statusItems}
             value={task.status}
@@ -126,7 +130,7 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
           </Select>
         </Field>
         <Field>
-          <FieldLabel htmlFor="detail-assignee">Assignee</FieldLabel>
+          <FieldLabel htmlFor="detail-assignee">{t("assignee")}</FieldLabel>
           <MemberPicker
             value={task.assigneeId}
             onChange={(value) =>
@@ -135,14 +139,14 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="detail-due">Due date</FieldLabel>
+          <FieldLabel htmlFor="detail-due">{t("dueDate")}</FieldLabel>
           <DatePicker
             value={task.dueDate}
             onChange={(value) => updateTask(task.id, { dueDate: value }, SILENT)}
           />
         </Field>
         <Field>
-          <FieldLabel htmlFor="detail-priority">Priority</FieldLabel>
+          <FieldLabel htmlFor="detail-priority">{t("priority")}</FieldLabel>
           <ToggleGroup
             value={[task.priority]}
             onValueChange={(value) => {
@@ -157,14 +161,14 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
             spacing={2}
             className="flex-wrap"
           >
-            {TASK_PRIORITIES.map((item) => (
+            {TASK_PRIORITY_VALUES.map((value) => (
               <ToggleGroupItem
-                key={item.value}
-                value={item.value}
+                key={value}
+                value={value}
                 variant="outline"
                 size="sm"
               >
-                {item.label}
+                {L.taskPriority(value)}
               </ToggleGroupItem>
             ))}
           </ToggleGroup>
@@ -172,7 +176,7 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
       </div>
 
       <Field>
-        <FieldLabel htmlFor="detail-labels">Labels</FieldLabel>
+        <FieldLabel htmlFor="detail-labels">{t("labels")}</FieldLabel>
         <ToggleGroup
           multiple
           value={taskLabels.map((label) => label.id)}
@@ -201,11 +205,11 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
       </Field>
 
       <Field>
-        <FieldLabel htmlFor="detail-description">Description</FieldLabel>
+        <FieldLabel htmlFor="detail-description">{t("description")}</FieldLabel>
         <Textarea
           id="detail-description"
           defaultValue={task.description}
-          placeholder="Add a more detailed description..."
+          placeholder={t("addDetailedDescription")}
           onChange={(event) =>
             updateTask(
               task.id,
@@ -220,7 +224,7 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
 
       <div className="flex flex-col gap-3">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-medium">Subtasks</h3>
+          <h3 className="text-sm font-medium">{t("subtasks")}</h3>
           <span className="text-xs text-muted-foreground tabular-nums">
             {doneSubtasks}/{task.subtasks.length}
           </span>
@@ -252,16 +256,14 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
             ))}
           </FieldGroup>
         ) : (
-          <p className="text-sm text-muted-foreground">
-            No subtasks yet. Add subtasks when editing this task.
-          </p>
+          <p className="text-sm text-muted-foreground">{t("noSubtasks")}</p>
         )}
       </div>
 
       <Separator />
 
       <div className="flex flex-col gap-3 pb-4">
-        <h3 className="text-sm font-medium">Activity & comments</h3>
+        <h3 className="text-sm font-medium">{t("activityAndComments")}</h3>
         {task.comments.length ? (
           <div className="flex flex-col gap-3">
             {task.comments.map((entry) => {
@@ -272,10 +274,10 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
                   <div className="flex flex-col gap-0.5">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">
-                        {author?.name ?? "Unknown"}
+                        {author?.name ?? t("unknown")}
                       </span>
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(entry.createdAt)}
+                        {formatDate(entry.createdAt, locale)}
                       </span>
                     </div>
                     <p className="text-sm text-muted-foreground">
@@ -287,19 +289,19 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
             })}
           </div>
         ) : (
-          <p className="text-sm text-muted-foreground">No comments yet.</p>
+          <p className="text-sm text-muted-foreground">{t("noComments")}</p>
         )}
         <div className="flex items-end gap-2">
           <Textarea
             value={comment}
-            placeholder="Write a comment..."
+            placeholder={t("writeComment")}
             className="min-h-9"
             onChange={(event) => setComment(event.target.value)}
           />
           <Button
             size="icon"
             disabled={!comment.trim()}
-            aria-label="Send comment"
+            aria-label={t("sendComment")}
             onClick={() => {
               addComment(task.id, "u_aria", comment.trim())
               setComment("")

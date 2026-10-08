@@ -9,6 +9,7 @@ import { footerColumns } from "@/lib/landing/content"
 
 export function Footer() {
   const t = useTranslations("Footer")
+  const tLanding = useTranslations("Landing.footerColumns")
 
   return (
     <footer id="footer" className="border-t bg-muted/30">
@@ -27,16 +28,18 @@ export function Footer() {
 
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
             {footerColumns.map((column) => (
-              <div key={column.title} className="flex flex-col gap-3">
-                <span className="text-sm font-medium">{column.title}</span>
+              <div key={column.key} className="flex flex-col gap-3">
+                <span className="text-sm font-medium">
+                  {tLanding(column.key)}
+                </span>
                 <ul className="flex flex-col gap-2">
                   {column.links.map((link) => (
-                    <li key={link.title}>
+                    <li key={link.key}>
                       <Link
                         href={link.href}
                         className="text-sm text-muted-foreground transition-colors hover:text-foreground"
                       >
-                        {link.title}
+                        {tLanding(link.key as never)}
                       </Link>
                     </li>
                   ))}

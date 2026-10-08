@@ -1,0 +1,7 @@
+{
+  "title": "Une erreur est survenue",
+  "description": "Une erreur inattendue s'est produite. Vous pouvez réessayer ou revenir en arrière pour continuer.",
+  "globalDescription": "L'application a rencontré une erreur inattendue lors du rendu. Vous pouvez réessayer.",
+  "reference": "Référence : {digest}",
+  "retry": "Réessayer"
+}

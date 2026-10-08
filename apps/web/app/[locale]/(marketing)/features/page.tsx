@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 
 import { PageHeader } from "@/components/landing/page-header"
 import { FeatureGrid } from "@/components/landing/feature-grid"
@@ -8,21 +9,24 @@ import { FinalCta } from "@/components/landing/final-cta"
 
 import { getMarketingAuth } from "@/lib/landing/session"
 
-export const metadata: Metadata = {
-  title: "Features",
-  description:
-    "Projects, messaging, calendars and files — one workspace with AI built in.",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Marketing.features")
+  return {
+    title: t("metadataTitle"),
+    description: t("metadataDescription"),
+  }
 }
 
 export default async function FeaturesPage() {
+  const t = await getTranslations("Marketing.features")
   const { isAuthenticated: authenticated, dashboardHref } = await getMarketingAuth()
 
   return (
     <>
       <PageHeader
-        eyebrow="Features"
-        title="Every workflow, one workspace"
-        description="Plan projects, chat with your team, schedule meetings and share files — all connected by the same people and permissions."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <FeatureGrid />
       <ProductShowcase />

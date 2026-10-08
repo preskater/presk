@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { FileIcon } from "@/components/files/file-icon"
 import {
@@ -27,14 +28,17 @@ export function FilesSearchCommand({
   onSelectFile: (file: FileNode) => void
 }) {
   const { files, getMember } = useFiles()
+  const t = useTranslations("Files")
+  const tc = useTranslations("Common")
+  const locale = useLocale()
   const visible = files.filter((file) => !file.trashed)
 
   return (
     <CommandDialog
       open={open}
       onOpenChange={onOpenChange}
-      title="Search files"
-      description="Search across all your files"
+      title={t("searchFilesTitle")}
+      description={t("searchAcrossFiles")}
       className="sm:max-w-lg"
     >
       <Command
@@ -42,10 +46,10 @@ export function FilesSearchCommand({
           value.toLowerCase().includes(search.toLowerCase()) ? 1 : 0
         }
       >
-        <CommandInput placeholder="Search files..." />
+        <CommandInput placeholder={t("searchFiles")} />
         <CommandList>
-          <CommandEmpty>No files found.</CommandEmpty>
-          <CommandGroup heading="Files">
+          <CommandEmpty>{t("noFilesFound")}</CommandEmpty>
+          <CommandGroup heading={t("files")}>
             {visible.map((file) => {
               const owner = getMember(file.ownerId)
               return (
@@ -61,7 +65,7 @@ export function FilesSearchCommand({
                   <span className="flex min-w-0 flex-col">
                     <span className="truncate">{file.name}</span>
                     <span className="truncate text-xs text-muted-foreground">
-                      {owner?.name} · {formatRelativeDate(file.modifiedAt)}
+                      {owner?.name} · {formatRelativeDate(file.modifiedAt, locale, tc)}
                       {file.kind === "folder" ? "" : ` · ${formatBytes(file.sizeBytes)}`}
                     </span>
                   </span>

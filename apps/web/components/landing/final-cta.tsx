@@ -1,26 +1,28 @@
-import Link from "next/link"
 import { ArrowRightIcon } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { Container } from "@/components/landing/section"
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 
-export function FinalCta({
+export async function FinalCta({
   isAuthenticated,
   dashboardHref,
 }: {
   isAuthenticated: boolean
   dashboardHref: string
 }) {
+  const t = await getTranslations("Landing.cta")
+
   return (
     <section className="py-20 sm:py-24">
       <Container>
         <div className="relative overflow-hidden rounded-2xl bg-primary px-6 py-16 text-center text-primary-foreground sm:px-16">
           <h2 className="mx-auto max-w-2xl font-heading text-3xl font-semibold tracking-tight text-balance sm:text-4xl">
-            Bring your whole team into one workspace
+            {t("title")}
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-primary-foreground/80 text-pretty">
-            Projects, messaging, calendars and files — with AI built in. Free to
-            start, no credit card required.
+            {t("description")}
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             {isAuthenticated ? (
@@ -30,7 +32,7 @@ export function FinalCta({
                 render={<Link href={dashboardHref} />}
                 nativeButton={false}
               >
-                Go to dashboard
+                {t("dashboard")}
                 <ArrowRightIcon data-icon="inline-end" />
               </Button>
             ) : (
@@ -41,7 +43,7 @@ export function FinalCta({
                   render={<Link href="/sign-up" />}
                   nativeButton={false}
                 >
-                  Start building free
+                  {t("startBuilding")}
                   <ArrowRightIcon data-icon="inline-end" />
                 </Button>
                 <Button
@@ -51,7 +53,7 @@ export function FinalCta({
                   render={<Link href="/sign-in" />}
                   nativeButton={false}
                 >
-                  Sign in
+                  {t("signIn")}
                 </Button>
               </>
             )}

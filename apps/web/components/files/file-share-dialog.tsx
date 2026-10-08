@@ -3,6 +3,7 @@
 import * as React from "react"
 import { LinkIcon, LockIcon, PlusIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { Badge } from "@workspace/ui/components/badge"
@@ -39,12 +40,9 @@ import {
 } from "@workspace/ui/components/select"
 
 import { useFiles } from "@/lib/files/store"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import { useOrgSlug } from "@/lib/organization/use-org-slug"
-import {
-  SHARE_PERMISSIONS,
-  type FileNode,
-  type SharePermission,
-} from "@/lib/files/types"
+import type { FileNode, SharePermission } from "@/lib/files/types"
 
 export function FileShareDialog({
   file,
@@ -67,6 +65,8 @@ export function FileShareDialog({
     getMember,
   } = useFiles()
   const orgSlug = useOrgSlug()
+  const t = useTranslations("Files")
+  const L = useEnumLabel()
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
   const open = controlledOpen ?? uncontrolledOpen
   const setOpen = onOpenChange ?? setUncontrolledOpen
@@ -77,12 +77,12 @@ export function FileShareDialog({
     void navigator.clipboard?.writeText(
       `${window.location.origin}/${orgSlug}/files`
     )
-    toast.success("Link copied to clipboard.")
+    toast.success(t("linkCopied"))
   }
 
-  const permissionItems = SHARE_PERMISSIONS.map((item) => ({
-    label: item.label,
-    value: item.value,
+  const permissionItems = (["view", "comment", "edit"] as const).map((value) => ({
+    label: L.sharePermission(value),
+    value,
   }))
 
   return (
@@ -90,9 +90,9 @@ export function FileShareDialog({
       <DialogTrigger render={children} />
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Share “{file.name}”</DialogTitle>
+          <DialogTitle>{t("share")} “{file.name}”</DialogTitle>
           <DialogDescription>
-            Invite people and choose what they can do.
+            {t("invitePeople")}
           </DialogDescription>
         </DialogHeader>
 
@@ -105,13 +105,13 @@ export function FileShareDialog({
                 }
               >
                 <PlusIcon data-icon="inline-start" />
-                Add people
+                {t("addPeople")}
               </PopoverTrigger>
               <PopoverContent className="w-72 p-0" align="start">
                 <Command>
-                  <CommandInput placeholder="Search teammates..." />
+                  <CommandInput placeholder={t("searchTeammates")} />
                   <CommandList>
-                    <CommandEmpty>No teammates found.</CommandEmpty>
+                    <CommandEmpty>{t("noTeammates")}</CommandEmpty>
                     <CommandGroup>
                       {members
                         .filter(
@@ -141,14 +141,14 @@ export function FileShareDialog({
             </Popover>
             <Button variant="outline">
               <LinkIcon data-icon="inline-start" />
-              Copy link
+              {t("copyLink")}
             </Button>
           </div>
 
           <div className="flex flex-col gap-1">
             {entries.length === 0 ? (
               <p className="rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-                Only you have access to this file.
+                {t("onlyYouHaveAccess")}
               </p>
             ) : (
               entries.map((entry) => {
@@ -195,7 +195,7 @@ export function FileShareDialog({
                     <Button
                       variant="ghost"
                       size="icon-sm"
-                      aria-label={`Remove ${member.name}`}
+                      aria-label={`${t("remove")} ${member.name}`}
                       onClick={() => removeShare(file.id, entry.memberId)}
                     >
                       <XIcon />
@@ -209,14 +209,14 @@ export function FileShareDialog({
           {file.restricted ? (
             <Badge variant="secondary" className="w-fit">
               <LockIcon />
-              Restricted access
+              {t("restrictedAccess")}
             </Badge>
           ) : null}
         </div>
 
         <DialogFooter>
           <Button type="button" onClick={() => setOpen(false)}>
-            Done
+            {t("done")}
           </Button>
         </DialogFooter>
       </DialogContent>

@@ -47,6 +47,7 @@ import {
   SmilePlusIcon,
   Trash2Icon,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { formatTime, initials } from "@/lib/messaging/format"
@@ -64,6 +65,8 @@ export function MessageItem({
   onReply: (messageId: string) => void
   compact?: boolean
 }) {
+  const t = useTranslations("Messaging")
+  const locale = useLocale()
   const { getMember, presence, deleteMessage, toggleReaction } = useMessaging()
   const author = getMember(message.authorId)
   const replyCount = useMessaging().repliesFor(message.id).length
@@ -107,13 +110,15 @@ export function MessageItem({
         <div className="min-w-0 flex-1">
           <div className="flex items-baseline gap-2">
             <span className="text-sm font-medium">
-              {author?.name ?? "Unknown"}
+              {author?.name ?? t("unknown")}
             </span>
             <span className="text-xs text-muted-foreground">
-              {formatTime(message.createdAt)}
+              {formatTime(message.createdAt, locale)}
             </span>
             {message.edited ? (
-              <span className="text-xs text-muted-foreground">(edited)</span>
+              <span className="text-xs text-muted-foreground">
+                {t("edited")}
+              </span>
             ) : null}
           </div>
 
@@ -159,7 +164,7 @@ export function MessageItem({
               className="mt-1.5 inline-flex items-center gap-1.5 text-xs font-medium text-primary hover:underline"
             >
               <MessageSquareIcon className="size-3.5" />
-              {replyCount} {replyCount === 1 ? "reply" : "replies"}
+              {t("replyCount", { count: replyCount })}
             </button>
           ) : null}
 
@@ -169,7 +174,7 @@ export function MessageItem({
                 key={emoji}
                 variant="ghost"
                 size="icon-xs"
-                aria-label={`React ${emoji}`}
+                aria-label={t("reactWith", { emoji })}
                 onClick={() => toggleReaction(message.id, emoji)}
               >
                 <span className="text-sm">{emoji}</span>
@@ -178,7 +183,7 @@ export function MessageItem({
             <Button
               variant="ghost"
               size="icon-xs"
-              aria-label="Reply in thread"
+              aria-label={t("replyInThread")}
               onClick={() => onReply(message.id)}
             >
               <MessageSquareIcon />
@@ -188,7 +193,11 @@ export function MessageItem({
               open={editOpen}
               onOpenChange={setEditOpen}
               trigger={
-                <Button variant="ghost" size="icon-xs" aria-label="Edit message">
+                <Button
+                  variant="ghost"
+                  size="icon-xs"
+                  aria-label={t("editMessage")}
+                >
                   <PencilIcon />
                 </Button>
               }
@@ -201,7 +210,7 @@ export function MessageItem({
         <ContextMenuGroup>
           <ContextMenuItem onSelect={() => onReply(message.id)}>
             <MessageSquareIcon />
-            Reply in thread
+            {t("replyInThread")}
           </ContextMenuItem>
           {QUICK_REACTIONS.slice(0, 3).map((emoji) => (
             <ContextMenuItem
@@ -209,17 +218,17 @@ export function MessageItem({
               onSelect={() => toggleReaction(message.id, emoji)}
             >
               <SmilePlusIcon />
-              React {emoji}
+              {t("reactWith", { emoji })}
             </ContextMenuItem>
           ))}
           <ContextMenuItem
             onSelect={() => {
               void navigator.clipboard?.writeText(message.body)
-              toast.success("Message copied.")
+              toast.success(t("messageCopied"))
             }}
           >
             <CopyIcon />
-            Copy text
+            {t("copyText")}
           </ContextMenuItem>
           <ContextMenuSeparator />
           <EditMessageDialog
@@ -227,7 +236,7 @@ export function MessageItem({
             trigger={
               <ContextMenuItem onSelect={(event) => event.preventDefault()}>
                 <PencilIcon />
-                Edit message
+                {t("editMessage")}
               </ContextMenuItem>
             }
           />
@@ -236,25 +245,24 @@ export function MessageItem({
               render={
                 <ContextMenuItem variant="destructive">
                   <Trash2Icon />
-                  Delete message
+                  {t("deleteMessage")}
                 </ContextMenuItem>
               }
             />
             <AlertDialogContent>
               <AlertDialogHeader>
-                <AlertDialogTitle>Delete message?</AlertDialogTitle>
+                <AlertDialogTitle>{t("deleteMessageQuestion")}</AlertDialogTitle>
                 <AlertDialogDescription>
-                  This message and all of its thread replies will be removed.
-                  This cannot be undone.
+                  {t("deleteMessageDescription")}
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                 <AlertDialogAction
                   variant="destructive"
                   onClick={() => deleteMessage(message.id)}
                 >
-                  Delete
+                  {t("delete")}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>
@@ -276,6 +284,7 @@ function EditMessageDialog({
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }) {
+  const t = useTranslations("Messaging")
   const { editMessage } = useMessaging()
   const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
   const open = controlledOpen ?? uncontrolledOpen
@@ -293,7 +302,7 @@ function EditMessageDialog({
       <DialogTrigger render={trigger} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Edit message</DialogTitle>
+          <DialogTitle>{t("editMessage")}</DialogTitle>
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
@@ -306,7 +315,7 @@ function EditMessageDialog({
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor={`edit-${message.id}`}>Message</FieldLabel>
+              <FieldLabel htmlFor={`edit-${message.id}`}>{t("message")}</FieldLabel>
               <Textarea
                 id={`edit-${message.id}`}
                 value={body}
@@ -317,9 +326,9 @@ function EditMessageDialog({
           </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
-            <Button type="submit">Save</Button>
+            <Button type="submit">{t("save")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -334,6 +343,8 @@ function MeetingCard({
   message: Message
   compact?: boolean
 }) {
+  const t = useTranslations("Messaging")
+  const locale = useLocale()
   const { getMember } = useMessaging()
   const author = getMember(message.authorId)
   const meeting = message.meeting
@@ -348,9 +359,9 @@ function MeetingCard({
       <div className={cn("flex-1", compact ? "" : "mt-0.5")}>
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="font-medium text-foreground">
-            {author?.name ?? "Unknown"}
+            {author?.name ?? t("unknown")}
           </span>
-          {formatTime(message.createdAt)}
+          {formatTime(message.createdAt, locale)}
         </div>
         <div className="mt-1.5 flex items-center gap-3 rounded-xl border bg-card p-3">
           <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
@@ -359,17 +370,13 @@ function MeetingCard({
           <div className="flex flex-col">
             <span className="text-sm font-medium">{meeting.title}</span>
             <span className="text-xs text-muted-foreground">
-              {startsAt.toLocaleDateString("en-US", {
+              {startsAt.toLocaleDateString(locale, {
                 weekday: "short",
                 month: "short",
                 day: "numeric",
               })}{" "}
-              ·{" "}
-              {startsAt.toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-              })}{" "}
-              · {meeting.durationMinutes} min
+              · {formatTime(startsAt, locale)} ·{" "}
+              {t("minutesShort", { count: meeting.durationMinutes })}
             </span>
           </div>
         </div>

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { EventDialog } from "@/components/calendars/event-dialog"
 import {
@@ -23,12 +24,12 @@ import {
 
 import type { CalendarView } from "@/lib/calendars/types"
 
-const VIEWS: { value: CalendarView; label: string }[] = [
-  { value: "day", label: "Day" },
-  { value: "week", label: "Week" },
-  { value: "month", label: "Month" },
-  { value: "agenda", label: "Agenda" },
-  { value: "availability", label: "Availability" },
+const VIEWS: CalendarView[] = [
+  "day",
+  "week",
+  "month",
+  "agenda",
+  "availability",
 ]
 
 export function CalendarsHeader({
@@ -48,6 +49,7 @@ export function CalendarsHeader({
   onNext: () => void
   onSearch: () => void
 }) {
+  const t = useTranslations("Calendars")
   return (
     <header className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
       <div className="flex items-center gap-3">
@@ -55,15 +57,15 @@ export function CalendarsHeader({
           {rangeLabel}
         </h2>
         <ButtonGroup>
-          <Button variant="outline" size="icon-sm" aria-label="Previous" onClick={onPrev}>
+          <Button variant="outline" size="icon-sm" aria-label={t("previous")} onClick={onPrev}>
             <ChevronLeftIcon />
           </Button>
           <ButtonGroupSeparator />
           <Button variant="outline" size="sm" onClick={onToday}>
-            Today
+            {t("today")}
           </Button>
           <ButtonGroupSeparator />
-          <Button variant="outline" size="icon-sm" aria-label="Next" onClick={onNext}>
+          <Button variant="outline" size="icon-sm" aria-label={t("next")} onClick={onNext}>
             <ChevronRightIcon />
           </Button>
         </ButtonGroup>
@@ -77,8 +79,8 @@ export function CalendarsHeader({
         >
           <TabsList>
             {VIEWS.map((item) => (
-              <TabsTrigger key={item.value} value={item.value}>
-                {item.label}
+              <TabsTrigger key={item} value={item}>
+                {t(item)}
               </TabsTrigger>
             ))}
           </TabsList>
@@ -86,7 +88,7 @@ export function CalendarsHeader({
 
         <InputGroup className="hidden w-52 md:flex">
           <InputGroupInput
-            placeholder="Search events..."
+            placeholder={t("searchEventsPlaceholder")}
             readOnly
             onClick={onSearch}
             onFocus={onSearch}
@@ -96,7 +98,7 @@ export function CalendarsHeader({
           </InputGroupAddon>
         </InputGroup>
 
-        <Button variant="outline" size="icon-sm" aria-label="Search" onClick={onSearch} className="md:hidden">
+        <Button variant="outline" size="icon-sm" aria-label={t("searchLabel")} onClick={onSearch} className="md:hidden">
           <SearchIcon />
         </Button>
 
@@ -104,7 +106,7 @@ export function CalendarsHeader({
           trigger={
             <Button>
               <PlusIcon data-icon="inline-start" />
-              New event
+              {t("newEvent")}
             </Button>
           }
         />

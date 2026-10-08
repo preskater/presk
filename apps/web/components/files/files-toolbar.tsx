@@ -9,6 +9,7 @@ import {
   SearchIcon,
   UploadIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { FolderDialog } from "@/components/files/folder-dialog"
 import { FileUploadDialog } from "@/components/files/file-upload-dialog"
@@ -47,19 +48,10 @@ import type { FileLocation, FileNode } from "@/lib/files/types"
 export type SortOption = "name" | "owner" | "modifiedAt" | "sizeBytes"
 export type ViewMode = "list" | "grid"
 
-const SORT_OPTIONS: { value: SortOption; label: string }[] = [
-  { value: "name", label: "Name" },
-  { value: "modifiedAt", label: "Last modified" },
-  { value: "sizeBytes", label: "Size" },
-]
+const SORT_OPTIONS = ["name", "modifiedAt", "sizeBytes"] as const
 
-const FILTER_OPTIONS = [
-  { value: "all", label: "All types" },
-  { value: "folder", label: "Folders" },
-  { value: "document", label: "Documents" },
-  { value: "image", label: "Images" },
-  { value: "spreadsheet", label: "Spreadsheets" },
-]
+const FILTER_OPTIONS = ["all", "folder", "document", "image", "spreadsheet"] as const
+type FilterOption = (typeof FILTER_OPTIONS)[number]
 
 export function FilesToolbar({
   breadcrumb,
@@ -90,8 +82,27 @@ export function FilesToolbar({
   folderId: string | null
   onSearch: () => void
 }) {
-  const sortLabel =
-    SORT_OPTIONS.find((option) => option.value === sort)?.label ?? "Name"
+  const t = useTranslations("Files")
+
+  const sortLabels: Record<SortOption, string> = {
+    name: t("name"),
+    owner: t("owner"),
+    modifiedAt: t("lastModified"),
+    sizeBytes: t("size"),
+  }
+  const filterLabels: Record<FilterOption, string> = {
+    all: t("allTypes"),
+    folder: t("folders"),
+    document: t("documents"),
+    image: t("images"),
+    spreadsheet: t("spreadsheets"),
+  }
+  const filterItems = FILTER_OPTIONS.map((value) => ({
+    value,
+    label: filterLabels[value],
+  }))
+
+  const sortLabel = sortLabels[sort] ?? t("name")
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-3 border-b px-4 py-3">
@@ -99,14 +110,14 @@ export function FilesToolbar({
         <BreadcrumbList>
           <BreadcrumbItem>
             {breadcrumb.length === 0 ? (
-              <BreadcrumbPage>My files</BreadcrumbPage>
+              <BreadcrumbPage>{t("myFiles")}</BreadcrumbPage>
             ) : (
               <button
                 type="button"
                 onClick={onNavigateRoot}
                 className="transition-colors hover:text-foreground"
               >
-                My files
+                {t("myFiles")}
               </button>
             )}
           </BreadcrumbItem>
@@ -137,7 +148,7 @@ export function FilesToolbar({
       <div className="flex flex-wrap items-center gap-2">
         <InputGroup className="w-full sm:w-56">
           <InputGroupInput
-            placeholder="Search files..."
+            placeholder={t("searchFiles")}
             value={query}
             onChange={(event) => onQueryChange(event.target.value)}
             onKeyDown={(event) => {
@@ -150,7 +161,7 @@ export function FilesToolbar({
         </InputGroup>
 
         <Select
-          items={FILTER_OPTIONS}
+          items={filterItems}
           value={filter}
           onValueChange={(value) => onFilterChange(value as string)}
         >
@@ -160,8 +171,8 @@ export function FilesToolbar({
           <SelectContent>
             <SelectGroup>
               {FILTER_OPTIONS.map((item) => (
-                <SelectItem key={item.value} value={item.value}>
-                  {item.label}
+                <SelectItem key={item} value={item}>
+                  {filterLabels[item]}
                 </SelectItem>
               ))}
             </SelectGroup>
@@ -179,10 +190,10 @@ export function FilesToolbar({
             <DropdownMenuGroup>
               {SORT_OPTIONS.map((option) => (
                 <DropdownMenuItem
-                  key={option.value}
-                  onSelect={() => onSortChange(option.value)}
+                  key={option}
+                  onSelect={() => onSortChange(option)}
                 >
-                  {option.label}
+                  {sortLabels[option]}
                 </DropdownMenuItem>
               ))}
             </DropdownMenuGroup>
@@ -195,10 +206,10 @@ export function FilesToolbar({
           spacing={0}
           className="hidden sm:flex"
         >
-          <ToggleGroupItem value="list" variant="outline" size="sm" aria-label="List view">
+          <ToggleGroupItem value="list" variant="outline" size="sm" aria-label={t("listView")}>
             <ListIcon />
           </ToggleGroupItem>
-          <ToggleGroupItem value="grid" variant="outline" size="sm" aria-label="Grid view">
+          <ToggleGroupItem value="grid" variant="outline" size="sm" aria-label={t("gridView")}>
             <LayoutGridIcon />
           </ToggleGroupItem>
         </ToggleGroup>
@@ -206,14 +217,14 @@ export function FilesToolbar({
         <FolderDialog parentId={folderId}>
           <Button variant="outline" size="sm">
             <FolderPlusIcon data-icon="inline-start" />
-            <span className="hidden sm:inline">New folder</span>
+            <span className="hidden sm:inline">{t("newFolder")}</span>
           </Button>
         </FolderDialog>
 
         <FileUploadDialog parentId={folderId}>
           <Button size="sm">
             <UploadIcon data-icon="inline-start" />
-            Upload
+            {t("upload")}
           </Button>
         </FileUploadDialog>
       </div>

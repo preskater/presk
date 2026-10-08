@@ -1,0 +1,13 @@
+{
+  "created": "a créé",
+  "moved": "a déplacé",
+  "deleted": "a supprimé",
+  "commentedOn": "a commenté",
+  "requestedReviewOn": "a demandé une revue sur",
+  "openedPullRequestFor": "a ouvert une pull request pour",
+  "renamedThisFile": "a renommé ce fichier",
+  "movedThisFileToTrash": "a mis ce fichier à la corbeille",
+  "editedThisFile": "a modifié ce fichier",
+  "sharedWith": "a partagé avec {name}",
+  "taskMoved": "{identifier} vers {status}"
+}

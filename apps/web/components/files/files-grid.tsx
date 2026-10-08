@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { EllipsisIcon, LockIcon, Share2Icon, StarIcon } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { FileIcon } from "@/components/files/file-icon"
 import { FileMenuItems } from "@/components/files/file-actions"
@@ -37,6 +38,9 @@ export function FilesGrid({
   onOpenShare: (file: FileNode) => void
 }) {
   const { getMember } = useFiles()
+  const t = useTranslations("Files")
+  const tc = useTranslations("Common")
+  const locale = useLocale()
 
   return (
     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5">
@@ -67,7 +71,7 @@ export function FilesGrid({
                   <DropdownMenu>
                     <DropdownMenuTrigger
                       render={
-                        <Button variant="ghost" size="icon-sm" aria-label="File actions" className="bg-background/80" />
+                        <Button variant="ghost" size="icon-sm" aria-label={t("fileActions")} className="bg-background/80" />
                       }
                     >
                       <EllipsisIcon />
@@ -90,7 +94,7 @@ export function FilesGrid({
               <div className="flex flex-col gap-1">
                 <span className="truncate text-sm font-medium">{file.name}</span>
                 <div className="flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                  <span>{formatRelativeDate(file.modifiedAt)}</span>
+                  <span>{formatRelativeDate(file.modifiedAt, locale, tc)}</span>
                   {file.kind !== "folder" ? (
                     <>
                       <span aria-hidden>·</span>

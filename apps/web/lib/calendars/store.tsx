@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -13,6 +14,7 @@ import {
   updateEventAction,
 } from "@/actions/calendars"
 import { unwrapActionResult } from "@/lib/core/action"
+import { useErrorTranslator } from "@/lib/i18n/errors"
 import type { Member } from "@/lib/projects/types"
 
 import type { CalendarData, CalendarEvent, CalendarSource } from "./types"
@@ -73,6 +75,8 @@ export function CalendarsProvider({
   currentUserId: string
   members?: Member[]
 }) {
+  const t = useTranslations("Toasts")
+  const te = useErrorTranslator()
   const [calendars, setCalendars] = React.useState<CalendarSource[]>(
     initialData.calendars
   )
@@ -140,11 +144,11 @@ export function CalendarsProvider({
             setEvents((prev) =>
               prev.map((item) => (item.id === optimistic.id ? event : item))
             )
-            toast.success(`Event “${event.title}” created.`)
+            toast.success(t("eventCreated", { title: event.title }))
           })
           .catch((error) => {
             setEvents((prev) => prev.filter((item) => item.id !== optimistic.id))
-            toast.error(error.message ?? "Could not create event.")
+            toast.error(te(error, "createEventFailed"))
           })
       },
       updateEvent: (id, patch) => {
@@ -154,18 +158,18 @@ export function CalendarsProvider({
         void updateEventAction(id, patch)
           .then((result) => {
             unwrapActionResult(result)
-            toast.success("Event updated.")
+            toast.success(t("eventUpdated"))
           })
-          .catch((error) => toast.error(error.message ?? "Update failed."))
+          .catch((error) => toast.error(te(error, "updateFailed")))
       },
       deleteEvent: (id) => {
         setEvents((prev) => prev.filter((event) => event.id !== id))
         void deleteEventAction(id)
           .then((result) => {
             unwrapActionResult(result)
-            toast.success("Event deleted.")
+            toast.success(t("eventDeleted"))
           })
-          .catch((error) => toast.error(error.message ?? "Delete failed."))
+          .catch((error) => toast.error(te(error, "deleteFailed")))
       },
       moveEvent: (id, startAt, endAt) => {
         setEvents((prev) =>
@@ -175,7 +179,7 @@ export function CalendarsProvider({
         )
         void moveEventAction(id, { startAt, endAt })
           .then((result) => unwrapActionResult(result))
-          .catch((error) => toast.error(error.message ?? "Move failed."))
+          .catch((error) => toast.error(te(error, "moveFailed")))
       },
       toggleCalendar: (id) => {
         setCalendars((prev) =>
@@ -187,7 +191,7 @@ export function CalendarsProvider({
         )
         void toggleCalendarAction(id)
           .then((result) => unwrapActionResult(result))
-          .catch((error) => toast.error(error.message ?? "Update failed."))
+          .catch((error) => toast.error(te(error, "updateFailed")))
       },
       addCalendar: (name, kind, color) => {
         const optimistic: CalendarSource = {
@@ -205,13 +209,13 @@ export function CalendarsProvider({
             setCalendars((prev) =>
               prev.map((item) => (item.id === optimistic.id ? calendar : item))
             )
-            toast.success(`Calendar “${name}” added.`)
+            toast.success(t("calendarAdded", { name }))
           })
           .catch((error) => {
             setCalendars((prev) =>
               prev.filter((item) => item.id !== optimistic.id)
             )
-            toast.error(error.message ?? "Could not add calendar.")
+            toast.error(te(error, "addCalendarFailed"))
           })
       },
       setAttendeeResponse: (eventId, memberId, response) => {
@@ -231,7 +235,7 @@ export function CalendarsProvider({
         )
         void respondToEventAction(eventId, { memberId, response })
           .then((result) => unwrapActionResult(result))
-          .catch((error) => toast.error(error.message ?? "Update failed."))
+          .catch((error) => toast.error(te(error, "updateFailed")))
       },
     }
   }, [calendars, events, members, currentUserId, visibleEvents])

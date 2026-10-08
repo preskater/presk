@@ -2,6 +2,7 @@
 
 import { withAction } from "@/lib/core/action"
 import { getRequestContext } from "@/lib/core/auth-context"
+import { parseLocalized } from "@/lib/core/validation-server"
 import { revalidateOrgPath } from "@/lib/organization/paths"
 import { fileService } from "@/lib/files"
 import {
@@ -22,7 +23,7 @@ export const listFilesAction = withAction(async () => {
 
 export const createFolderAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = createFolderSchema.parse(input)
+  const parsed = await parseLocalized(createFolderSchema, input)
   const folder = await fileService.createFolder(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/files")
   return folder
@@ -30,7 +31,7 @@ export const createFolderAction = withAction(async (input: unknown) => {
 
 export const createFilesAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = createFilesSchema.parse(input)
+  const parsed = await parseLocalized(createFilesSchema, input)
   const files = await fileService.createFiles(ctx, parsed)
   await revalidateOrgPath(ctx.organizationId, "/files")
   return files
@@ -38,7 +39,7 @@ export const createFilesAction = withAction(async (input: unknown) => {
 
 export const renameFileAction = withAction(async (id: string, input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = renameFileSchema.parse(input)
+  const parsed = await parseLocalized(renameFileSchema, input)
   const file = await fileService.renameFile(ctx, id, parsed)
   await revalidateOrgPath(ctx.organizationId, "/files")
   return file
@@ -46,7 +47,7 @@ export const renameFileAction = withAction(async (id: string, input: unknown) =>
 
 export const moveFileAction = withAction(async (id: string, input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = moveFileSchema.parse(input)
+  const parsed = await parseLocalized(moveFileSchema, input)
   const file = await fileService.moveFile(ctx, id, parsed)
   await revalidateOrgPath(ctx.organizationId, "/files")
   return file
@@ -89,7 +90,7 @@ export const deleteFileAction = withAction(async (id: string) => {
 
 export const bulkTrashAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const { ids } = bulkFileIdsSchema.parse(input)
+  const { ids } = await parseLocalized(bulkFileIdsSchema, input)
   const result = await fileService.moveToTrashMany(ctx, ids)
   await revalidateOrgPath(ctx.organizationId, "/files")
   return result
@@ -97,7 +98,7 @@ export const bulkTrashAction = withAction(async (input: unknown) => {
 
 export const bulkRestoreAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const { ids } = bulkFileIdsSchema.parse(input)
+  const { ids } = await parseLocalized(bulkFileIdsSchema, input)
   const result = await fileService.restoreMany(ctx, ids)
   await revalidateOrgPath(ctx.organizationId, "/files")
   return result
@@ -105,7 +106,7 @@ export const bulkRestoreAction = withAction(async (input: unknown) => {
 
 export const bulkDeleteAction = withAction(async (input: unknown) => {
   const ctx = await getRequestContext()
-  const { ids } = bulkFileIdsSchema.parse(input)
+  const { ids } = await parseLocalized(bulkFileIdsSchema, input)
   const result = await fileService.deleteMany(ctx, ids)
   await revalidateOrgPath(ctx.organizationId, "/files")
   return result
@@ -113,7 +114,7 @@ export const bulkDeleteAction = withAction(async (input: unknown) => {
 
 export const addShareAction = withAction(async (id: string, input: unknown) => {
   const ctx = await getRequestContext()
-  const parsed = addShareSchema.parse(input)
+  const parsed = await parseLocalized(addShareSchema, input)
   const shares = await fileService.addShare(ctx, id, parsed)
   await revalidateOrgPath(ctx.organizationId, "/files")
   return shares
@@ -122,7 +123,7 @@ export const addShareAction = withAction(async (id: string, input: unknown) => {
 export const updateShareAction = withAction(
   async (id: string, input: unknown) => {
     const ctx = await getRequestContext()
-    const parsed = updateShareSchema.parse(input)
+    const parsed = await parseLocalized(updateShareSchema, input)
     const shares = await fileService.updateShare(ctx, id, parsed)
     await revalidateOrgPath(ctx.organizationId, "/files")
     return shares
@@ -132,7 +133,7 @@ export const updateShareAction = withAction(
 export const removeShareAction = withAction(
   async (id: string, input: unknown) => {
     const ctx = await getRequestContext()
-    const parsed = removeShareSchema.parse(input)
+    const parsed = await parseLocalized(removeShareSchema, input)
     const shares = await fileService.removeShare(ctx, id, parsed)
     await revalidateOrgPath(ctx.organizationId, "/files")
     return shares

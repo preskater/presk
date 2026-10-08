@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { CheckIcon, UserPlusIcon, XIcon } from "lucide-react"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
@@ -34,6 +35,7 @@ export function AttendeePicker({
   value: AttendeeDraft[]
   onChange: (attendees: AttendeeDraft[]) => void
 }) {
+  const t = useTranslations("Calendars")
   const { members, getMember, currentUserId } = useCalendars()
   const [open, setOpen] = React.useState(false)
 
@@ -66,14 +68,14 @@ export function AttendeePicker({
         >
           <UserPlusIcon data-icon="inline-start" />
           {value.length
-            ? `${value.length} attendee${value.length === 1 ? "" : "s"}`
-            : "Add attendees"}
+            ? t("attendeeCount", { count: value.length })
+            : t("addAttendees")}
         </PopoverTrigger>
         <PopoverContent className="w-64 p-0" align="start">
           <Command>
-            <CommandInput placeholder="Search teammates..." />
+            <CommandInput placeholder={t("searchTeammates")} />
             <CommandList>
-              <CommandEmpty>No teammates found.</CommandEmpty>
+              <CommandEmpty>{t("noTeammates")}</CommandEmpty>
               <CommandGroup>
                 {members
                   .filter((member) => member.id !== currentUserId)
@@ -112,7 +114,7 @@ export function AttendeePicker({
                 {member.name}
                 <button
                   type="button"
-                  aria-label={`Remove ${member.name}`}
+                  aria-label={t("removeAttendee", { name: member.name })}
                   onClick={() =>
                     onChange(
                       value.filter(

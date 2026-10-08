@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { FolderPlusIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -26,6 +27,7 @@ export function FolderDialog({
   children: React.ReactElement
 }) {
   const { createFolder } = useFiles()
+  const t = useTranslations("Files")
   const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState("")
 
@@ -40,7 +42,7 @@ export function FolderDialog({
       <DialogTrigger render={children} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>New folder</DialogTitle>
+          <DialogTitle>{t("newFolder")}</DialogTitle>
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
@@ -53,23 +55,23 @@ export function FolderDialog({
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="folder-name">Folder name</FieldLabel>
+              <FieldLabel htmlFor="folder-name">{t("folderName")}</FieldLabel>
               <Input
                 id="folder-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="e.g. Q4 Planning"
+                placeholder={t("folderNamePlaceholder")}
                 autoFocus
               />
             </Field>
           </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
             <Button type="submit">
               <FolderPlusIcon data-icon="inline-start" />
-              Create folder
+              {t("createFolder")}
             </Button>
           </DialogFooter>
         </form>

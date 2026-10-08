@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import {
   CalendarDaysIcon,
   CheckCircle2Icon,
@@ -38,31 +39,32 @@ function Frame({ children }: { children: React.ReactNode }) {
 }
 
 function ProjectsMock() {
+  const t = useTranslations("Landing.showcase")
   const columns = [
-    { name: "Todo", tasks: ["API key rotation", "Sandbox environment"] },
-    { name: "In progress", tasks: ["Rate limiting and quotas"] },
-    { name: "Done", tasks: ["Publish OpenAPI spec"] },
+    { key: "todo", tasks: ["taskApiKey", "taskSandbox"] },
+    { key: "inProgress", tasks: ["taskRateLimit"] },
+    { key: "done", tasks: ["taskOpenApi"] },
   ]
   return (
     <Frame>
       <div className="grid h-full grid-cols-3 gap-3">
         {columns.map((column) => (
-          <div key={column.name} className="flex flex-col gap-2 rounded-lg bg-background/60 p-2">
+          <div key={column.key} className="flex flex-col gap-2 rounded-lg bg-background/60 p-2">
             <div className="flex items-center justify-between px-1">
-              <span className="text-xs font-medium">{column.name}</span>
+              <span className="text-xs font-medium">{t(column.key as never)}</span>
               <Badge variant="outline" className="tabular-nums">
                 {column.tasks.length}
               </Badge>
             </div>
-            {column.tasks.map((task) => (
+            {column.tasks.map((task, index) => (
               <div
                 key={task}
                 className="rounded-md bg-card p-2 text-xs shadow-sm ring-1 ring-foreground/5"
               >
-                <span className="text-muted-foreground">API-{task.length}</span>
-                <p className="font-medium">{task}</p>
+                <span className="text-muted-foreground">API-{index + 1}</span>
+                <p className="font-medium">{t(task as never)}</p>
                 <div className="mt-1 flex items-center justify-between">
-                  <Badge variant="secondary">Medium</Badge>
+                  <Badge variant="secondary">{t("medium")}</Badge>
                   <Avatar size="sm">
                     <AvatarFallback>AC</AvatarFallback>
                   </Avatar>
@@ -77,23 +79,24 @@ function ProjectsMock() {
 }
 
 function MessagesMock() {
+  const t = useTranslations("Landing.showcase")
   const messages = [
-    { initials: "MR", name: "Marcus Reid", body: "The API key rotation flow is ready for review." },
-    { initials: "PN", name: "Priya Nair", body: "Nice — I'll take a look this afternoon 🎉" },
-    { initials: "AC", name: "Aria Chen", body: "Great, let's ship the release candidate after." },
+    { initials: "MR", name: "Marcus Reid", body: "msg1" },
+    { initials: "PN", name: "Priya Nair", body: "msg2" },
+    { initials: "AC", name: "Aria Chen", body: "msg3" },
   ]
   return (
     <Frame>
       <div className="flex h-full flex-col">
         <div className="mb-2 flex items-center gap-2 border-b pb-2">
           <HashIcon className="size-4 text-muted-foreground" />
-          <span className="text-sm font-medium">engineering</span>
+          <span className="text-sm font-medium">{t("channelEngineering")}</span>
           <Badge variant="secondary" className="ms-auto">
-            5 members
+            {t("membersCount", { count: 5 })}
           </Badge>
         </div>
         <div className="flex flex-1 flex-col justify-end gap-3">
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <div key={message.name} className="flex items-start gap-2">
               <Avatar size="sm">
                 <AvatarFallback>{message.initials}</AvatarFallback>
@@ -101,9 +104,11 @@ function MessagesMock() {
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium">{message.name}</span>
-                  <span className="text-xs text-muted-foreground">10:0{message.name.length}</span>
+                  <span className="text-xs text-muted-foreground">10:0{index + 1}</span>
                 </div>
-                <p className="text-sm text-muted-foreground">{message.body}</p>
+                <p className="text-sm text-muted-foreground">
+                  {t(message.body as never)}
+                </p>
               </div>
             </div>
           ))}
@@ -114,19 +119,20 @@ function MessagesMock() {
 }
 
 function CalendarsMock() {
+  const t = useTranslations("Landing.showcase")
   const events = [
-    { time: "9:00", title: "Engineering standup" },
-    { time: "10:00", title: "Design critique" },
-    { time: "15:00", title: "Roadmap review" },
+    { time: "9:00", title: "eventStandup" },
+    { time: "10:00", title: "eventCritique" },
+    { time: "15:00", title: "eventRoadmap" },
   ]
-  const days = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+  const days = ["mon", "tue", "wed", "thu", "fri"]
   return (
     <Frame>
       <div className="grid h-full grid-cols-5 gap-2">
         {days.map((day, index) => (
           <div key={day} className="flex flex-col gap-2">
             <span className="text-center text-xs text-muted-foreground">
-              {day}
+              {t(day as never)}
             </span>
             {index === 2 ? (
               <div className="flex flex-col gap-1">
@@ -138,7 +144,9 @@ function CalendarsMock() {
                     <span className="block text-muted-foreground">
                       {event.time}
                     </span>
-                    <span className="font-medium">{event.title}</span>
+                    <span className="font-medium">
+                      {t(event.title as never)}
+                    </span>
                   </div>
                 ))}
               </div>
@@ -153,18 +161,19 @@ function CalendarsMock() {
 }
 
 function FilesMock() {
+  const t = useTranslations("Landing.showcase")
   const files = [
-    { icon: FileTextIcon, name: "roadmap-2026.pdf", owner: "Marcus", size: "1.4 MB" },
-    { icon: ImageIcon, name: "hero-banner.png", owner: "Priya", size: "3.2 MB" },
-    { icon: FileTextIcon, name: "design-tokens.fig", owner: "Priya", size: "1.1 MB" },
+    { icon: FileTextIcon, name: "fileRoadmap", owner: "Marcus", size: "1.4 MB" },
+    { icon: ImageIcon, name: "fileHero", owner: "Priya", size: "3.2 MB" },
+    { icon: FileTextIcon, name: "fileTokens", owner: "Priya", size: "1.1 MB" },
   ]
   return (
     <Frame>
       <div className="flex h-full flex-col gap-2">
         <div className="grid grid-cols-[1fr_auto_auto] gap-2 border-b pb-2 text-xs text-muted-foreground">
-          <span>Name</span>
-          <span>Owner</span>
-          <span>Size</span>
+          <span>{t("name")}</span>
+          <span>{t("owner")}</span>
+          <span>{t("size")}</span>
         </div>
         {files.map((file) => (
           <div
@@ -173,7 +182,7 @@ function FilesMock() {
           >
             <span className="flex items-center gap-2 truncate">
               <file.icon className="size-4 text-muted-foreground" />
-              <span className="truncate">{file.name}</span>
+              <span className="truncate">{t(file.name as never)}</span>
             </span>
             <span className="text-xs text-muted-foreground">{file.owner}</span>
             <span className="text-xs text-muted-foreground tabular-nums">
@@ -194,18 +203,19 @@ const MOCKS: Record<string, React.ReactNode> = {
 }
 
 export function ProductShowcase() {
+  const t = useTranslations("Landing.showcase")
   return (
     <Section id="showcase" className="bg-muted/30">
       <SectionHeading
-        eyebrow="Product"
-        title="One workspace, every workflow"
-        description="Jump between projects, conversations, scheduling and files without ever losing context."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <Tabs defaultValue="projects" className="mt-12 flex flex-col items-center gap-6">
         <TabsList>
           {showcaseTabs.map((tab) => (
             <TabsTrigger key={tab.value} value={tab.value}>
-              {tab.label}
+              {t(tab.value as never)}
             </TabsTrigger>
           ))}
         </TabsList>
@@ -213,22 +223,22 @@ export function ProductShowcase() {
           <TabsContent key={tab.value} value={tab.value} className="w-full">
             <Card className="overflow-hidden">
               <CardHeader>
-                <CardTitle>{tab.heading}</CardTitle>
-                <CardDescription>{tab.description}</CardDescription>
+                <CardTitle>{t(`${tab.value}Heading` as never)}</CardTitle>
+                <CardDescription>{t(`${tab.value}Description` as never)}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="overflow-hidden rounded-xl ring-1 ring-foreground/10">
                   {MOCKS[tab.value]}
                 </div>
                 <div className="mt-4 grid gap-3 sm:grid-cols-3">
-                  <Stat icon={CheckCircle2Icon} label="Tasks shipped" value="1,240" />
-                  <Stat icon={MessageSquareIcon} label="Messages sent" value="8,900" />
-                  <Stat icon={CalendarDaysIcon} label="Meetings synced" value="310" />
+                  <Stat icon={CheckCircle2Icon} label={t("tasksShipped")} value="1,240" />
+                  <Stat icon={MessageSquareIcon} label={t("messagesSent")} value="8,900" />
+                  <Stat icon={CalendarDaysIcon} label={t("meetingsSynced")} value="310" />
                 </div>
                 <Separator className="my-4" />
                 <div className="flex flex-col gap-1">
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Team adoption</span>
+                    <span className="text-muted-foreground">{t("teamAdoption")}</span>
                     <span className="tabular-nums">86%</span>
                   </div>
                   <Progress value={86} />

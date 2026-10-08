@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { MailIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -17,7 +18,8 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 
 import { authClient } from "@/lib/auth-client"
-import { formatRoleLabel } from "@/lib/organization/roles"
+import { useEnumLabel } from "@/lib/i18n/labels"
+import { parseRoles } from "@/lib/organization/roles"
 
 interface InvitationDetails {
   organizationName: string
@@ -33,6 +35,8 @@ export function AcceptInvitationCard({
   invitationId: string
 }) {
   const router = useRouter()
+  const t = useTranslations("Org")
+  const L = useEnumLabel()
   const [invitation, setInvitation] = React.useState<InvitationDetails | null>(
     null
   )
@@ -48,7 +52,7 @@ export function AcceptInvitationCard({
       })
       if (!active) return
       if (error || !data) {
-        setError(error?.message ?? "This invitation could not be found.")
+        setError(error?.message ?? t("invitationNotFound"))
         setLoading(false)
         return
       }
@@ -63,7 +67,7 @@ export function AcceptInvitationCard({
     }
     load().catch(() => {
       if (active) {
-        setError("This invitation could not be found.")
+        setError(t("invitationNotFound"))
         setLoading(false)
       }
     })
@@ -78,11 +82,11 @@ export function AcceptInvitationCard({
       invitationId,
     })
     if (error) {
-      toast.error(error.message ?? "Unable to accept the invitation.")
+      toast.error(error.message ?? t("unableToAcceptInvitation"))
       setPending(null)
       return
     }
-    toast.success("Invitation accepted.")
+    toast.success(t("invitationAccepted"))
     router.push(invitation ? `/${invitation.organizationSlug}` : "/onboarding")
     router.refresh()
   }
@@ -93,11 +97,11 @@ export function AcceptInvitationCard({
       invitationId,
     })
     if (error) {
-      toast.error(error.message ?? "Unable to decline the invitation.")
+      toast.error(error.message ?? t("unableToDeclineInvitation"))
       setPending(null)
       return
     }
-    toast.success("Invitation declined.")
+    toast.success(t("invitationDeclined"))
     router.push("/onboarding")
     router.refresh()
   }
@@ -107,14 +111,14 @@ export function AcceptInvitationCard({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <MailIcon className="size-4" />
-          Organization invitation
+          {t("organizationInvitation")}
         </CardTitle>
         <CardDescription>
           {loading
-            ? "Loading invitation details..."
+            ? t("loadingInvitation")
             : error
               ? error
-              : `You've been invited to join ${invitation?.organizationName}.`}
+              : t("invitedToJoin", { name: invitation?.organizationName ?? "" })}
         </CardDescription>
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
@@ -122,11 +126,13 @@ export function AcceptInvitationCard({
           <div className="flex flex-col gap-1 rounded-lg border border-border p-3 text-sm">
             <span className="font-medium">{invitation.organizationName}</span>
             <span className="text-muted-foreground">
-              Invited by {invitation.inviterEmail}
+              {t("invitedBy", { email: invitation.inviterEmail })}
             </span>
             <div className="mt-1">
               <Badge variant="secondary">
-                {formatRoleLabel(invitation.role)}
+                {parseRoles(invitation.role)
+                  .map((value) => L.orgRole(value))
+                  .join(", ")}
               </Badge>
             </div>
           </div>
@@ -144,7 +150,7 @@ export function AcceptInvitationCard({
               onClick={accept}
             >
               {pending === "accept" ? <Spinner /> : null}
-              Accept
+              {t("accept")}
             </Button>
             <Button
               variant="outline"
@@ -152,7 +158,7 @@ export function AcceptInvitationCard({
               disabled={pending !== null}
               onClick={decline}
             >
-              Decline
+              {t("decline")}
             </Button>
           </div>
         )}

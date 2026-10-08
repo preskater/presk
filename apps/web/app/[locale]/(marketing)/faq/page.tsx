@@ -1,26 +1,31 @@
 import type { Metadata } from "next"
-import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 
 import { PageHeader } from "@/components/landing/page-header"
 import { FaqSection } from "@/components/landing/faq-section"
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 
-export const metadata: Metadata = {
-  title: "FAQ",
-  description:
-    "Answers about plans, security, the AI assistants and migrating your team.",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Marketing.faq")
+  return {
+    title: t("metadataTitle"),
+    description: t("metadataDescription"),
+  }
 }
 
-export default function FaqPage() {
+export default async function FaqPage() {
+  const t = await getTranslations("Marketing.faq")
+
   return (
     <>
       <PageHeader
-        eyebrow="FAQ"
-        title="Questions, answered"
-        description="Everything you need to know before getting started. Can't find what you're looking for?"
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       >
         <Button render={<Link href="/contact" />} nativeButton={false}>
-          Contact us
+          {t("contact")}
         </Button>
       </PageHeader>
       <FaqSection />

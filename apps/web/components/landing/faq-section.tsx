@@ -1,3 +1,5 @@
+import { getTranslations } from "next-intl/server"
+
 import { Section, SectionHeading } from "@/components/landing/section"
 import {
   Accordion,
@@ -7,23 +9,27 @@ import {
 } from "@workspace/ui/components/accordion"
 import { faqs } from "@/lib/landing/content"
 
-export function FaqSection() {
+export async function FaqSection() {
+  const t = await getTranslations("Marketing.faq")
   return (
     <Section id="faq">
       <SectionHeading
-        eyebrow="FAQ"
-        title="Questions, answered"
-        description="Everything you need to know before getting started."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("sectionDescription")}
       />
       <Accordion className="mx-auto mt-12 max-w-3xl">
-        {faqs.map((faq) => (
-          <AccordionItem key={faq.value} value={faq.value}>
-            <AccordionTrigger>{faq.question}</AccordionTrigger>
-            <AccordionContent className="text-muted-foreground">
-              {faq.answer}
-            </AccordionContent>
-          </AccordionItem>
-        ))}
+        {faqs.map((faq, index) => {
+          const key = index + 1
+          return (
+            <AccordionItem key={faq.value} value={faq.value}>
+              <AccordionTrigger>{t(`q${key}` as never)}</AccordionTrigger>
+              <AccordionContent className="text-muted-foreground">
+                {t(`a${key}` as never)}
+              </AccordionContent>
+            </AccordionItem>
+          )
+        })}
       </Accordion>
     </Section>
   )

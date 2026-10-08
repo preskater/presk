@@ -165,13 +165,13 @@ const versions: Record<string, FileVersion[]> = {
 
 const activities: Record<string, FileActivity[]> = {
   d_spec: [
-    { id: "t1", memberId: "u_marcus", action: "edited this file", at: daysAgo(3) },
+    { id: "t1", memberId: "u_marcus", action: "editedThisFile", at: daysAgo(3) },
     { id: "t2", memberId: "u_priya", action: "commented on this file", at: daysAgo(4) },
     { id: "t3", memberId: "u_marcus", action: "shared with Priya Nair", at: daysAgo(5) },
     { id: "t4", memberId: "u_aria", action: "created this file", at: daysAgo(9) },
   ],
   d_tokens: [
-    { id: "t1", memberId: "u_priya", action: "edited this file", at: daysAgo(1) },
+    { id: "t1", memberId: "u_priya", action: "editedThisFile", at: daysAgo(1) },
     { id: "t2", memberId: "u_aria", action: "added to favorites", at: daysAgo(1) },
   ],
 }

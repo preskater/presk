@@ -1,0 +1,33 @@
+{
+  "contact": {
+    "name": "Name",
+    "namePlaceholder": "Jane Doe",
+    "nameRequired": "Please enter your name.",
+    "email": "Work email",
+    "emailPlaceholder": "jane@company.com",
+    "emailInvalid": "Please enter a valid email address.",
+    "company": "Company",
+    "companyPlaceholder": "Acme Corp",
+    "message": "How can we help?",
+    "messagePlaceholder": "Tell us about your team and what you're looking for...",
+    "messageRequired": "Please tell us a little more (10+ characters).",
+    "hint": "We usually respond within one business day.",
+    "submit": "Send message",
+    "successTitle": "Thanks — we'll be in touch!",
+    "successDescription": "We received your message and will reply to {email}."
+  },
+  "newsletter": {
+    "emailInvalid": "Enter a valid email address.",
+    "placeholder": "you@company.com",
+    "submit": "Subscribe",
+    "successTitle": "Subscribed!",
+    "successDescription": "Product updates will go to {email}."
+  },
+  "waitlist": {
+    "emailInvalid": "Please enter a valid email address.",
+    "placeholder": "you@company.com",
+    "submit": "Join the waitlist",
+    "successTitle": "You're on the list!",
+    "successDescription": "We'll reach out at {email} soon."
+  }
+}

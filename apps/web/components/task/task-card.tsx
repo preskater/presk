@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
+import { useLocale, useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { LabelTag, PriorityBadge } from "@/components/task/task-badge"
@@ -46,6 +47,7 @@ export function TaskCardContent({
   task: Task
   dragging?: boolean
 }) {
+  const locale = useLocale()
   const { getMember, getLabel } = useProjectStore()
   const assignee = getMember(task.assigneeId)
   const taskLabels = task.labelIds
@@ -83,7 +85,7 @@ export function TaskCardContent({
           {task.dueDate ? (
             <span className="inline-flex items-center gap-1">
               <CalendarDaysIcon className="size-3.5" />
-              {formatDate(task.dueDate)}
+              {formatDate(task.dueDate, locale)}
             </span>
           ) : null}
           {task.comments.length ? (
@@ -114,6 +116,7 @@ export function TaskCard({
   projectId: string
   onOpen: (taskId: string) => void
 }) {
+  const t = useTranslations("Projects")
   const { deleteTask } = useProjectStore()
   const {
     setNodeRef,
@@ -157,13 +160,13 @@ export function TaskCard({
             }
           >
             <EllipsisIcon />
-            <span className="sr-only">Task actions</span>
+            <span className="sr-only">{t("taskActions")}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={() => onOpen(task.id)}>
                 <SquareCheckIcon />
-                View details
+                {t("viewDetails")}
               </DropdownMenuItem>
               <TaskFormDialog
                 projectId={projectId}
@@ -171,7 +174,7 @@ export function TaskCard({
                 trigger={
                   <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
                     <PencilIcon />
-                    Edit task
+                    {t("editTask")}
                   </DropdownMenuItem>
                 }
               />
@@ -181,27 +184,28 @@ export function TaskCard({
                   render={
                     <DropdownMenuItem variant="destructive">
                       <Trash2Icon />
-                      Delete task
+                      {t("deleteTask")}
                     </DropdownMenuItem>
                   }
                 />
                 <AlertDialogContent>
                   <AlertDialogHeader>
                     <AlertDialogTitle>
-                      Delete {task.identifier}?
+                      {t("deleteTaskQuestion", {
+                        identifier: task.identifier,
+                      })}
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      “{task.title}” will be permanently deleted. This action
-                      cannot be undone.
+                      {t("deleteTaskDescription", { title: task.title })}
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                     <AlertDialogAction
                       variant="destructive"
                       onClick={() => deleteTask(task.id)}
                     >
-                      Delete
+                      {t("delete")}
                     </AlertDialogAction>
                   </AlertDialogFooter>
                 </AlertDialogContent>

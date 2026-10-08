@@ -4,7 +4,14 @@ import { toAppError, type AppError } from "./errors"
 
 export function jsonError(error: AppError) {
   return NextResponse.json(
-    { error: { code: error.code, message: error.message, details: error.details } },
+    {
+      error: {
+        code: error.code,
+        message: error.message,
+        params: error.params,
+        details: error.details,
+      },
+    },
     { status: error.status }
   )
 }

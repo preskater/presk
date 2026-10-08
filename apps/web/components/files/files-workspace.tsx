@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { FolderIcon, RotateCcwIcon, Trash2Icon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { FilesGrid } from "@/components/files/files-grid"
 import { FilesSearchCommand } from "@/components/files/files-search-command"
@@ -24,9 +25,12 @@ import {
 
 import { useFiles } from "@/lib/files/store"
 import { useRecents } from "@/lib/recents/store"
-import { LOCATION_LABEL, type FileLocation, type FileNode } from "@/lib/files/types"
+import { useEnumLabel } from "@/lib/i18n/labels"
+import type { FileLocation, FileNode } from "@/lib/files/types"
 
 export function FilesWorkspace() {
+  const t = useTranslations("Files")
+  const L = useEnumLabel()
   const {
     breadcrumbFor,
     childrenOf,
@@ -87,8 +91,8 @@ export function FilesWorkspace() {
     const folder = folderId ? getFile(folderId) : undefined
     record("files", {
       id: entryId,
-      label: folder?.name ?? LOCATION_LABEL[location],
-      hint: folder ? LOCATION_LABEL[location] : "Location",
+      label: folder?.name ?? L.fileLocation(location),
+      hint: folder ? L.fileLocation(location) : t("location"),
       data: { location, folderId },
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -230,24 +234,24 @@ export function FilesWorkspace() {
               {selected.length > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 rounded-lg border bg-muted/40 px-3 py-2">
                   <span className="text-sm font-medium">
-                    {selected.length} selected
+                    {t("selectedCount", { count: selected.length })}
                   </span>
                   <div className="ms-auto flex items-center gap-2">
                     {isTrash ? (
                       <>
                         <Button variant="outline" size="sm" onClick={() => { restoreMany(selected); setSelected([]) }}>
                           <RotateCcwIcon data-icon="inline-start" />
-                          Restore
+                          {t("restore")}
                         </Button>
                         <Button variant="destructive" size="sm" onClick={() => { deleteMany(selected); setSelected([]) }}>
                           <Trash2Icon data-icon="inline-start" />
-                          Delete forever
+                          {t("deleteForever")}
                         </Button>
                       </>
                     ) : (
                       <Button variant="outline" size="sm" onClick={() => { moveToTrashMany(selected); setSelected([]) }}>
                         <Trash2Icon data-icon="inline-start" />
-                        Move to trash
+                        {t("moveToTrash")}
                       </Button>
                     )}
                   </div>
@@ -261,17 +265,17 @@ export function FilesWorkspace() {
                       <FolderIcon />
                     </EmptyMedia>
                     <EmptyTitle>
-                      {isTrash ? "Trash is empty" : `No files in ${LOCATION_LABEL[location]}`}
+                      {isTrash ? t("trashEmpty") : t("noFilesIn", { location: L.fileLocation(location) })}
                     </EmptyTitle>
                     <EmptyDescription>
                       {isTrash
-                        ? "Items you delete will appear here."
-                        : "Upload files or create a folder to get started."}
+                        ? t("deletedHere")
+                        : t("getStarted")}
                     </EmptyDescription>
                   </EmptyHeader>
                   {!isTrash ? (
                     <EmptyContent>
-                      <Badge variant="outline">Tip: use ⌘K to search</Badge>
+                      <Badge variant="outline">{t("searchTip")}</Badge>
                     </EmptyContent>
                   ) : null}
                 </Empty>

@@ -1,18 +1,21 @@
-import Link from "next/link"
 import { ArrowRightIcon, PlayIcon } from "lucide-react"
+import { getTranslations } from "next-intl/server"
 
 import { Container } from "@/components/landing/section"
 import { WaitlistForm } from "@/components/forms/waitlist-form"
+import { Link } from "@/i18n/navigation"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
 
-export function HeroSection({
+export async function HeroSection({
   isAuthenticated,
   dashboardHref,
 }: {
   isAuthenticated: boolean
   dashboardHref: string
 }) {
+  const t = await getTranslations("Landing.hero")
+
   return (
     <section className="relative overflow-hidden py-20 sm:py-28">
       <div
@@ -21,17 +24,15 @@ export function HeroSection({
       />
       <Container className="flex flex-col items-center text-center">
         <Badge variant="secondary" className="mb-6">
-          New: AI-powered workflows
+          {t("badge")}
         </Badge>
 
         <h1 className="max-w-4xl font-heading text-4xl font-semibold tracking-tight text-balance sm:text-6xl">
-          Build better products with your entire team
+          {t("title")}
         </h1>
 
         <p className="mx-auto mt-6 max-w-2xl text-lg text-muted-foreground text-pretty">
-          Plan projects, collaborate with your team, and ship faster from one
-          unified workspace — projects, messaging, calendars and files with
-          built-in AI assistants.
+          {t("description")}
         </p>
 
         <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
@@ -41,7 +42,7 @@ export function HeroSection({
               render={<Link href={dashboardHref} />}
               nativeButton={false}
             >
-              Go to dashboard
+              {t("dashboard")}
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
           ) : (
@@ -50,20 +51,20 @@ export function HeroSection({
               render={<Link href="/sign-up" />}
               nativeButton={false}
             >
-              Start building free
+              {t("startBuilding")}
               <ArrowRightIcon data-icon="inline-end" />
             </Button>
           )}
           <Button size="lg" variant="outline" render={<Link href="/contact" />} nativeButton={false}>
             <PlayIcon data-icon="inline-start" />
-            Book a demo
+            {t("bookDemo")}
           </Button>
         </div>
 
         {!isAuthenticated ? (
           <div className="mt-10 w-full">
             <p className="mb-3 text-sm text-muted-foreground">
-              Be first in line — join the waitlist
+              {t("waitlistPrompt")}
             </p>
             <WaitlistForm />
           </div>

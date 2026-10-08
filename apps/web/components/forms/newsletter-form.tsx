@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -15,19 +16,22 @@ import {
 import { MailIcon } from "lucide-react"
 import { toast } from "sonner"
 
-const schema = z.object({
-  email: z.email("Enter a valid email address."),
-})
-
 export function NewsletterForm() {
+  const t = useTranslations("Forms.newsletter")
+
+  const schema = React.useMemo(
+    () => z.object({ email: z.email(t("emailInvalid")) }),
+    [t]
+  )
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { email: "" },
   })
 
   function onSubmit(values: z.infer<typeof schema>) {
-    toast.success("Subscribed!", {
-      description: `Product updates will go to ${values.email}.`,
+    toast.success(t("successTitle"), {
+      description: t("successDescription", { email: values.email }),
     })
     form.reset()
   }
@@ -44,13 +48,13 @@ export function NewsletterForm() {
                 {...field}
                 type="email"
                 aria-invalid={fieldState.invalid}
-                placeholder="you@company.com"
+                placeholder={t("placeholder")}
               />
               <InputGroupAddon>
                 <MailIcon />
               </InputGroupAddon>
               <Button type="submit" size="sm" className="me-1">
-                Subscribe
+                {t("submit")}
               </Button>
             </InputGroup>
             {fieldState.invalid ? (

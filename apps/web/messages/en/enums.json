@@ -1,0 +1,103 @@
+{
+  "taskStatus": {
+    "backlog": "Backlog",
+    "todo": "Todo",
+    "in_progress": "In Progress",
+    "review": "Review",
+    "done": "Done"
+  },
+  "taskPriority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "projectStatus": {
+    "active": "Active",
+    "paused": "Paused",
+    "completed": "Completed"
+  },
+  "orgRole": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "viewer": "Viewer"
+  },
+  "orgRoleDescription": {
+    "owner": "Full access, including deleting the organization.",
+    "admin": "Manage members, invitations and organization settings.",
+    "member": "Use the workspace. Cannot manage people or settings.",
+    "viewer": "Read-only access to the workspace."
+  },
+  "fileKind": {
+    "folder": "Folder",
+    "document": "Document",
+    "spreadsheet": "Spreadsheet",
+    "presentation": "Presentation",
+    "pdf": "PDF",
+    "image": "Image",
+    "video": "Video",
+    "audio": "Audio",
+    "archive": "Archive",
+    "code": "Code",
+    "other": "File"
+  },
+  "sharePermission": {
+    "view": "Can view",
+    "comment": "Can comment",
+    "edit": "Can edit"
+  },
+  "fileLocation": {
+    "my-files": "My files",
+    "shared": "Shared with me",
+    "recent": "Recent",
+    "favorites": "Favorites",
+    "trash": "Trash"
+  },
+  "eventColor": {
+    "blue": "Blue",
+    "green": "Green",
+    "orange": "Orange",
+    "red": "Red",
+    "purple": "Purple"
+  },
+  "reminder": {
+    "none": "No reminder",
+    "at_start": "At start",
+    "m5": "5 minutes before",
+    "m15": "15 minutes before",
+    "m30": "30 minutes before",
+    "h1": "1 hour before"
+  },
+  "response": {
+    "accepted": "Accepted",
+    "tentative": "Tentative",
+    "declined": "Declined",
+    "pending": "No response"
+  },
+  "conversationKind": {
+    "channel": "Channel",
+    "dm": "Direct message"
+  },
+  "presence": {
+    "available": "Available",
+    "away": "Away",
+    "busy": "Busy",
+    "offline": "Offline"
+  },
+  "resource": {
+    "project": "Project",
+    "task": "Task",
+    "file": "File",
+    "folder": "Folder",
+    "event": "Event",
+    "message": "Message",
+    "conversation": "Conversation",
+    "calendar": "Calendar",
+    "team": "Team",
+    "member": "Member",
+    "invitation": "Invitation",
+    "label": "Label",
+    "resource": "Resource"
+  }
+}

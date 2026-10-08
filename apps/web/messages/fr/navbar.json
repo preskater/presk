@@ -1,0 +1,15 @@
+{
+  "homeLabel": "Accueil Presk",
+  "openMenu": "Ouvrir le menu",
+  "pricing": "Tarifs",
+  "signIn": "Se connecter",
+  "signUp": "Commencer gratuitement",
+  "dashboard": "Aller au tableau de bord",
+  "changeLanguage": "Changer de langue",
+  "columns": {
+    "product": "Produit",
+    "solutions": "Solutions",
+    "resources": "Ressources",
+    "company": "Entreprise"
+  }
+}

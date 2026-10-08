@@ -1,27 +1,29 @@
-import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { CompassIcon } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { NotFoundState } from "@/components/states/not-found-state"
 
-export default function MarketingNotFound() {
+export default async function MarketingNotFound() {
+  const t = await getTranslations("Marketing.notFound")
   return (
     <NotFoundState
       icon={CompassIcon}
-      title="Page not found"
-      description="We couldn't find that page. It may have been moved, or the link is incorrect."
+      title={t("title")}
+      description={t("description")}
       className="min-h-[70svh]"
       actions={
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Button nativeButton={false} render={<Link href="/" />}>
-            Back to home
+            {t("backHome")}
           </Button>
           <Button
             variant="outline"
             nativeButton={false}
             render={<Link href="/blog" />}
           >
-            Read the blog
+            {t("readBlog")}
           </Button>
         </div>
       }

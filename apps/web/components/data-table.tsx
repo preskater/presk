@@ -1,8 +1,9 @@
 "use client"
 
-import Link from "next/link"
+import { useLocale, useTranslations } from "next-intl"
 import { FileIcon } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { DashboardEmpty } from "@/components/dashboard-empty"
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { StatusBadge } from "@/components/task/task-badge"
@@ -20,6 +21,8 @@ import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import { formatDate } from "@/lib/projects/types"
 
 export function DataTable() {
+  const t = useTranslations("Dashboard")
+  const locale = useLocale()
   const { tasks, getMember, getProject } = useProjectStore()
   const orgSlug = useOrgSlug()
   const recent = [...tasks]
@@ -34,8 +37,8 @@ export function DataTable() {
       {recent.length === 0 ? (
         <DashboardEmpty
           icon={FileIcon}
-          title="No recent items"
-          description="Documents and items you create will appear here."
+          title={t("noRecentItemsTitle")}
+          description={t("noRecentItemsDescription")}
           className="min-h-64 border"
         />
       ) : (
@@ -43,11 +46,17 @@ export function DataTable() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Task</TableHead>
-                <TableHead className="hidden sm:table-cell">Project</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead className="hidden md:table-cell">Assignee</TableHead>
-                <TableHead className="hidden lg:table-cell">Created</TableHead>
+                <TableHead>{t("task")}</TableHead>
+                <TableHead className="hidden sm:table-cell">
+                  {t("project")}
+                </TableHead>
+                <TableHead>{t("status")}</TableHead>
+                <TableHead className="hidden md:table-cell">
+                  {t("assignee")}
+                </TableHead>
+                <TableHead className="hidden lg:table-cell">
+                  {t("created")}
+                </TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -81,12 +90,12 @@ export function DataTable() {
                         </div>
                       ) : (
                         <span className="text-muted-foreground">
-                          Unassigned
+                          {t("unassigned")}
                         </span>
                       )}
                     </TableCell>
                     <TableCell className="hidden text-muted-foreground lg:table-cell">
-                      {formatDate(task.createdAt)}
+                      {formatDate(task.createdAt, locale)}
                     </TableCell>
                   </TableRow>
                 )

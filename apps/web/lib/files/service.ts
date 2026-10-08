@@ -30,7 +30,9 @@ const ROLE_RANK: Record<string, number> = {
 
 function canWrite(ctx: RequestContext) {
   if ((ROLE_RANK[ctx.role] ?? 0) >= 2) return
-  throw new ForbiddenError("Your role cannot modify files.")
+  throw new ForbiddenError("Your role cannot modify files.", {
+    code: "role_cannot_modify_files",
+  })
 }
 
 type FileRow = Awaited<ReturnType<FileRepository["list"]>>[number]
@@ -157,7 +159,7 @@ export class FileService {
       name: input.name.trim(),
       modifiedAt: new Date(),
     })
-    await this.repo.addActivity(id, ctx.userId, "renamed this file")
+    await this.repo.addActivity(id, ctx.userId, "renamedThisFile")
     return this.mapFile(row)
   }
 
@@ -207,7 +209,7 @@ export class FileService {
       trashed: true,
       trashedAt: new Date(),
     })
-    await this.repo.addActivity(id, ctx.userId, "moved this file to trash")
+    await this.repo.addActivity(id, ctx.userId, "movedThisFileToTrash")
     return this.mapFile(row)
   }
 

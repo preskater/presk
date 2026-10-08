@@ -1,5 +1,7 @@
 "use client"
 
+import * as React from "react"
+import { useTranslations } from "next-intl"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -16,22 +18,28 @@ import {
 import { Input } from "@workspace/ui/components/input"
 import { Textarea } from "@workspace/ui/components/textarea"
 
-const schema = z.object({
-  name: z.string().min(1, "Please enter your name."),
-  email: z.email("Please enter a valid email address."),
-  company: z.string().optional(),
-  message: z.string().min(10, "Please tell us a little more (10+ characters)."),
-})
-
 export function ContactForm() {
+  const t = useTranslations("Forms.contact")
+
+  const schema = React.useMemo(
+    () =>
+      z.object({
+        name: z.string().min(1, t("nameRequired")),
+        email: z.email(t("emailInvalid")),
+        company: z.string().optional(),
+        message: z.string().min(10, t("messageRequired")),
+      }),
+    [t]
+  )
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { name: "", email: "", company: "", message: "" },
   })
 
   function onSubmit(values: z.infer<typeof schema>) {
-    toast.success("Thanks — we'll be in touch!", {
-      description: `We received your message and will reply to ${values.email}.`,
+    toast.success(t("successTitle"), {
+      description: t("successDescription", { email: values.email }),
     })
     form.reset()
   }
@@ -45,12 +53,12 @@ export function ContactForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="contact-name">Name</FieldLabel>
+                <FieldLabel htmlFor="contact-name">{t("name")}</FieldLabel>
                 <Input
                   {...field}
                   id="contact-name"
                   aria-invalid={fieldState.invalid}
-                  placeholder="Jane Doe"
+                  placeholder={t("namePlaceholder")}
                 />
                 {fieldState.invalid ? (
                   <FieldError errors={[fieldState.error]} />
@@ -63,13 +71,13 @@ export function ContactForm() {
             control={form.control}
             render={({ field, fieldState }) => (
               <Field data-invalid={fieldState.invalid}>
-                <FieldLabel htmlFor="contact-email">Work email</FieldLabel>
+                <FieldLabel htmlFor="contact-email">{t("email")}</FieldLabel>
                 <Input
                   {...field}
                   id="contact-email"
                   type="email"
                   aria-invalid={fieldState.invalid}
-                  placeholder="jane@company.com"
+                  placeholder={t("emailPlaceholder")}
                 />
                 {fieldState.invalid ? (
                   <FieldError errors={[fieldState.error]} />
@@ -83,12 +91,12 @@ export function ContactForm() {
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="contact-company">Company</FieldLabel>
+              <FieldLabel htmlFor="contact-company">{t("company")}</FieldLabel>
               <Input
                 {...field}
                 id="contact-company"
                 aria-invalid={fieldState.invalid}
-                placeholder="Acme Corp"
+                placeholder={t("companyPlaceholder")}
               />
               {fieldState.invalid ? (
                 <FieldError errors={[fieldState.error]} />
@@ -101,16 +109,14 @@ export function ContactForm() {
           control={form.control}
           render={({ field, fieldState }) => (
             <Field data-invalid={fieldState.invalid}>
-              <FieldLabel htmlFor="contact-message">How can we help?</FieldLabel>
+              <FieldLabel htmlFor="contact-message">{t("message")}</FieldLabel>
               <Textarea
                 {...field}
                 id="contact-message"
                 aria-invalid={fieldState.invalid}
-                placeholder="Tell us about your team and what you're looking for..."
+                placeholder={t("messagePlaceholder")}
               />
-              <FieldDescription>
-                We usually respond within one business day.
-              </FieldDescription>
+              <FieldDescription>{t("hint")}</FieldDescription>
               {fieldState.invalid ? (
                 <FieldError errors={[fieldState.error]} />
               ) : null}
@@ -119,7 +125,7 @@ export function ContactForm() {
         />
       </FieldGroup>
       <Button type="submit" size="lg" className="mt-6 w-full sm:w-auto">
-        Send message
+        {t("submit")}
       </Button>
     </form>
   )

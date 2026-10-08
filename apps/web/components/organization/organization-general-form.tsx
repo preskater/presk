@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Button } from "@workspace/ui/components/button"
@@ -33,6 +34,7 @@ export function OrganizationGeneralForm({
   onSaved: () => void
 }) {
   const [name, setName] = React.useState(organization.name)
+  const t = useTranslations("Org")
   const [slug, setSlug] = React.useState(organization.slug)
   const [saving, setSaving] = React.useState(false)
   const [error, setError] = React.useState<string | null>(null)
@@ -49,7 +51,7 @@ export function OrganizationGeneralForm({
     const trimmedName = name.trim()
     const trimmedSlug = slugify(slug || name)
     if (!trimmedName || !trimmedSlug) {
-      setError("Name and slug are required.")
+      setError(t("nameAndSlugRequired"))
       return
     }
     setSaving(true)
@@ -58,11 +60,11 @@ export function OrganizationGeneralForm({
       data: { name: trimmedName, slug: trimmedSlug },
     })
     if (error) {
-      setError(error.message ?? "Unable to update the organization.")
+      setError(error.message ?? t("unableToUpdateOrganization"))
       setSaving(false)
       return
     }
-    toast.success("Organization updated.")
+    toast.success(t("organizationUpdated"))
     setSaving(false)
     onSaved()
   }
@@ -70,16 +72,16 @@ export function OrganizationGeneralForm({
   return (
     <Card>
       <CardHeader>
-        <CardTitle>General</CardTitle>
+        <CardTitle>{t("general")}</CardTitle>
         <CardDescription>
-          The name and URL of your organization.
+          {t("generalCardDescription")}
         </CardDescription>
       </CardHeader>
       <CardContent>
         <form onSubmit={submit}>
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="org-name">Name</FieldLabel>
+              <FieldLabel htmlFor="org-name">{t("name")}</FieldLabel>
               <Input
                 id="org-name"
                 value={name}
@@ -88,7 +90,7 @@ export function OrganizationGeneralForm({
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="org-slug">Slug</FieldLabel>
+              <FieldLabel htmlFor="org-slug">{t("slug")}</FieldLabel>
               <Input
                 id="org-slug"
                 value={slug}
@@ -96,7 +98,7 @@ export function OrganizationGeneralForm({
                 onChange={(event) => setSlug(event.target.value)}
               />
               <FieldDescription>
-                Used to identify your organization in URLs.
+                {t("slugDescription")}
               </FieldDescription>
             </Field>
             {error ? (
@@ -106,12 +108,12 @@ export function OrganizationGeneralForm({
               <Field orientation="horizontal">
                 <Button type="submit" disabled={!dirty || saving}>
                   {saving ? <Spinner /> : null}
-                  {saving ? "Saving..." : "Save changes"}
+                  {saving ? t("saving") : t("saveChanges")}
                 </Button>
               </Field>
             ) : (
               <FieldDescription>
-                You don&apos;t have permission to edit organization settings.
+                {t("noEditPermission")}
               </FieldDescription>
             )}
           </FieldGroup>

@@ -15,6 +15,7 @@ import {
   Trash2Icon,
 } from "lucide-react"
 import { toast } from "sonner"
+import { useTranslations } from "next-intl"
 
 import { FileRenameDialog } from "@/components/files/file-rename-dialog"
 import { FileMoveDialog } from "@/components/files/file-move-dialog"
@@ -57,6 +58,7 @@ export function FileMenuItems({
   onOpenFolder: (file: FileNode) => void
   onOpenShare: (file: FileNode) => void
 }) {
+  const t = useTranslations("Files")
   const { duplicateFile, toggleStar, trashFile, restoreFile, deleteForever } =
     useFiles()
   const orgSlug = useOrgSlug()
@@ -71,12 +73,12 @@ export function FileMenuItems({
         )
   const Separator = menu === "context" ? ContextMenuSeparator : DropdownMenuSeparator
 
-  const download = () => toast.success(`Downloading “${file.name}”.`)
+  const download = () => toast.success(t("downloading", { name: file.name }))
   const copyLink = () => {
     void navigator.clipboard?.writeText(
       `${window.location.origin}/${orgSlug}/files`
     )
-    toast.success("Link copied to clipboard.")
+    toast.success(t("linkCopied"))
   }
   const isFolder = file.kind === "folder"
 
@@ -85,12 +87,12 @@ export function FileMenuItems({
       <>
         <Item onSelect={() => restoreFile(file.id)}>
           <RotateCcwIcon />
-          Restore
+          {t("restore")}
         </Item>
         <DeleteForeverDialog onConfirm={() => deleteForever(file.id)} name={file.name}>
           <Item variant="destructive" onSelect={(event) => event.preventDefault()}>
             <Trash2Icon />
-            Delete forever
+            {t("deleteForever")}
           </Item>
         </DeleteForeverDialog>
       </>
@@ -102,54 +104,54 @@ export function FileMenuItems({
       {isFolder ? (
         <Item onSelect={() => onOpenFolder(file)}>
           <FolderInputIcon />
-          Open
+          {t("open")}
         </Item>
       ) : (
         <>
           <Item onSelect={() => onPreview(file)}>
             <EyeIcon />
-            Preview
+            {t("preview")}
           </Item>
           <Item onSelect={download}>
             <DownloadIcon />
-            Download
+            {t("download")}
           </Item>
         </>
       )}
       <Item onSelect={() => duplicateFile(file.id)}>
         <CopyIcon />
-        Make a copy
+        {t("makeCopy")}
       </Item>
       <FileRenameDialog file={file}>
         <Item onSelect={(event) => event.preventDefault()}>
           <PencilIcon />
-          Rename
+          {t("rename")}
         </Item>
       </FileRenameDialog>
       <FileMoveDialog file={file}>
         <Item onSelect={(event) => event.preventDefault()}>
           <FolderInputIcon />
-          Move to…
+          {t("moveTo")}
         </Item>
       </FileMoveDialog>
       <Item onSelect={copyLink}>
         <LinkIcon />
-        Copy link
+        {t("copyLink")}
       </Item>
       {!isFolder ? (
         <Item onSelect={() => onOpenShare(file)}>
           <Share2Icon />
-          Share
+          {t("share")}
         </Item>
       ) : null}
       <Item onSelect={() => toggleStar(file.id)}>
         {file.starred ? <StarOffIcon /> : <StarIcon />}
-        {file.starred ? "Remove from favorites" : "Add to favorites"}
+        {file.starred ? t("removeFromFavorites") : t("addToFavorites")}
       </Item>
       <Separator />
       <Item variant="destructive" onSelect={() => trashFile(file.id)}>
         <Trash2Icon />
-        Move to trash
+        {t("moveToTrash")}
       </Item>
     </>
   )
@@ -164,20 +166,21 @@ function DeleteForeverDialog({
   onConfirm: () => void
   children: React.ReactElement
 }) {
+  const t = useTranslations("Files")
   return (
     <AlertDialog>
       <AlertDialogTrigger render={children} />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete forever?</AlertDialogTitle>
+          <AlertDialogTitle>{t("deleteForeverQuestion")}</AlertDialogTitle>
           <AlertDialogDescription>
-            “{name}” will be permanently deleted. This action cannot be undone.
+            {t("deleteForeverDescription", { name })}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>Cancel</AlertDialogCancel>
+          <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
           <AlertDialogAction variant="destructive" onClick={onConfirm}>
-            Delete forever
+            {t("deleteForever")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

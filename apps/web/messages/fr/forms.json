@@ -1,0 +1,33 @@
+{
+  "contact": {
+    "name": "Nom",
+    "namePlaceholder": "Jeanne Dupont",
+    "nameRequired": "Veuillez saisir votre nom.",
+    "email": "E-mail professionnel",
+    "emailPlaceholder": "jeanne@entreprise.com",
+    "emailInvalid": "Veuillez saisir une adresse e-mail valide.",
+    "company": "Entreprise",
+    "companyPlaceholder": "Acme Corp",
+    "message": "Comment pouvons-nous vous aider ?",
+    "messagePlaceholder": "Parlez-nous de votre équipe et de ce que vous recherchez...",
+    "messageRequired": "Dites-nous en un peu plus (10 caractères minimum).",
+    "hint": "Nous répondons généralement sous un jour ouvré.",
+    "submit": "Envoyer le message",
+    "successTitle": "Merci — nous vous recontactons !",
+    "successDescription": "Nous avons reçu votre message et répondrons à {email}."
+  },
+  "newsletter": {
+    "emailInvalid": "Saisissez une adresse e-mail valide.",
+    "placeholder": "vous@entreprise.com",
+    "submit": "S'abonner",
+    "successTitle": "Abonné !",
+    "successDescription": "Les nouveautés produit seront envoyées à {email}."
+  },
+  "waitlist": {
+    "emailInvalid": "Veuillez saisir une adresse e-mail valide.",
+    "placeholder": "vous@entreprise.com",
+    "submit": "Rejoindre la liste d'attente",
+    "successTitle": "Vous êtes sur la liste !",
+    "successDescription": "Nous vous contacterons à {email} bientôt."
+  }
+}

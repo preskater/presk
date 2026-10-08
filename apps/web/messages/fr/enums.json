@@ -1,0 +1,103 @@
+{
+  "taskStatus": {
+    "backlog": "En attente",
+    "todo": "À faire",
+    "in_progress": "En cours",
+    "review": "En revue",
+    "done": "Terminé"
+  },
+  "taskPriority": {
+    "low": "Basse",
+    "medium": "Moyenne",
+    "high": "Haute",
+    "urgent": "Urgente"
+  },
+  "projectStatus": {
+    "active": "Actif",
+    "paused": "En pause",
+    "completed": "Terminé"
+  },
+  "orgRole": {
+    "owner": "Propriétaire",
+    "admin": "Administrateur",
+    "member": "Membre",
+    "viewer": "Lecteur"
+  },
+  "orgRoleDescription": {
+    "owner": "Accès complet, y compris la suppression de l'organisation.",
+    "admin": "Gérer les membres, les invitations et les paramètres de l'organisation.",
+    "member": "Utiliser l'espace de travail. Ne peut pas gérer les personnes ni les paramètres.",
+    "viewer": "Accès en lecture seule à l'espace de travail."
+  },
+  "fileKind": {
+    "folder": "Dossier",
+    "document": "Document",
+    "spreadsheet": "Feuille de calcul",
+    "presentation": "Présentation",
+    "pdf": "PDF",
+    "image": "Image",
+    "video": "Vidéo",
+    "audio": "Audio",
+    "archive": "Archive",
+    "code": "Code",
+    "other": "Fichier"
+  },
+  "sharePermission": {
+    "view": "Peut consulter",
+    "comment": "Peut commenter",
+    "edit": "Peut modifier"
+  },
+  "fileLocation": {
+    "my-files": "Mes fichiers",
+    "shared": "Partagés avec moi",
+    "recent": "Récents",
+    "favorites": "Favoris",
+    "trash": "Corbeille"
+  },
+  "eventColor": {
+    "blue": "Bleu",
+    "green": "Vert",
+    "orange": "Orange",
+    "red": "Rouge",
+    "purple": "Violet"
+  },
+  "reminder": {
+    "none": "Aucun rappel",
+    "at_start": "Au début",
+    "m5": "5 minutes avant",
+    "m15": "15 minutes avant",
+    "m30": "30 minutes avant",
+    "h1": "1 heure avant"
+  },
+  "response": {
+    "accepted": "Accepté",
+    "tentative": "Provisoire",
+    "declined": "Refusé",
+    "pending": "Sans réponse"
+  },
+  "conversationKind": {
+    "channel": "Canal",
+    "dm": "Message direct"
+  },
+  "presence": {
+    "available": "Disponible",
+    "away": "Absent",
+    "busy": "Occupé",
+    "offline": "Hors ligne"
+  },
+  "resource": {
+    "project": "Projet",
+    "task": "Tâche",
+    "file": "Fichier",
+    "folder": "Dossier",
+    "event": "Événement",
+    "message": "Message",
+    "conversation": "Conversation",
+    "calendar": "Calendrier",
+    "team": "Équipe",
+    "member": "Membre",
+    "invitation": "Invitation",
+    "label": "Étiquette",
+    "resource": "Ressource"
+  }
+}

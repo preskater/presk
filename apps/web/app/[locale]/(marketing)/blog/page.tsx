@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 
 import { PageHeader } from "@/components/landing/page-header"
 import { Section } from "@/components/landing/section"
@@ -7,29 +8,36 @@ import { Empty, EmptyDescription, EmptyHeader, EmptyTitle } from "@workspace/ui/
 
 import { getAllPosts } from "@/lib/landing/blog"
 
-export const metadata: Metadata = {
-  title: "Blog",
-  description: "Product updates, engineering notes and stories from the Presk team.",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Marketing.blog")
+  return {
+    title: t("metadataTitle"),
+    description: t("metadataDescription"),
+  }
 }
 
-export default function BlogPage() {
-  const posts = getAllPosts()
+export default async function BlogPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>
+}) {
+  const { locale } = await params
+  const t = await getTranslations("Marketing.blog")
+  const posts = getAllPosts(locale)
 
   return (
     <>
       <PageHeader
-        eyebrow="Blog"
-        title="From the Presk team"
-        description="Product updates, engineering deep-dives and ideas about how teams work."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <Section>
         {posts.length === 0 ? (
           <Empty>
             <EmptyHeader>
-              <EmptyTitle>No posts yet</EmptyTitle>
-              <EmptyDescription>
-                We&apos;re working on our first articles. Check back soon.
-              </EmptyDescription>
+              <EmptyTitle>{t("emptyTitle")}</EmptyTitle>
+              <EmptyDescription>{t("emptyDescription")}</EmptyDescription>
             </EmptyHeader>
           </Empty>
         ) : (

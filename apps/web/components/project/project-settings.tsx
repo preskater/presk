@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { PlusIcon, Trash2Icon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import {
@@ -59,18 +60,14 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import {
-  TASK_STATUSES,
+  TASK_STATUS_VALUES,
   type MemberRole,
   type Project,
 } from "@/lib/projects/types"
 
-const roleItems: { label: string; value: MemberRole }[] = [
-  { label: "Owner", value: "owner" },
-  { label: "Admin", value: "admin" },
-  { label: "Member", value: "member" },
-  { label: "Viewer", value: "viewer" },
-]
+const ROLE_VALUES: MemberRole[] = ["owner", "admin", "member", "viewer"]
 
 const LABEL_COLORS = [
   "var(--chart-1)",
@@ -81,6 +78,12 @@ const LABEL_COLORS = [
 ]
 
 function InviteMemberDialog() {
+  const t = useTranslations("Projects")
+  const L = useEnumLabel()
+  const roleItems = ROLE_VALUES.map((value) => ({
+    label: L.orgRole(value),
+    value,
+  }))
   const { addMember } = useProjectStore()
   const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState("")
@@ -91,15 +94,12 @@ function InviteMemberDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size="sm" />}>
         <PlusIcon data-icon="inline-start" />
-        Invite member
+        {t("inviteMember")}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite member</DialogTitle>
-          <DialogDescription>
-            Add a teammate to this workspace. In this demo the member is created
-            locally.
-          </DialogDescription>
+          <DialogTitle>{t("inviteMember")}</DialogTitle>
+          <DialogDescription>{t("addMemberDescription")}</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
@@ -115,27 +115,27 @@ function InviteMemberDialog() {
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="member-name">Name</FieldLabel>
+              <FieldLabel htmlFor="member-name">{t("name")}</FieldLabel>
               <Input
                 id="member-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="Jane Doe"
+                placeholder={t("memberNamePlaceholder")}
                 autoFocus
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="member-email">Email</FieldLabel>
+              <FieldLabel htmlFor="member-email">{t("email")}</FieldLabel>
               <Input
                 id="member-email"
                 type="email"
                 value={email}
                 onChange={(event) => setEmail(event.target.value)}
-                placeholder="jane@company.com"
+                placeholder={t("memberEmailPlaceholder")}
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="member-role">Role</FieldLabel>
+              <FieldLabel htmlFor="member-role">{t("role")}</FieldLabel>
               <Select
                 items={roleItems}
                 value={role}
@@ -158,9 +158,9 @@ function InviteMemberDialog() {
           </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
-            <Button type="submit">Send invite</Button>
+            <Button type="submit">{t("sendInvite")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -169,6 +169,7 @@ function InviteMemberDialog() {
 }
 
 function AddLabelDialog() {
+  const t = useTranslations("Projects")
   const { addLabel } = useProjectStore()
   const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState("")
@@ -178,14 +179,12 @@ function AddLabelDialog() {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger render={<Button size="sm" />}>
         <PlusIcon data-icon="inline-start" />
-        Add label
+        {t("addLabel")}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Add label</DialogTitle>
-          <DialogDescription>
-            Labels help you categorise tasks across the project.
-          </DialogDescription>
+          <DialogTitle>{t("addLabel")}</DialogTitle>
+          <DialogDescription>{t("addLabelDescription")}</DialogDescription>
         </DialogHeader>
         <form
           className="flex flex-col gap-4"
@@ -199,23 +198,23 @@ function AddLabelDialog() {
         >
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="label-name">Name</FieldLabel>
+              <FieldLabel htmlFor="label-name">{t("name")}</FieldLabel>
               <Input
                 id="label-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="e.g. Design"
+                placeholder={t("labelNamePlaceholder")}
                 autoFocus
               />
             </Field>
             <Field>
-              <FieldLabel>Color</FieldLabel>
+              <FieldLabel>{t("color")}</FieldLabel>
               <div className="flex flex-wrap gap-2">
                 {LABEL_COLORS.map((option) => (
                   <button
                     key={option}
                     type="button"
-                    aria-label={`Use color ${option}`}
+                    aria-label={t("useColor", { color: option })}
                     aria-pressed={color === option}
                     onClick={() => setColor(option)}
                     className="size-7 rounded-full ring-offset-2 ring-offset-background transition-shadow data-[selected=true]:ring-2 data-[selected=true]:ring-ring"
@@ -228,9 +227,9 @@ function AddLabelDialog() {
           </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
-            <Button type="submit">Add label</Button>
+            <Button type="submit">{t("addLabel")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -239,15 +238,21 @@ function AddLabelDialog() {
 }
 
 export function ProjectSettings({ project }: { project: Project }) {
+  const t = useTranslations("Projects")
+  const L = useEnumLabel()
+  const roleItems = ROLE_VALUES.map((value) => ({
+    label: L.orgRole(value),
+    value,
+  }))
   const { members, labels, updateMemberRole, removeMember, removeLabel } =
     useProjectStore()
 
   return (
     <Tabs defaultValue="members" className="flex flex-col gap-4">
       <TabsList variant="line" className="w-full justify-start border-b pb-0">
-        <TabsTrigger value="members">Members</TabsTrigger>
-        <TabsTrigger value="labels">Labels</TabsTrigger>
-        <TabsTrigger value="statuses">Statuses</TabsTrigger>
+        <TabsTrigger value="members">{t("members")}</TabsTrigger>
+        <TabsTrigger value="labels">{t("labels")}</TabsTrigger>
+        <TabsTrigger value="statuses">{t("statuses")}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="members">
@@ -255,10 +260,8 @@ export function ProjectSettings({ project }: { project: Project }) {
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-col gap-1">
-                <CardTitle>Members</CardTitle>
-                <CardDescription>
-                  People with access to this project.
-                </CardDescription>
+                <CardTitle>{t("members")}</CardTitle>
+                <CardDescription>{t("membersDescription")}</CardDescription>
               </div>
               <InviteMemberDialog />
             </div>
@@ -267,9 +270,11 @@ export function ProjectSettings({ project }: { project: Project }) {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Member</TableHead>
-                  <TableHead className="hidden sm:table-cell">Email</TableHead>
-                  <TableHead>Role</TableHead>
+                  <TableHead>{t("members")}</TableHead>
+                  <TableHead className="hidden sm:table-cell">
+                    {t("email")}
+                  </TableHead>
+                  <TableHead>{t("role")}</TableHead>
                   <TableHead className="w-10" />
                 </TableRow>
               </TableHeader>
@@ -314,7 +319,9 @@ export function ProjectSettings({ project }: { project: Project }) {
                             <Button
                               variant="ghost"
                               size="icon-sm"
-                              aria-label={`Remove ${member.name}`}
+                              aria-label={t("removeMember", {
+                                name: member.name,
+                              })}
                             />
                           }
                         >
@@ -323,20 +330,21 @@ export function ProjectSettings({ project }: { project: Project }) {
                         <AlertDialogContent>
                           <AlertDialogHeader>
                             <AlertDialogTitle>
-                              Remove {member.name}?
+                              {t("removeMemberQuestion", {
+                                name: member.name,
+                              })}
                             </AlertDialogTitle>
                             <AlertDialogDescription>
-                              They will lose access to this project. You can
-                              invite them again later.
+                              {t("removeMemberDescription")}
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                             <AlertDialogAction
                               variant="destructive"
                               onClick={() => removeMember(member.id)}
                             >
-                              Remove
+                              {t("remove")}
                             </AlertDialogAction>
                           </AlertDialogFooter>
                         </AlertDialogContent>
@@ -355,10 +363,8 @@ export function ProjectSettings({ project }: { project: Project }) {
           <CardHeader>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div className="flex flex-col gap-1">
-                <CardTitle>Labels</CardTitle>
-                <CardDescription>
-                  Available when tagging tasks in this project.
-                </CardDescription>
+                <CardTitle>{t("labels")}</CardTitle>
+                <CardDescription>{t("availableLabels")}</CardDescription>
               </div>
               <AddLabelDialog />
             </div>
@@ -378,7 +384,7 @@ export function ProjectSettings({ project }: { project: Project }) {
                 <Button
                   variant="ghost"
                   size="icon-xs"
-                  aria-label={`Delete ${label.name}`}
+                  aria-label={t("deleteLabel", { label: label.name })}
                   onClick={() => removeLabel(label.id)}
                 >
                   <Trash2Icon />
@@ -392,19 +398,19 @@ export function ProjectSettings({ project }: { project: Project }) {
       <TabsContent value="statuses">
         <Card>
           <CardHeader>
-            <CardTitle>Workflow statuses</CardTitle>
-            <CardDescription>
-              The stages every task moves through on the board.
-            </CardDescription>
+            <CardTitle>{t("statuses")}</CardTitle>
+            <CardDescription>{t("statusesDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
-            {TASK_STATUSES.map((status) => (
+            {TASK_STATUS_VALUES.map((status) => (
               <div
-                key={status.value}
+                key={status}
                 className="flex items-center justify-between rounded-lg border border-border px-3 py-2"
               >
-                <span className="text-sm font-medium">{status.label}</span>
-                <Badge variant="outline">{status.value}</Badge>
+                <span className="text-sm font-medium">
+                  {L.taskStatus(status)}
+                </span>
+                <Badge variant="outline">{status}</Badge>
               </div>
             ))}
           </CardContent>

@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { CheckIcon, CopyIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -33,6 +34,7 @@ import {
 import { Spinner } from "@workspace/ui/components/spinner"
 
 import { authClient } from "@/lib/auth-client"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import { INVITABLE_ROLES, type OrgRole } from "@/lib/organization/roles"
 import { buildInviteUrl } from "@/lib/organization/utils"
 
@@ -44,6 +46,8 @@ export function InviteMemberDialog({
   trigger?: React.ReactElement
 }) {
   const [open, setOpen] = React.useState(false)
+  const t = useTranslations("Org")
+  const L = useEnumLabel()
   const [email, setEmail] = React.useState("")
   const [role, setRole] = React.useState<OrgRole>("member")
   const [submitting, setSubmitting] = React.useState(false)
@@ -65,7 +69,7 @@ export function InviteMemberDialog({
     event.preventDefault()
     const trimmed = email.trim().toLowerCase()
     if (!trimmed) {
-      setError("Please enter an email address.")
+      setError(t("pleaseEnterEmail"))
       return
     }
     setSubmitting(true)
@@ -75,7 +79,7 @@ export function InviteMemberDialog({
       role,
     })
     if (error || !data) {
-      setError(error?.message ?? "Unable to send the invitation.")
+      setError(error?.message ?? t("unableToSendInvitation"))
       setSubmitting(false)
       return
     }
@@ -88,7 +92,7 @@ export function InviteMemberDialog({
     if (!inviteUrl) return
     await navigator.clipboard.writeText(inviteUrl)
     setCopied(true)
-    toast.success("Invite link copied.")
+    toast.success(t("inviteLinkCopied"))
     setTimeout(() => setCopied(false), 2000)
   }
 
@@ -98,22 +102,22 @@ export function InviteMemberDialog({
         {trigger ? null : (
           <>
             <PlusIcon data-icon="inline-start" />
-            Invite member
+            {t("inviteMember")}
           </>
         )}
       </DialogTrigger>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Invite member</DialogTitle>
+          <DialogTitle>{t("inviteMember")}</DialogTitle>
           <DialogDescription>
-            Invite someone to this organization and choose their role.
+            {t("inviteSomeoneDescription")}
           </DialogDescription>
         </DialogHeader>
 
         {inviteUrl ? (
           <div className="flex flex-col gap-3">
             <Field>
-              <FieldLabel htmlFor="invite-link">Invite link</FieldLabel>
+              <FieldLabel htmlFor="invite-link">{t("inviteLink")}</FieldLabel>
               <div className="flex items-center gap-2">
                 <Input id="invite-link" value={inviteUrl} readOnly />
                 <Button
@@ -121,38 +125,40 @@ export function InviteMemberDialog({
                   variant="outline"
                   size="icon"
                   onClick={copyLink}
-                  aria-label="Copy invite link"
+                  aria-label={t("copyInviteLink")}
                 >
                   {copied ? <CheckIcon /> : <CopyIcon />}
                 </Button>
               </div>
               <FieldDescription>
-                No email provider is configured. Share this link with the
-                invited person so they can join.
+                {t("inviteLinkDescription")}
               </FieldDescription>
             </Field>
             <DialogFooter>
-              <DialogClose render={<Button />}>Done</DialogClose>
+              <DialogClose render={<Button />}>{t("done")}</DialogClose>
             </DialogFooter>
           </div>
         ) : (
           <form onSubmit={submit} className="flex flex-col gap-4">
             <FieldGroup>
               <Field>
-                <FieldLabel htmlFor="invite-email">Email</FieldLabel>
+                <FieldLabel htmlFor="invite-email">{t("email")}</FieldLabel>
                 <Input
                   id="invite-email"
                   type="email"
                   value={email}
                   onChange={(event) => setEmail(event.target.value)}
-                  placeholder="teammate@company.com"
+                  placeholder={t("emailPlaceholder")}
                   autoFocus
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="invite-role">Role</FieldLabel>
+                <FieldLabel htmlFor="invite-role">{t("role")}</FieldLabel>
                 <Select
-                  items={INVITABLE_ROLES}
+                  items={INVITABLE_ROLES.map((item) => ({
+                    value: item.value,
+                    label: L.orgRole(item.value),
+                  }))}
                   value={role}
                   onValueChange={(value) => setRole(value as OrgRole)}
                 >
@@ -163,17 +169,14 @@ export function InviteMemberDialog({
                     <SelectGroup>
                       {INVITABLE_ROLES.map((item) => (
                         <SelectItem key={item.value} value={item.value}>
-                          {item.label}
+                          {L.orgRole(item.value)}
                         </SelectItem>
                       ))}
                     </SelectGroup>
                   </SelectContent>
                 </Select>
                 <FieldDescription>
-                  {
-                    INVITABLE_ROLES.find((item) => item.value === role)
-                      ?.description
-                  }
+                  {L.orgRoleDescription(role)}
                 </FieldDescription>
               </Field>
               {error ? (
@@ -182,11 +185,11 @@ export function InviteMemberDialog({
             </FieldGroup>
             <DialogFooter>
               <DialogClose render={<Button variant="outline" type="button" />}>
-                Cancel
+                {t("cancel")}
               </DialogClose>
               <Button type="submit" disabled={submitting}>
                 {submitting ? <Spinner /> : null}
-                {submitting ? "Sending..." : "Send invite"}
+                {submitting ? t("sending") : t("sendInvite")}
               </Button>
             </DialogFooter>
           </form>

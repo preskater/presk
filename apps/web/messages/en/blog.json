@@ -1,0 +1,22 @@
+{
+  "oneWorkspace": {
+    "title": "Why we built one workspace instead of five tools",
+    "description": "The cost of switching between tools is real. Here's how we designed Presk around a single shared foundation.",
+    "tag": "Engineering"
+  },
+  "teamScheduling": {
+    "title": "Scheduling across teams without the back-and-forth",
+    "description": "Shared availability and meeting cards remove the slowest part of planning: finding a time that works.",
+    "tag": "Product"
+  },
+  "securityBuiltIn": {
+    "title": "Security you don't have to bolt on",
+    "description": "Organizations, roles and file permissions are part of the product, not an afterthought.",
+    "tag": "Security"
+  },
+  "aiNativeWorkflows": {
+    "title": "Introducing AI-native workflows",
+    "description": "Assistants that draft, summarize and update your work — built into every surface of the workspace.",
+    "tag": "Product"
+  }
+}

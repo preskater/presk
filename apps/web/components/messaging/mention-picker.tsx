@@ -1,6 +1,7 @@
 "use client"
 
 import { AtSignIcon, SlashIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import {
@@ -21,13 +22,13 @@ import { useMessaging } from "@/lib/messaging/store"
 
 export interface SlashCommand {
   name: string
-  description: string
+  description: "scheduleMeeting" | "startAudioCall" | "appendShrug"
 }
 
 const SLASH_COMMANDS: SlashCommand[] = [
-  { name: "meeting", description: "Schedule a meeting" },
-  { name: "call", description: "Start an audio call" },
-  { name: "shrug", description: "Append ¯\\_(ツ)_/¯" },
+  { name: "meeting", description: "scheduleMeeting" },
+  { name: "call", description: "startAudioCall" },
+  { name: "shrug", description: "appendShrug" },
 ]
 
 export function CommandPopover({
@@ -37,15 +38,16 @@ export function CommandPopover({
   onCommand: (command: SlashCommand) => void
   trigger: React.ReactElement
 }) {
+  const t = useTranslations("Messaging")
   return (
     <Popover>
       <PopoverTrigger render={trigger} />
       <PopoverContent align="start" className="w-64 p-0">
         <Command>
-          <CommandInput placeholder="Type a command..." />
+          <CommandInput placeholder={t("typeCommand")} />
           <CommandList>
-            <CommandEmpty>No commands found.</CommandEmpty>
-            <CommandGroup heading="Commands">
+            <CommandEmpty>{t("noCommands")}</CommandEmpty>
+            <CommandGroup heading={t("commands")}>
               {SLASH_COMMANDS.map((command) => (
                 <CommandItem
                   key={command.name}
@@ -56,7 +58,7 @@ export function CommandPopover({
                   <span className="flex flex-col">
                     <span>/{command.name}</span>
                     <span className="text-xs text-muted-foreground">
-                      {command.description}
+                      {t(command.description)}
                     </span>
                   </span>
                 </CommandItem>
@@ -76,16 +78,17 @@ export function MentionPopover({
   onMention: (memberId: string, name: string) => void
   trigger: React.ReactElement
 }) {
+  const t = useTranslations("Messaging")
   const { members, currentUserId } = useMessaging()
   return (
     <Popover>
       <PopoverTrigger render={trigger} />
       <PopoverContent align="start" className="w-64 p-0">
         <Command>
-          <CommandInput placeholder="Mention someone..." />
+          <CommandInput placeholder={t("mentionPlaceholder")} />
           <CommandList>
-            <CommandEmpty>No members found.</CommandEmpty>
-            <CommandGroup heading="Members">
+            <CommandEmpty>{t("noMembers")}</CommandEmpty>
+            <CommandGroup heading={t("members")}>
               {members
                 .filter((member) => member.id !== currentUserId)
                 .map((member) => (

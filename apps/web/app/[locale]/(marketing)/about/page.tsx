@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import { getTranslations } from "next-intl/server"
 import { Building2Icon, GlobeIcon, RocketIcon, UsersIcon } from "lucide-react"
 
 import { PageHeader } from "@/components/landing/page-header"
@@ -6,33 +7,41 @@ import { Section, SectionHeading } from "@/components/landing/section"
 import { FinalCta } from "@/components/landing/final-cta"
 import { Card, CardContent, CardHeader, CardTitle } from "@workspace/ui/components/card"
 
-import { companyStats, companyValues } from "@/lib/landing/content"
+import { companyStats } from "@/lib/landing/content"
 import { getMarketingAuth } from "@/lib/landing/session"
 
-export const metadata: Metadata = {
-  title: "About",
-  description:
-    "Presk is the AI-native productivity platform built by a distributed team.",
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("Marketing.about")
+  return {
+    title: t("metadataTitle"),
+    description: t("metadataDescription"),
+  }
 }
 
 const statIcons = [RocketIcon, UsersIcon, GlobeIcon, Building2Icon]
+const valueKeys = [
+  { title: "valueClarity", description: "valueClarityDescription" },
+  { title: "valueAi", description: "valueAiDescription" },
+  { title: "valueWorkspace", description: "valueWorkspaceDescription" },
+] as const
 
 export default async function AboutPage() {
+  const t = await getTranslations("Marketing.about")
   const { isAuthenticated: authenticated, dashboardHref } = await getMarketingAuth()
 
   return (
     <>
       <PageHeader
-        eyebrow="About"
-        title="Building the workspace teams deserve"
-        description="Presk started with a simple belief: work, conversation, time and files belong in one place. We're a distributed team building that."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <Section>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {companyStats.map((stat, index) => {
             const Icon = statIcons[index] ?? RocketIcon
             return (
-              <Card key={stat.label}>
+              <Card key={stat.key}>
                 <CardHeader>
                   <Icon className="size-5 text-muted-foreground" />
                   <CardTitle className="text-3xl font-semibold tabular-nums">
@@ -40,7 +49,7 @@ export default async function AboutPage() {
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="text-sm text-muted-foreground">
-                  {stat.label}
+                  {t(stat.key as never)}
                 </CardContent>
               </Card>
             )
@@ -49,17 +58,17 @@ export default async function AboutPage() {
 
         <SectionHeading
           className="mt-20"
-          eyebrow="Values"
-          title="What we care about"
+          eyebrow={t("valuesEyebrow")}
+          title={t("valuesTitle")}
         />
         <div className="mt-10 grid gap-4 lg:grid-cols-3">
-          {companyValues.map((value) => (
+          {valueKeys.map((value) => (
             <Card key={value.title}>
               <CardHeader>
-                <CardTitle>{value.title}</CardTitle>
+                <CardTitle>{t(value.title)}</CardTitle>
               </CardHeader>
               <CardContent className="text-sm text-muted-foreground">
-                {value.description}
+                {t(value.description)}
               </CardContent>
             </Card>
           ))}

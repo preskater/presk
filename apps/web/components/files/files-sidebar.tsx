@@ -11,6 +11,7 @@ import {
   StarIcon,
   Trash2Icon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Progress } from "@workspace/ui/components/progress"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
@@ -23,14 +24,15 @@ import { cn } from "@workspace/ui/lib/utils"
 
 import { formatBytes } from "@/lib/files/file-utils"
 import { useFiles } from "@/lib/files/store"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import type { FileLocation, FileNode } from "@/lib/files/types"
 
-const LOCATIONS: { value: FileLocation; label: string; icon: React.ComponentType<{ className?: string }> }[] = [
-  { value: "my-files", label: "My files", icon: FolderIcon },
-  { value: "shared", label: "Shared with me", icon: Share2Icon },
-  { value: "recent", label: "Recent", icon: ClockIcon },
-  { value: "favorites", label: "Favorites", icon: StarIcon },
-  { value: "trash", label: "Trash", icon: Trash2Icon },
+const LOCATIONS: { value: FileLocation; icon: React.ComponentType<{ className?: string }> }[] = [
+  { value: "my-files", icon: FolderIcon },
+  { value: "shared", icon: Share2Icon },
+  { value: "recent", icon: ClockIcon },
+  { value: "favorites", icon: StarIcon },
+  { value: "trash", icon: Trash2Icon },
 ]
 
 const QUOTA_BYTES = 2 * 1024 * 1024 * 1024
@@ -114,6 +116,8 @@ export function FilesSidebar({
   onOpenFolder: (folderId: string) => void
 }) {
   const { files, locationCounts } = useFiles()
+  const t = useTranslations("Files")
+  const L = useEnumLabel()
 
   const rootFolders = files.filter(
     (node) => node.kind === "folder" && !node.trashed && node.parentId === null
@@ -139,7 +143,7 @@ export function FilesSidebar({
                   )}
                 >
                   <item.icon className="size-4 shrink-0 text-muted-foreground" />
-                  <span className="flex-1 truncate text-start">{item.label}</span>
+                  <span className="flex-1 truncate text-start">{L.fileLocation(item.value)}</span>
                   {locationCounts[item.value] > 0 ? (
                     <span className="text-xs text-muted-foreground tabular-nums">
                       {locationCounts[item.value]}
@@ -151,7 +155,7 @@ export function FilesSidebar({
           </div>
 
           <div className="flex flex-col gap-1">
-            <h3 className="px-1 text-xs font-medium text-muted-foreground">Folders</h3>
+            <h3 className="px-1 text-xs font-medium text-muted-foreground">{t("folders")}</h3>
             {rootFolders.map((folder) => (
               <FolderTreeNode
                 key={folder.id}
@@ -168,11 +172,14 @@ export function FilesSidebar({
       <div className="border-t p-3">
         <div className="flex items-center gap-2 text-sm">
           <HardDriveIcon className="size-4 text-muted-foreground" />
-          <span className="font-medium">Storage</span>
+          <span className="font-medium">{t("storage")}</span>
         </div>
         <Progress value={quotaPercent} className="mt-2" />
         <p className="mt-1.5 text-xs text-muted-foreground">
-          {formatBytes(usedBytes)} of {formatBytes(QUOTA_BYTES)} used
+          {t("storageUsed", {
+            used: formatBytes(usedBytes),
+            quota: formatBytes(QUOTA_BYTES),
+          })}
         </p>
       </div>
     </aside>

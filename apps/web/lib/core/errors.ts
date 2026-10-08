@@ -7,6 +7,22 @@ export type AppErrorCode =
   | "bad_request"
   | "internal_error"
 
+/**
+ * Stable, translation-friendly codes for service specific errors. The client
+ * maps these to `Errors.*` catalog keys (e.g. `role_cannot_modify_projects` ->
+ * `Errors.roleCannotModifyProjects`). They are intentionally independent from
+ * the HTTP-level {@link AppErrorCode}.
+ */
+export type ServiceErrorCode =
+  | "role_cannot_modify_projects"
+  | "role_cannot_manage_members"
+  | "email_already_member"
+  | "role_cannot_modify_files"
+  | "role_cannot_modify_calendars"
+  | "role_cannot_send_messages"
+
+export type ErrorCode = AppErrorCode | ServiceErrorCode
+
 const STATUS_BY_CODE: Record<AppErrorCode, number> = {
   unauthorized: 401,
   forbidden: 403,
@@ -17,62 +33,91 @@ const STATUS_BY_CODE: Record<AppErrorCode, number> = {
   internal_error: 500,
 }
 
+export interface AppErrorOptions {
+  details?: unknown
+  params?: Record<string, string | number>
+  status?: number
+}
+
 export class AppError extends Error {
-  readonly code: AppErrorCode
+  readonly code: ErrorCode
   readonly status: number
   readonly details?: unknown
+  readonly params?: Record<string, string | number>
 
-  constructor(
-    code: AppErrorCode,
-    message: string,
-    details?: unknown
-  ) {
+  constructor(code: ErrorCode, message: string, options: AppErrorOptions = {}) {
     super(message)
     this.name = "AppError"
     this.code = code
-    this.status = STATUS_BY_CODE[code]
-    this.details = details
+    this.status = options.status ?? STATUS_BY_CODE[code as AppErrorCode] ?? 500
+    this.details = options.details
+    this.params = options.params
   }
+}
+
+/**
+ * Options accepted by the concrete error subclasses so callers can attach a
+ * stable `code` (and interpolation `params`) while keeping the English
+ * `message` as a fallback.
+ */
+export interface CodedErrorOptions {
+  code?: ErrorCode
+  params?: Record<string, string | number>
 }
 
 export class UnauthorizedError extends AppError {
   constructor(message = "You must be signed in to do this.") {
-    super("unauthorized", message)
+    super("unauthorized", message, { status: 401 })
     this.name = "UnauthorizedError"
   }
 }
 
 export class ForbiddenError extends AppError {
-  constructor(message = "You do not have permission to do this.") {
-    super("forbidden", message)
+  constructor(
+    message = "You do not have permission to do this.",
+    options: CodedErrorOptions = {}
+  ) {
+    super(options.code ?? "forbidden", message, {
+      params: options.params,
+      status: 403,
+    })
     this.name = "ForbiddenError"
   }
 }
 
 export class NotFoundError extends AppError {
   constructor(resource = "Resource") {
-    super("not_found", `${resource} was not found.`)
+    super("not_found", `${resource} was not found.`, {
+      params: { resource },
+      status: 404,
+    })
     this.name = "NotFoundError"
   }
 }
 
 export class ValidationError extends AppError {
   constructor(message = "The request was invalid.", details?: unknown) {
-    super("validation_error", message, details)
+    super("validation_error", message, { details, status: 422 })
     this.name = "ValidationError"
   }
 }
 
 export class ConflictError extends AppError {
-  constructor(message = "That change conflicts with existing data.") {
-    super("conflict", message)
+  constructor(
+    message = "That change conflicts with existing data.",
+    options: CodedErrorOptions = {}
+  ) {
+    super(options.code ?? "conflict", message, {
+      params: options.params,
+      status: 409,
+    })
     this.name = "ConflictError"
   }
 }
 
 export class BadRequestError extends AppError {
   constructor(message = "Bad request.") {
-    super("bad_request", message)
+    super("bad_request", message, { status: 400 })
     this.name = "BadRequestError"
   }
 }
@@ -98,7 +143,15 @@ function isZodError(error: unknown): error is ZodLikeError {
 export function toAppError(error: unknown): AppError {
   if (isAppError(error)) return error
   if (isZodError(error)) {
-    return new ValidationError("The request was invalid.", error.issues)
+    const issues = Array.isArray(error.issues) ? error.issues : []
+    const first = issues.find(
+      (issue): issue is { message: string } =>
+        typeof (issue as { message?: unknown })?.message === "string"
+    )
+    return new ValidationError(
+      first?.message ?? "The request was invalid.",
+      error.issues
+    )
   }
   if (error instanceof Error) {
     return new AppError("internal_error", error.message)

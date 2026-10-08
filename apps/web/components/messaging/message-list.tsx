@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { MessageItem } from "@/components/messaging/message-item"
 import { Separator } from "@workspace/ui/components/separator"
@@ -16,6 +17,9 @@ export function MessageList({
   conversationId: string
   onReply: (messageId: string) => void
 }) {
+  const t = useTranslations("Messaging")
+  const tc = useTranslations("Common")
+  const locale = useLocale()
   const { messagesFor, typing, getMember } = useMessaging()
   const messages = messagesFor(conversationId)
   const bottomRef = React.useRef<HTMLDivElement>(null)
@@ -36,9 +40,9 @@ export function MessageList({
     <div ref={scrollRef} className="min-h-0 flex-1 overflow-y-auto py-2">
       {messages.length === 0 ? (
         <div className="flex h-full flex-col items-center justify-center gap-2 p-6 text-center">
-          <p className="text-sm font-medium">No messages yet</p>
+          <p className="text-sm font-medium">{t("noMessagesYet")}</p>
           <p className="max-w-xs text-sm text-muted-foreground">
-            Be the first to say something in this conversation.
+            {t("beFirst")}
           </p>
         </div>
       ) : (
@@ -52,7 +56,7 @@ export function MessageList({
                 <div className="flex items-center gap-3 px-4 py-3">
                   <Separator className="flex-1" />
                   <span className="text-xs font-medium text-muted-foreground">
-                    {formatDayLabel(message.createdAt)}
+                    {formatDayLabel(message.createdAt, locale, tc)}
                   </span>
                   <Separator className="flex-1" />
                 </div>
@@ -87,10 +91,14 @@ export function MessageListSkeleton() {
 }
 
 function TypingIndicator({ names }: { names: string[] }) {
+  const t = useTranslations("Messaging")
   const text =
     names.length === 1
-      ? `${names[0]} is typing`
-      : `${names.slice(0, -1).join(", ")} and ${names[names.length - 1]} are typing`
+      ? t("typing", { name: names[0] ?? "" })
+      : t("typingTwo", {
+          first: names.slice(0, -1).join(", "),
+          second: names[names.length - 1] ?? "",
+        })
   return (
     <div className="flex items-center gap-2 px-4 py-2 text-xs text-muted-foreground">
       <span className="flex gap-1">

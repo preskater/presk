@@ -1,5 +1,7 @@
 "use client"
 
+import { useLocale, useTranslations } from "next-intl"
+
 import { formatEventRange } from "@/lib/calendars/date-utils"
 import { EVENT_COLOR_CLASSES } from "@/lib/calendars/event-colors"
 import { Avatar, AvatarFallback } from "@workspace/ui/components/avatar"
@@ -16,6 +18,8 @@ const RESPONSE_DOT: Record<string, string> = {
 }
 
 export function EventTooltipContent({ event }: { event: CalendarEvent }) {
+  const locale = useLocale()
+  const t = useTranslations("Common")
   const { getCalendar, getMember } = useCalendars()
   const calendar = getCalendar(event.calendarId)
   const styles = EVENT_COLOR_CLASSES[event.color]
@@ -27,7 +31,7 @@ export function EventTooltipContent({ event }: { event: CalendarEvent }) {
         <span className="text-xs font-medium">{event.title}</span>
       </div>
       <span className="text-xs text-muted-foreground">
-        {formatEventRange(event)}
+        {formatEventRange(event, locale, t("allDay"))}
       </span>
       {calendar ? (
         <span className="text-xs text-muted-foreground">{calendar.name}</span>

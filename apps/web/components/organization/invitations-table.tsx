@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 import { CopyIcon, MailIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -24,7 +25,8 @@ import {
 } from "@workspace/ui/components/empty"
 
 import { authClient } from "@/lib/auth-client"
-import { formatRoleLabel } from "@/lib/organization/roles"
+import { useEnumLabel } from "@/lib/i18n/labels"
+import { parseRoles } from "@/lib/organization/roles"
 import { buildInviteUrl } from "@/lib/organization/utils"
 
 export interface OrgInvitation {
@@ -45,6 +47,9 @@ export function InvitationsTable({
   onChanged: () => void
 }) {
   const [pendingId, setPendingId] = React.useState<string | null>(null)
+  const t = useTranslations("Org")
+  const L = useEnumLabel()
+  const locale = useLocale()
 
   const pending = invitations.filter((inv) => inv.status === "pending")
 
@@ -55,16 +60,16 @@ export function InvitationsTable({
     })
     setPendingId(null)
     if (error) {
-      toast.error(error.message ?? "Unable to cancel the invitation.")
+      toast.error(error.message ?? t("unableToCancelInvitation"))
       return
     }
-    toast.success("Invitation cancelled.")
+    toast.success(t("invitationCancelled"))
     onChanged()
   }
 
   async function copy(invitation: OrgInvitation) {
     await navigator.clipboard.writeText(buildInviteUrl(invitation.id))
-    toast.success("Invite link copied.")
+    toast.success(t("inviteLinkCopied"))
   }
 
   if (pending.length === 0) {
@@ -74,9 +79,9 @@ export function InvitationsTable({
           <EmptyMedia variant="icon">
             <MailIcon />
           </EmptyMedia>
-          <EmptyTitle>No pending invitations</EmptyTitle>
+          <EmptyTitle>{t("noPendingInvitations")}</EmptyTitle>
           <EmptyDescription>
-            Invitations you send will appear here until they are accepted.
+            {t("noPendingInvitationsDescription")}
           </EmptyDescription>
         </EmptyHeader>
       </Empty>
@@ -87,9 +92,9 @@ export function InvitationsTable({
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Email</TableHead>
-          <TableHead>Role</TableHead>
-          <TableHead className="hidden sm:table-cell">Expires</TableHead>
+          <TableHead>{t("email")}</TableHead>
+          <TableHead>{t("role")}</TableHead>
+          <TableHead className="hidden sm:table-cell">{t("expires")}</TableHead>
           <TableHead className="w-40" />
         </TableRow>
       </TableHeader>
@@ -99,11 +104,13 @@ export function InvitationsTable({
             <TableCell className="font-medium">{invitation.email}</TableCell>
             <TableCell>
               <Badge variant="secondary">
-                {formatRoleLabel(invitation.role)}
+                {parseRoles(invitation.role)
+                  .map((value) => L.orgRole(value))
+                  .join(", ")}
               </Badge>
             </TableCell>
             <TableCell className="hidden text-muted-foreground sm:table-cell">
-              {new Date(invitation.expiresAt).toLocaleDateString("en-US", {
+              {new Date(invitation.expiresAt).toLocaleDateString(locale, {
                 month: "short",
                 day: "numeric",
               })}
@@ -116,13 +123,15 @@ export function InvitationsTable({
                   onClick={() => copy(invitation)}
                 >
                   <CopyIcon data-icon="inline-start" />
-                  Copy link
+                  {t("copyLink")}
                 </Button>
                 {canCancel ? (
                   <Button
                     variant="ghost"
                     size="icon-sm"
-                    aria-label={`Cancel invitation for ${invitation.email}`}
+                    aria-label={t("cancelInvitationFor", {
+                      email: invitation.email,
+                    })}
                     disabled={pendingId === invitation.id}
                     onClick={() => cancel(invitation)}
                   >

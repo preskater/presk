@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { TaskCardContent } from "@/components/task/task-card"
 import { Calendar } from "@workspace/ui/components/calendar"
@@ -26,6 +27,8 @@ export function TaskCalendar({
   tasks: Task[]
   onOpen: (taskId: string) => void
 }) {
+  const t = useTranslations("Projects")
+  const locale = useLocale()
   const [selected, setSelected] = React.useState<Date | undefined>(new Date())
 
   const tasksWithDue = tasks.filter((task) => task.dueDate)
@@ -68,17 +71,17 @@ export function TaskCalendar({
           <CardHeader>
             <CardTitle>
               {selected
-                ? selected.toLocaleDateString("en-US", {
+                ? new Intl.DateTimeFormat(locale, {
                     weekday: "long",
                     month: "long",
                     day: "numeric",
-                  })
-                : "Select a day"}
+                  }).format(selected)
+                : t("selectDay")}
             </CardTitle>
             <CardDescription>
               {dayTasks.length
-                ? `${dayTasks.length} task${dayTasks.length === 1 ? "" : "s"} due`
-                : "No tasks due on this day."}
+                ? t("tasksDue", { count: dayTasks.length })
+                : t("noTasksDue")}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
@@ -99,8 +102,8 @@ export function TaskCalendar({
 
         <Card>
           <CardHeader>
-            <CardTitle>Upcoming</CardTitle>
-            <CardDescription>Next deadlines across this project.</CardDescription>
+            <CardTitle>{t("upcoming")}</CardTitle>
+            <CardDescription>{t("upcomingDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-2">
             {upcoming.length ? (
@@ -118,16 +121,16 @@ export function TaskCalendar({
                     {task.title}
                   </span>
                   <span className="shrink-0 text-xs text-muted-foreground">
-                    {new Date(task.dueDate as string).toLocaleDateString(
-                      "en-US",
-                      { month: "short", day: "numeric" }
-                    )}
+                    {new Intl.DateTimeFormat(locale, {
+                      month: "short",
+                      day: "numeric",
+                    }).format(new Date(task.dueDate as string))}
                   </span>
                 </button>
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
-                Nothing scheduled yet.
+                {t("nothingScheduled")}
               </p>
             )}
           </CardContent>

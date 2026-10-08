@@ -91,7 +91,7 @@ export function SignUpForm({ ...props }: React.ComponentProps<typeof Card>) {
                     {...field}
                     id={field.name}
                     type="text"
-                    placeholder="John Doe"
+                    placeholder={t("namePlaceholder")}
                     autoComplete="name"
                     aria-invalid={fieldState.invalid}
                   />

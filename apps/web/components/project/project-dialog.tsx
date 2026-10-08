@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -31,13 +32,12 @@ import {
 import { Textarea } from "@workspace/ui/components/textarea"
 
 import { useProjectStore } from "@/lib/projects/store"
-import type { Project, ProjectStatus } from "@/lib/projects/types"
-
-const statusItems: { label: string; value: ProjectStatus }[] = [
-  { label: "Active", value: "active" },
-  { label: "Paused", value: "paused" },
-  { label: "Completed", value: "completed" },
-]
+import { useEnumLabel } from "@/lib/i18n/labels"
+import {
+  PROJECT_STATUS_VALUES,
+  type Project,
+  type ProjectStatus,
+} from "@/lib/projects/types"
 
 export function ProjectFormDialog({
   trigger,
@@ -46,6 +46,12 @@ export function ProjectFormDialog({
   trigger: React.ReactElement
   project?: Project
 }) {
+  const t = useTranslations("Projects")
+  const L = useEnumLabel()
+  const statusItems = PROJECT_STATUS_VALUES.map((value) => ({
+    label: L.projectStatus(value),
+    value,
+  }))
   const { createProject, updateProject } = useProjectStore()
   const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState(project?.name ?? "")
@@ -81,40 +87,40 @@ export function ProjectFormDialog({
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
-            {project ? "Edit project" : "Create project"}
+            {project ? t("editProject") : t("createProject")}
           </DialogTitle>
           <DialogDescription>
             {project
-              ? "Update the details of this project."
-              : "Projects group tasks, members and progress in one place."}
+              ? t("updateProjectDescription")
+              : t("createProjectDescription")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <FieldGroup>
             <Field>
-              <FieldLabel htmlFor="project-name">Name</FieldLabel>
+              <FieldLabel htmlFor="project-name">{t("name")}</FieldLabel>
               <Input
                 id="project-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
-                placeholder="e.g. Website Redesign"
+                placeholder={t("namePlaceholder")}
                 autoFocus
               />
             </Field>
             <Field>
-              <FieldLabel htmlFor="project-description">Description</FieldLabel>
+              <FieldLabel htmlFor="project-description">
+                {t("description")}
+              </FieldLabel>
               <Textarea
                 id="project-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="What is this project about?"
+                placeholder={t("descriptionPlaceholder")}
               />
-              <FieldDescription>
-                A short summary shown on the project card.
-              </FieldDescription>
+              <FieldDescription>{t("descriptionHint")}</FieldDescription>
             </Field>
             <Field>
-              <FieldLabel htmlFor="project-status">Status</FieldLabel>
+              <FieldLabel htmlFor="project-status">{t("status")}</FieldLabel>
               <Select
                 items={statusItems}
                 value={status}
@@ -137,9 +143,9 @@ export function ProjectFormDialog({
           </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
-              Cancel
+              {t("cancel")}
             </DialogClose>
-            <Button type="submit">{project ? "Save" : "Create"}</Button>
+            <Button type="submit">{project ? t("save") : t("create")}</Button>
           </DialogFooter>
         </form>
       </DialogContent>
@@ -147,14 +153,9 @@ export function ProjectFormDialog({
   )
 }
 
-export function CreateProjectButton({
-  label = "Create project",
-}: {
-  label?: string
-}) {
+export function CreateProjectButton({ label }: { label?: string }) {
+  const t = useTranslations("Projects")
   return (
-    <ProjectFormDialog
-      trigger={<Button>{label}</Button>}
-    />
+    <ProjectFormDialog trigger={<Button>{label ?? t("createProject")}</Button>} />
   )
 }

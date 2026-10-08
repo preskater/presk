@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { CloudUploadIcon, FileIcon, Trash2Icon, UploadIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -52,6 +53,7 @@ export function FileUploadDialog({
   children: React.ReactElement
 }) {
   const { enqueueUploads } = useFiles()
+  const t = useTranslations("Files")
   const [open, setOpen] = React.useState(false)
   const [pending, setPending] = React.useState<PendingFile[]>([])
 
@@ -82,9 +84,9 @@ export function FileUploadDialog({
       <DialogTrigger render={children} />
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Upload files</DialogTitle>
+          <DialogTitle>{t("uploadFiles")}</DialogTitle>
           <DialogDescription>
-            Files are uploaded to the current folder.
+            {t("uploadDescription")}
           </DialogDescription>
         </DialogHeader>
 
@@ -103,8 +105,8 @@ export function FileUploadDialog({
           <span className="flex size-10 items-center justify-center rounded-full bg-muted">
             <CloudUploadIcon className="size-5 text-muted-foreground" />
           </span>
-          <p className="text-sm font-medium">Drag and drop files here</p>
-          <p className="text-xs text-muted-foreground">or add a sample file</p>
+          <p className="text-sm font-medium">{t("dragDrop")}</p>
+          <p className="text-xs text-muted-foreground">{t("orSample")}</p>
           <div className="mt-1 flex flex-wrap justify-center gap-2">
             {SAMPLE_FILES.map((file) => (
               <Button
@@ -139,7 +141,7 @@ export function FileUploadDialog({
                   type="button"
                   variant="ghost"
                   size="icon-sm"
-                  aria-label={`Remove ${file.name}`}
+                  aria-label={t("removeFile", { name: file.name })}
                   onClick={() =>
                     setPending((prev) => prev.filter((item) => item.id !== file.id))
                   }
@@ -153,11 +155,11 @@ export function FileUploadDialog({
 
         <DialogFooter>
           <DialogClose render={<Button variant="outline" type="button" />}>
-            Cancel
+            {t("cancel")}
           </DialogClose>
           <Button type="button" disabled={pending.length === 0} onClick={handleSubmit}>
             <UploadIcon data-icon="inline-start" />
-            Upload {pending.length > 0 ? `(${pending.length})` : ""}
+            {t("uploadCount", { count: pending.length })}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -167,6 +169,7 @@ export function FileUploadDialog({
 
 export function UploadQueue() {
   const { uploads, removeUpload, clearCompletedUploads } = useFiles()
+  const t = useTranslations("Files")
   if (uploads.length === 0) return null
 
   const activeCount = uploads.filter(
@@ -178,11 +181,11 @@ export function UploadQueue() {
       <div className="flex items-center justify-between">
         <span className="text-sm font-medium">
           {activeCount > 0
-            ? `Uploading ${activeCount} file${activeCount === 1 ? "" : "s"}`
-            : "Uploads complete"}
+            ? t("uploadingCount", { count: activeCount })
+            : t("uploadsComplete")}
         </span>
         <Button variant="ghost" size="sm" onClick={clearCompletedUploads}>
-          Clear
+          {t("clear")}
         </Button>
       </div>
       <div className="flex flex-col gap-2">
@@ -196,7 +199,7 @@ export function UploadQueue() {
                     {formatBytes(item.sizeBytes)}
                   </span>
                   <Badge variant={STATUS_VARIANT[item.status]}>
-                    {item.status}
+                    {t(`uploadStatus.${item.status}`)}
                   </Badge>
                 </div>
               </div>
@@ -208,7 +211,7 @@ export function UploadQueue() {
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label={`Remove ${item.name}`}
+              aria-label={t("removeFile", { name: item.name })}
               onClick={() => removeUpload(item.id)}
             >
               <Trash2Icon />

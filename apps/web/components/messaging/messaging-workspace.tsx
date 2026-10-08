@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { ChatPanel } from "@/components/messaging/chat-panel"
 import { ConversationDetailsSheet } from "@/components/messaging/conversation-details-sheet"
@@ -15,10 +16,13 @@ import {
 } from "@workspace/ui/components/resizable"
 import { MessageSquareIcon } from "lucide-react"
 
+import { useEnumLabel } from "@/lib/i18n/labels"
 import { useMessaging } from "@/lib/messaging/store"
 import { useRecents } from "@/lib/recents/store"
 
 export function MessagingWorkspace() {
+  const t = useTranslations("Messaging")
+  const L = useEnumLabel()
   const { conversations, getConversation, dmPartner, markRead } = useMessaging()
   const { record, active, hydrated } = useRecents()
   const [activeId, setActiveId] = React.useState<string | undefined>(
@@ -56,7 +60,9 @@ export function MessagingWorkspace() {
         conversation.kind === "channel"
           ? `#${conversation.name}`
           : conversation.name,
-      hint: dmPartner(conversation) ? "Direct message" : "Channel",
+      hint: dmPartner(conversation)
+        ? L.conversationKind("dm")
+        : L.conversationKind("channel"),
     })
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeId, hydrated])
@@ -120,9 +126,9 @@ export function MessagingWorkspace() {
                   <EmptyMedia variant="icon">
                     <MessageSquareIcon />
                   </EmptyMedia>
-                  <EmptyTitle>No conversation selected</EmptyTitle>
+                  <EmptyTitle>{t("noConversationSelected")}</EmptyTitle>
                   <EmptyDescription>
-                    Pick a channel or direct message to start chatting.
+                    {t("noConversationSelectedDescription")}
                   </EmptyDescription>
                 </EmptyHeader>
               </Empty>

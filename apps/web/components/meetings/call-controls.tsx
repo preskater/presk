@@ -11,6 +11,7 @@ import {
   VideoIcon,
   VideoOffIcon,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
@@ -38,6 +39,8 @@ export function CallControls({
   startedAt: string
   onLeave: () => void
 }) {
+  const t = useTranslations("Meetings")
+  const locale = useLocale()
   const [muted, setMuted] = React.useState(false)
   const [videoOn, setVideoOn] = React.useState(kind === "video")
   const [sharing, setSharing] = React.useState(false)
@@ -51,10 +54,13 @@ export function CallControls({
         </span>
         <div className="flex flex-col">
           <span className="text-sm font-medium">
-            {kind === "video" ? "Video call" : "Audio call"}
+            {kind === "video" ? t("videoCall") : t("audioCall")}
           </span>
           <span className="text-xs text-muted-foreground">
-            Started {formatTime(startedAt)} · {participants.length} on the call
+            {t("startedAt", {
+              time: formatTime(startedAt, locale),
+              count: participants.length,
+            })}
           </span>
         </div>
         <div className="flex -space-x-2">
@@ -71,14 +77,14 @@ export function CallControls({
               <Button
                 variant={muted ? "destructive" : "outline"}
                 size="icon"
-                aria-label={muted ? "Unmute" : "Mute"}
+                aria-label={muted ? t("unmute") : t("mute")}
                 onClick={() => setMuted((prev) => !prev)}
               />
             }
           >
             {muted ? <MicOffIcon /> : <MicIcon />}
           </TooltipTrigger>
-          <TooltipContent>{muted ? "Unmute" : "Mute"}</TooltipContent>
+          <TooltipContent>{muted ? t("unmute") : t("mute")}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -87,14 +93,16 @@ export function CallControls({
               <Button
                 variant={videoOn ? "default" : "outline"}
                 size="icon"
-                aria-label={videoOn ? "Stop video" : "Start video"}
+                aria-label={videoOn ? t("stopVideo") : t("startVideo")}
                 onClick={() => setVideoOn((prev) => !prev)}
               />
             }
           >
             {videoOn ? <VideoIcon /> : <VideoOffIcon />}
           </TooltipTrigger>
-          <TooltipContent>{videoOn ? "Stop video" : "Start video"}</TooltipContent>
+          <TooltipContent>
+            {videoOn ? t("stopVideo") : t("startVideo")}
+          </TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -103,29 +111,37 @@ export function CallControls({
               <Button
                 variant={sharing ? "default" : "outline"}
                 size="icon"
-                aria-label={sharing ? "Stop sharing" : "Share screen"}
+                aria-label={sharing ? t("stopSharing") : t("shareScreen")}
                 onClick={() => setSharing((prev) => !prev)}
               />
             }
           >
             <MonitorUpIcon />
           </TooltipTrigger>
-          <TooltipContent>{sharing ? "Stop sharing" : "Share screen"}</TooltipContent>
+          <TooltipContent>
+            {sharing ? t("stopSharing") : t("shareScreen")}
+          </TooltipContent>
         </Tooltip>
 
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="outline" size="icon" aria-label="More call options" />
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label={t("moreOptions")}
+              />
             }
           >
             <MoreHorizontalIcon />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuItem onSelect={() => toast.info("Participants panel")}>
+              <DropdownMenuItem
+                onSelect={() => toast.info(t("participantsPanel"))}
+              >
                 <Grid2x2Icon />
-                View participants
+                {t("viewParticipants")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
@@ -135,12 +151,12 @@ export function CallControls({
           variant="destructive"
           size="sm"
           onClick={() => {
-            toast.success("You left the call.")
+            toast.success(t("youLeft"))
             onLeave()
           }}
         >
           <PhoneOffIcon data-icon="inline-start" />
-          Leave
+          {t("leave")}
         </Button>
       </div>
     </div>

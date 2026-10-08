@@ -6,6 +6,7 @@ import {
   ArrowUpIcon,
   ChevronsUpDownIcon,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { StatusBadge } from "@/components/task/task-badge"
@@ -40,10 +41,10 @@ import {
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import {
   formatDate,
   PRIORITY_BADGE_VARIANT,
-  TASK_PRIORITIES,
   type Task,
 } from "@/lib/projects/types"
 
@@ -91,6 +92,9 @@ export function TaskList({
   tasks: Task[]
   onOpen: (taskId: string) => void
 }) {
+  const t = useTranslations("Projects")
+  const locale = useLocale()
+  const L = useEnumLabel()
   const { getMember } = useProjectStore()
   const [sortKey, setSortKey] = React.useState<SortKey>("dueDate")
   const [dir, setDir] = React.useState<SortDir>("asc")
@@ -146,7 +150,7 @@ export function TaskList({
             <TableRow>
               <TableHead className="w-10">
                 <Checkbox
-                  aria-label="Select all"
+                  aria-label={t("selectAll")}
                   checked={allSelectedOnPage}
                   onCheckedChange={(checked) => {
                     setSelected((prev) => {
@@ -160,14 +164,14 @@ export function TaskList({
                 />
               </TableHead>
               <SortHeader
-                label="Task"
+                label={t("task")}
                 sortKey="title"
                 activeKey={sortKey}
                 dir={dir}
                 onSort={handleSort}
               />
               <SortHeader
-                label="Status"
+                label={t("status")}
                 sortKey="status"
                 activeKey={sortKey}
                 dir={dir}
@@ -175,16 +179,18 @@ export function TaskList({
                 className="hidden md:table-cell"
               />
               <SortHeader
-                label="Priority"
+                label={t("priority")}
                 sortKey="priority"
                 activeKey={sortKey}
                 dir={dir}
                 onSort={handleSort}
                 className="hidden sm:table-cell"
               />
-              <TableHead className="hidden lg:table-cell">Assignee</TableHead>
+              <TableHead className="hidden lg:table-cell">
+                {t("assignee")}
+              </TableHead>
               <SortHeader
-                label="Due"
+                label={t("dueDate")}
                 sortKey="dueDate"
                 activeKey={sortKey}
                 dir={dir}
@@ -204,7 +210,9 @@ export function TaskList({
                 >
                   <TableCell onClick={(event) => event.stopPropagation()}>
                     <Checkbox
-                      aria-label={`Select ${task.identifier}`}
+                      aria-label={t("selectTask", {
+                        identifier: task.identifier,
+                      })}
                       checked={selected[task.id] ?? false}
                       onCheckedChange={(checked) =>
                         setSelected((prev) => ({
@@ -227,11 +235,7 @@ export function TaskList({
                   </TableCell>
                   <TableCell className="hidden sm:table-cell">
                     <Badge variant={PRIORITY_BADGE_VARIANT[task.priority]}>
-                      {
-                        TASK_PRIORITIES.find(
-                          (item) => item.value === task.priority
-                        )?.label
-                      }
+                      {L.taskPriority(task.priority)}
                     </Badge>
                   </TableCell>
                   <TableCell className="hidden lg:table-cell">
@@ -242,13 +246,13 @@ export function TaskList({
                       </div>
                     ) : (
                       <span className="text-sm text-muted-foreground">
-                        Unassigned
+                        {t("unassigned")}
                       </span>
                     )}
                   </TableCell>
                   <TableCell>
                     <span className="text-sm text-muted-foreground">
-                      {formatDate(task.dueDate) ?? "—"}
+                      {formatDate(task.dueDate, locale) ?? t("dash")}
                     </span>
                   </TableCell>
                 </TableRow>
@@ -260,12 +264,10 @@ export function TaskList({
 
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>
-            {sorted.length} task{sorted.length === 1 ? "" : "s"}
-          </span>
+          <span>{t("taskCount", { count: sorted.length })}</span>
           <span aria-hidden>·</span>
           <div className="flex items-center gap-2">
-            <span>Rows per page</span>
+            <span>{t("rowsPerPage")}</span>
             <Select
               items={PAGE_SIZES.map((size) => ({
                 label: String(size),

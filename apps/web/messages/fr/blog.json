@@ -1,0 +1,22 @@
+{
+  "oneWorkspace": {
+    "title": "Pourquoi nous avons construit un seul espace de travail au lieu de cinq outils",
+    "description": "Le coût du passage d'un outil à l'autre est bien réel. Voici comment nous avons conçu Presk autour d'une base commune unique.",
+    "tag": "Ingénierie"
+  },
+  "teamScheduling": {
+    "title": "Planifier entre équipes sans les allers-retours",
+    "description": "Les disponibilités partagées et les fiches de réunion suppriment la partie la plus lente de la planification : trouver un créneau qui convient.",
+    "tag": "Produit"
+  },
+  "securityBuiltIn": {
+    "title": "Une sécurité qui ne se rajoute pas après coup",
+    "description": "Organisations, rôles et permissions de fichiers font partie du produit, ce n'est pas une réflexion tardive.",
+    "tag": "Sécurité"
+  },
+  "aiNativeWorkflows": {
+    "title": "Introducing des workflows natifs IA",
+    "description": "Des assistants qui rédigent, résument et mettent à jour votre travail — intégrés à chaque surface de l'espace de travail.",
+    "tag": "Produit"
+  }
+}

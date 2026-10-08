@@ -1,4 +1,4 @@
-import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import {
   CalendarIcon,
   FolderIcon,
@@ -10,6 +10,7 @@ import {
 } from "lucide-react"
 
 import { Section, SectionHeading } from "@/components/landing/section"
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import {
   Card,
@@ -28,33 +29,44 @@ const ICONS: Record<Feature["icon"], LucideIcon> = {
   shield: ShieldCheckIcon,
 }
 
-export function FeatureGrid({
+const FEATURE_KEYS: Record<Feature["icon"], string> = {
+  zap: "aiWorkflows",
+  users: "onePlace",
+  shield: "security",
+  calendar: "scheduling",
+  folder: "filePermissions",
+  message: "conversations",
+}
+
+export async function FeatureGrid({
   limit,
   showCta = false,
 }: {
   limit?: number
   showCta?: boolean
 }) {
+  const t = await getTranslations("Landing.features")
   const visible = limit ? features.slice(0, limit) : features
 
   return (
     <Section id="features">
       <SectionHeading
-        eyebrow="Why Presk"
-        title="Everything your team needs, in one workspace"
-        description="Stop stitching together five tools. Presk keeps your work, conversations and files connected by default."
+        eyebrow={t("eyebrow")}
+        title={t("title")}
+        description={t("description")}
       />
       <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {visible.map((feature) => {
           const Icon = ICONS[feature.icon]
+          const key = FEATURE_KEYS[feature.icon]
           return (
-            <Card key={feature.title} className="h-full">
+            <Card key={feature.icon} className="h-full">
               <CardHeader>
                 <div className="mb-2 flex size-10 items-center justify-center rounded-lg border bg-muted/40">
                   <Icon className="size-5" />
                 </div>
-                <CardTitle>{feature.title}</CardTitle>
-                <CardDescription>{feature.description}</CardDescription>
+                <CardTitle>{t(key as never)}</CardTitle>
+                <CardDescription>{t(`${key}Description` as never)}</CardDescription>
               </CardHeader>
             </Card>
           )
@@ -68,7 +80,7 @@ export function FeatureGrid({
             render={<Link href="/features" />}
             nativeButton={false}
           >
-            Explore all features
+            {t("explore")}
           </Button>
         </div>
       ) : null}

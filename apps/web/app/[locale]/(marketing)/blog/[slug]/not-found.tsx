@@ -1,19 +1,21 @@
-import Link from "next/link"
+import { getTranslations } from "next-intl/server"
 import { FileQuestionIcon } from "lucide-react"
 
+import { Link } from "@/i18n/navigation"
 import { Button } from "@workspace/ui/components/button"
 import { NotFoundState } from "@/components/states/not-found-state"
 
-export default function BlogPostNotFound() {
+export default async function BlogPostNotFound() {
+  const t = await getTranslations("Marketing.blog")
   return (
     <NotFoundState
       icon={FileQuestionIcon}
-      title="Post not found"
-      description="This article doesn't exist or may have been removed."
+      title={t("notFoundTitle")}
+      description={t("notFoundDescription")}
       className="min-h-[70svh]"
       actions={
         <Button nativeButton={false} render={<Link href="/blog" />}>
-          Back to all posts
+          {t("backToPosts")}
         </Button>
       }
     />

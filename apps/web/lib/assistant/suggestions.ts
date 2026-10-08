@@ -1,23 +1,23 @@
 export interface Suggestion {
-  label: string
-  prompt: string
+  labelKey: string
+  promptKey: string
 }
 
 export const suggestions: Suggestion[] = [
   {
-    label: "Catch me up",
-    prompt: "Catch me up on my workspace",
+    labelKey: "catchMeUp",
+    promptKey: "catchMeUpPrompt",
   },
   {
-    label: "Plan my day",
-    prompt: "Help me plan my day",
+    labelKey: "planMyDay",
+    promptKey: "planMyDayPrompt",
   },
   {
-    label: "Summarize a project",
-    prompt: "Summarize the Website Redesign project",
+    labelKey: "summarizeProject",
+    promptKey: "summarizeProjectPrompt",
   },
   {
-    label: "Draft a message",
-    prompt: "Draft a message to the engineering channel",
+    labelKey: "draftMessage",
+    promptKey: "draftMessagePrompt",
   },
 ]

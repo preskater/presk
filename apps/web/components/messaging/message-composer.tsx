@@ -9,6 +9,7 @@ import {
   SmilePlusIcon,
   SlashIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -45,6 +46,7 @@ export function MessageComposer({
   parentId?: string
   onScheduleMeeting?: () => void
 }) {
+  const t = useTranslations("Messaging")
   const { sendMessage, currentUserId, setTyping } = useMessaging()
   const [value, setValue] = React.useState("")
   const [attachments, setAttachments] = React.useState<Attachment[]>([])
@@ -66,7 +68,7 @@ export function MessageComposer({
       return
     }
     if (command.name === "call") {
-      toast.success("Starting an audio call...")
+      toast.success(t("startingAudioCall"))
       return
     }
     if (command.name === "shrug") {
@@ -88,7 +90,7 @@ export function MessageComposer({
                 {attachment.name}
                 <button
                   type="button"
-                  aria-label={`Remove ${attachment.name}`}
+                  aria-label={t("removeAttachment", { name: attachment.name })}
                   onClick={() =>
                     setAttachments((prev) =>
                       prev.filter((item) => item.id !== attachment.id)
@@ -106,7 +108,7 @@ export function MessageComposer({
         <Textarea
           ref={textareaRef}
           value={value}
-          placeholder={parentId ? "Reply in thread" : "Type a message"}
+          placeholder={parentId ? t("replyInThread") : t("typeMessage")}
           className="min-h-20 resize-none border-0 bg-transparent shadow-none focus-visible:ring-0 dark:bg-transparent"
           onChange={(event) => {
             setValue(event.target.value)
@@ -125,7 +127,7 @@ export function MessageComposer({
             <Button
               variant="ghost"
               size="icon-sm"
-              aria-label="Attach file"
+              aria-label={t("attachFile")}
               onClick={() =>
                 setAttachments((prev) => [
                   ...prev,
@@ -144,7 +146,11 @@ export function MessageComposer({
             <Popover>
               <PopoverTrigger
                 render={
-                  <Button variant="ghost" size="icon-sm" aria-label="Add emoji" />
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("addEmoji")}
+                  />
                 }
               >
                 <SmilePlusIcon />
@@ -170,7 +176,11 @@ export function MessageComposer({
             <Popover>
               <PopoverTrigger
                 render={
-                  <Button variant="ghost" size="sm" aria-label="Add GIF">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    aria-label={t("addGif")}
+                  >
                     GIF
                   </Button>
                 }
@@ -192,7 +202,7 @@ export function MessageComposer({
             <CommandPopover
               onCommand={handleCommand}
               trigger={
-                <Button variant="ghost" size="icon-sm" aria-label="Commands">
+                <Button variant="ghost" size="icon-sm" aria-label={t("commands")}>
                   <SlashIcon />
                 </Button>
               }
@@ -203,7 +213,7 @@ export function MessageComposer({
                 setValue((prev) => `${prev}@${name.split(" ")[0]} `)
               }
               trigger={
-                <Button variant="ghost" size="icon-sm" aria-label="Mention someone">
+                <Button variant="ghost" size="icon-sm" aria-label={t("mentionSomeone")}>
                   <AtSignIcon />
                 </Button>
               }
@@ -212,7 +222,11 @@ export function MessageComposer({
             <Popover>
               <PopoverTrigger
                 render={
-                  <Button variant="ghost" size="icon-sm" aria-label="Attach image" />
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    aria-label={t("attachImage")}
+                  />
                 }
               >
                 <ImageIcon />
@@ -234,7 +248,7 @@ export function MessageComposer({
                   }
                 >
                   <ImageIcon className="size-4" />
-                  Upload an image
+                  {t("uploadImage")}
                 </button>
               </PopoverContent>
             </Popover>
@@ -242,14 +256,14 @@ export function MessageComposer({
 
           <div className="flex items-center gap-2">
             <span className="hidden text-xs text-muted-foreground sm:block">
-              Enter to send · Shift+Enter for new line
+              {t("sendHint")}
             </span>
             <Tooltip>
               <TooltipTrigger
                 render={
                   <Button
                     size="icon-sm"
-                    aria-label="Send message"
+                    aria-label={t("sendMessage")}
                     disabled={!value.trim() && attachments.length === 0}
                     onClick={submit}
                   />
@@ -257,7 +271,7 @@ export function MessageComposer({
               >
                 <SendIcon />
               </TooltipTrigger>
-              <TooltipContent>Send</TooltipContent>
+              <TooltipContent>{t("send")}</TooltipContent>
             </Tooltip>
           </div>
         </div>

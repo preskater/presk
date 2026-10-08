@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { Controller, useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import * as z from "zod"
@@ -16,19 +17,22 @@ import {
 } from "@workspace/ui/components/input-group"
 import { toast } from "sonner"
 
-const schema = z.object({
-  email: z.email("Please enter a valid email address."),
-})
-
 export function WaitlistForm() {
+  const t = useTranslations("Forms.waitlist")
+
+  const schema = React.useMemo(
+    () => z.object({ email: z.email(t("emailInvalid")) }),
+    [t]
+  )
+
   const form = useForm<z.infer<typeof schema>>({
     resolver: zodResolver(schema),
     defaultValues: { email: "" },
   })
 
   function onSubmit(values: z.infer<typeof schema>) {
-    toast.success("You're on the list!", {
-      description: `We'll reach out at ${values.email} soon.`,
+    toast.success(t("successTitle"), {
+      description: t("successDescription", { email: values.email }),
     })
     form.reset()
   }
@@ -49,11 +53,11 @@ export function WaitlistForm() {
                   {...field}
                   type="email"
                   aria-invalid={fieldState.invalid}
-                  placeholder="you@company.com"
+                  placeholder={t("placeholder")}
                 />
               </InputGroup>
               <Button type="submit" size="lg">
-                Join the waitlist
+                {t("submit")}
               </Button>
             </div>
             {fieldState.invalid ? (

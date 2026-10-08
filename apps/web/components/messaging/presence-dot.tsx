@@ -2,6 +2,7 @@
 
 import { cn } from "@workspace/ui/lib/utils"
 
+import { useEnumLabel } from "@/lib/i18n/labels"
 import type { Presence } from "@/lib/messaging/types"
 
 const PRESENCE_COLOR: Record<Presence, string> = {
@@ -11,11 +12,8 @@ const PRESENCE_COLOR: Record<Presence, string> = {
   offline: "bg-muted-foreground/40",
 }
 
-const PRESENCE_LABEL: Record<Presence, string> = {
-  online: "Available",
-  away: "Away",
-  busy: "Busy",
-  offline: "Offline",
+function presenceKey(presence: Presence) {
+  return presence === "online" ? "available" : presence
 }
 
 export function PresenceDot({
@@ -27,6 +25,9 @@ export function PresenceDot({
   className?: string
   label?: boolean
 }) {
+  const L = useEnumLabel()
+  const presenceLabel = L.presence(presenceKey(presence))
+
   if (label) {
     return (
       <span className={cn("inline-flex items-center gap-2 text-sm", className)}>
@@ -34,15 +35,15 @@ export function PresenceDot({
           aria-hidden
           className={cn("size-2 rounded-full", PRESENCE_COLOR[presence])}
         />
-        {PRESENCE_LABEL[presence]}
+        {presenceLabel}
       </span>
     )
   }
 
   return (
     <span
-      aria-label={PRESENCE_LABEL[presence]}
-      title={PRESENCE_LABEL[presence]}
+      aria-label={presenceLabel}
+      title={presenceLabel}
       className={cn(
         "size-2.5 rounded-full ring-2 ring-background",
         PRESENCE_COLOR[presence],

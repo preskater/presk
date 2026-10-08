@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { useChat } from "@ai-sdk/react"
+import { useTranslations } from "next-intl"
 import { ArrowUpIcon, SparklesIcon, XIcon } from "lucide-react"
 
 import { AssistantMessage } from "@/components/assistant/assistant-message"
@@ -25,6 +26,7 @@ import {
 import { suggestions } from "@/lib/assistant/suggestions"
 
 export function AssistantBar() {
+  const t = useTranslations("Assistant")
   const { messages, sendMessage, status } = useChat({
     messages: assistantInitialMessages,
     transport: assistantTransport,
@@ -63,17 +65,17 @@ export function AssistantBar() {
             <div className="flex items-center justify-between px-4 py-2.5">
               <div className="flex items-center gap-2">
                 <SparklesIcon className="size-4 text-primary" />
-                <span className="text-sm font-medium">Presk assistant</span>
+                <span className="text-sm font-medium">{t("title")}</span>
                 {isBusy ? (
                   <Badge variant="secondary" className="shimmer">
-                    Thinking
+                    {t("thinking")}
                   </Badge>
                 ) : null}
               </div>
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Collapse assistant"
+                aria-label={t("collapse")}
                 onClick={() => setOpen(false)}
               >
                 <XIcon />
@@ -102,12 +104,12 @@ export function AssistantBar() {
           <div className="flex flex-wrap gap-1.5 px-3 pt-3">
             {suggestions.map((suggestion) => (
               <button
-                key={suggestion.label}
+                key={suggestion.labelKey}
                 type="button"
-                onClick={() => submit(suggestion.prompt)}
+                onClick={() => submit(t(suggestion.promptKey as never))}
                 className="rounded-full border bg-background px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
               >
-                {suggestion.label}
+                {t(suggestion.labelKey as never)}
               </button>
             ))}
           </div>
@@ -119,14 +121,14 @@ export function AssistantBar() {
             value={input}
             onChange={(event) => setInput(event.target.value)}
             onFocus={() => setOpen(true)}
-            placeholder="Ask the Presk assistant…"
-            aria-label="Ask the Presk assistant"
+            placeholder={t("placeholder")}
+            aria-label={t("ask")}
             className="min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
           <Button
             type="submit"
             size="icon-sm"
-            aria-label="Send"
+            aria-label={t("send")}
             disabled={!input.trim() || isBusy}
           >
             <ArrowUpIcon />

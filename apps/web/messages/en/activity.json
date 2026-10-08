@@ -1,0 +1,13 @@
+{
+  "created": "created",
+  "moved": "moved",
+  "deleted": "deleted",
+  "commentedOn": "commented on",
+  "requestedReviewOn": "requested review on",
+  "openedPullRequestFor": "opened a pull request for",
+  "renamedThisFile": "renamed this file",
+  "movedThisFileToTrash": "moved this file to trash",
+  "editedThisFile": "edited this file",
+  "sharedWith": "shared with {name}",
+  "taskMoved": "{identifier} to {status}"
+}

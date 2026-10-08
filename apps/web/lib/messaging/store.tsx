@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import {
@@ -16,6 +17,7 @@ import {
   toggleReactionAction,
 } from "@/actions/messaging"
 import { unwrapActionResult } from "@/lib/core/action"
+import { useErrorTranslator } from "@/lib/i18n/errors"
 import type { Member } from "@/lib/projects/types"
 
 import type {
@@ -89,6 +91,8 @@ export function MessagingProvider({
   currentUserId: string
   members?: Member[]
 }) {
+  const t = useTranslations("Toasts")
+  const te = useErrorTranslator()
   const [conversations, setConversations] = React.useState<Conversation[]>(
     initialData.conversations
   )
@@ -188,7 +192,7 @@ export function MessagingProvider({
           setMessages((prev) =>
             prev.filter((item) => item.id !== optimistic.id)
           )
-          toast.error(error.message ?? "Message failed to send.")
+          toast.error(te(error, "messageFailed"))
         })
     }
 
@@ -221,9 +225,9 @@ export function MessagingProvider({
         void editMessageAction(id, body)
           .then((result) => {
             unwrap(result)
-            toast.success("Message edited.")
+            toast.success(t("messageEdited"))
           })
-          .catch((error) => toast.error(error.message ?? "Edit failed."))
+          .catch((error) => toast.error(te(error, "editFailed")))
       },
       deleteMessage: (id) => {
         setMessages((prev) =>
@@ -234,9 +238,9 @@ export function MessagingProvider({
         void deleteMessageAction(id)
           .then((result) => {
             unwrap(result)
-            toast.success("Message deleted.")
+            toast.success(t("messageDeleted"))
           })
-          .catch((error) => toast.error(error.message ?? "Delete failed."))
+          .catch((error) => toast.error(te(error, "deleteFailed")))
       },
       toggleReaction: (messageId, emoji) => {
         setMessages((prev) =>
@@ -254,7 +258,7 @@ export function MessagingProvider({
         )
         void toggleReactionAction(messageId, { emoji })
           .then((result) => unwrap(result))
-          .catch((error) => toast.error(error.message ?? "Reaction failed."))
+          .catch((error) => toast.error(te(error, "reactionFailed")))
       },
       toggleReactionMember: (messageId, emoji, memberId) => {
         setMessages((prev) =>
@@ -273,7 +277,7 @@ export function MessagingProvider({
         )
         void toggleReactionAction(messageId, { emoji, memberId })
           .then((result) => unwrap(result))
-          .catch((error) => toast.error(error.message ?? "Reaction failed."))
+          .catch((error) => toast.error(te(error, "reactionFailed")))
       },
       addThreadReply: (parentId, body) => {
         const parentMessage = messages.find((message) => message.id === parentId)
@@ -297,7 +301,7 @@ export function MessagingProvider({
             )
           })
           .catch((error) =>
-            toast.error(error.message ?? "Reply failed.")
+            toast.error(te(error, "replyFailed"))
           )
       },
       markRead: (conversationId) => {
@@ -338,11 +342,13 @@ export function MessagingProvider({
             setConversations((prev) =>
               prev.map((item) => (item.id === id ? conversation : item))
             )
-            toast.success(`Started a chat with ${member?.name ?? "teammate"}.`)
+            toast.success(
+              t("chatStarted", { name: member?.name ?? t("teammate") })
+            )
           })
           .catch((error) => {
             setConversations((prev) => prev.filter((item) => item.id !== id))
-            toast.error(error.message ?? "Could not start chat.")
+            toast.error(te(error, "chatFailed"))
           })
         return id
       },
@@ -374,11 +380,11 @@ export function MessagingProvider({
             setConversations((prev) =>
               prev.map((item) => (item.id === id ? conversation : item))
             )
-            toast.success(`Channel #${name} created.`)
+            toast.success(t("channelCreated", { name }))
           })
           .catch((error) => {
             setConversations((prev) => prev.filter((item) => item.id !== id))
-            toast.error(error.message ?? "Could not create channel.")
+            toast.error(te(error, "channelFailed"))
           })
         return id
       },
@@ -402,7 +408,7 @@ export function MessagingProvider({
         )
         void toggleMuteAction(conversationId, muted)
           .then((result) => unwrap(result))
-          .catch((error) => toast.error(error.message ?? "Update failed."))
+          .catch((error) => toast.error(te(error, "updateFailed")))
       },
       togglePin: (conversationId) => {
         let pinned = false
@@ -415,7 +421,7 @@ export function MessagingProvider({
         )
         void togglePinAction(conversationId, pinned)
           .then((result) => unwrap(result))
-          .catch((error) => toast.error(error.message ?? "Update failed."))
+          .catch((error) => toast.error(te(error, "updateFailed")))
       },
     }
   }, [conversations, messages, teams, presence, typing, members, currentUserId])

@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { CalendarIcon } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { Button } from "@workspace/ui/components/button"
 import { Calendar } from "@workspace/ui/components/calendar"
@@ -17,7 +18,7 @@ import { formatDate } from "@/lib/projects/types"
 export function DatePicker({
   value,
   onChange,
-  placeholder = "Pick a date",
+  placeholder,
   className,
   disabled,
 }: {
@@ -27,6 +28,8 @@ export function DatePicker({
   className?: string
   disabled?: boolean
 }) {
+  const t = useTranslations("Projects")
+  const locale = useLocale()
   const [open, setOpen] = React.useState(false)
   const selected = value ? new Date(value) : undefined
 
@@ -46,7 +49,7 @@ export function DatePicker({
         }
       >
         <CalendarIcon data-icon="inline-start" />
-        {value ? formatDate(value) : placeholder}
+        {value ? formatDate(value, locale) : (placeholder ?? t("pickDate"))}
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <Calendar
@@ -70,7 +73,7 @@ export function DatePicker({
                 setOpen(false)
               }}
             >
-              Clear date
+              {t("clearDate")}
             </Button>
           </div>
         ) : null}

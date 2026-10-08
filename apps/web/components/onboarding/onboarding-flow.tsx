@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { Building2Icon, CheckIcon, MailIcon, XIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -27,7 +28,8 @@ import { Input } from "@workspace/ui/components/input"
 import { Spinner } from "@workspace/ui/components/spinner"
 
 import { authClient } from "@/lib/auth-client"
-import { formatRoleLabel } from "@/lib/organization/roles"
+import { useEnumLabel } from "@/lib/i18n/labels"
+import { parseRoles } from "@/lib/organization/roles"
 import { getInitials, slugify } from "@/lib/organization/utils"
 
 interface PendingInvitation {
@@ -45,6 +47,8 @@ export function OnboardingFlow({
   invitations: PendingInvitation[]
 }) {
   const router = useRouter()
+  const t = useTranslations("Org")
+  const L = useEnumLabel()
   const [invitations, setInvitations] =
     React.useState<PendingInvitation[]>(initialInvitations)
 
@@ -61,11 +65,11 @@ export function OnboardingFlow({
       invitationId,
     })
     if (error) {
-      toast.error(error.message ?? "Unable to accept the invitation.")
+      toast.error(error.message ?? t("unableToAcceptInvitation"))
       setPendingId(null)
       return
     }
-    toast.success("Welcome to the organization!")
+    toast.success(t("welcomeToOrganization"))
     router.push(invitation ? `/${invitation.organizationSlug}` : "/onboarding")
     router.refresh()
   }
@@ -76,7 +80,7 @@ export function OnboardingFlow({
       invitationId,
     })
     if (error) {
-      toast.error(error.message ?? "Unable to decline the invitation.")
+      toast.error(error.message ?? t("unableToDeclineInvitation"))
       setPendingId(null)
       return
     }
@@ -88,12 +92,12 @@ export function OnboardingFlow({
     event.preventDefault()
     const trimmed = name.trim()
     if (!trimmed) {
-      setError("Please enter an organization name.")
+      setError(t("pleaseEnterOrganizationName"))
       return
     }
     const slug = slugify(trimmed)
     if (!slug) {
-      setError("Please use letters or numbers in the name.")
+      setError(t("useLettersOrNumbers"))
       return
     }
     setSubmitting(true)
@@ -103,11 +107,11 @@ export function OnboardingFlow({
       slug,
     })
     if (error) {
-      setError(error.message ?? "Unable to create the organization.")
+      setError(error.message ?? t("unableToCreateOrganization"))
       setSubmitting(false)
       return
     }
-    toast.success("Organization created.")
+    toast.success(t("organizationCreated"))
     router.push(data?.slug ? `/${data.slug}` : "/onboarding")
     router.refresh()
   }
@@ -116,10 +120,10 @@ export function OnboardingFlow({
     <div className="flex flex-col gap-6">
       <div className="flex flex-col gap-1 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">
-          Welcome, {userName.split(" ")[0]}
+          {t("welcome", { name: userName.split(" ")[0] ?? userName })}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Create a new organization or join one you&apos;ve been invited to.
+          {t("onboardingDescription")}
         </p>
       </div>
 
@@ -128,10 +132,10 @@ export function OnboardingFlow({
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MailIcon className="size-4" />
-              Pending invitations
+              {t("pendingInvitations")}
             </CardTitle>
             <CardDescription>
-              You&apos;ve been invited to the following organizations.
+              {t("pendingInvitationsDescription")}
             </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-3">
@@ -150,7 +154,11 @@ export function OnboardingFlow({
                     {invitation.organizationName}
                   </span>
                   <span className="text-xs text-muted-foreground">
-                    Role: {formatRoleLabel(invitation.role)}
+                    {t("roleLabel", {
+                      role: parseRoles(invitation.role)
+                        .map((value) => L.orgRole(value))
+                        .join(", "),
+                    })}
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
@@ -164,7 +172,7 @@ export function OnboardingFlow({
                     ) : (
                       <CheckIcon data-icon="inline-start" />
                     )}
-                    Accept
+                    {t("accept")}
                   </Button>
                   <Button
                     size="sm"
@@ -173,7 +181,7 @@ export function OnboardingFlow({
                     onClick={() => decline(invitation.id)}
                   >
                     <XIcon data-icon="inline-start" />
-                    Decline
+                    {t("decline")}
                   </Button>
                 </div>
               </div>
@@ -186,11 +194,10 @@ export function OnboardingFlow({
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Building2Icon className="size-4" />
-            Create an organization
+            {t("createOrganizationTitle")}
           </CardTitle>
           <CardDescription>
-            Set up a workspace for your team. You can invite members once it
-            exists.
+            {t("createOrganizationDescription")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -198,19 +205,19 @@ export function OnboardingFlow({
             <FieldGroup>
               <Field>
                 <FieldLabel htmlFor="organization-name">
-                  Organization name
+                  {t("organizationName")}
                 </FieldLabel>
                 <Input
                   id="organization-name"
                   value={name}
                   onChange={(event) => setName(event.target.value)}
-                  placeholder="Acme Inc."
+                  placeholder={t("organizationNamePlaceholder")}
                   autoFocus
                 />
                 <FieldDescription>
                   {name.trim()
-                    ? `Workspace URL: presk.app/${slugify(name)}`
-                    : "This can be changed later."}
+                    ? t("workspaceUrl", { slug: slugify(name) })
+                    : t("canChangeLater")}
                 </FieldDescription>
               </Field>
               {error ? (
@@ -219,7 +226,7 @@ export function OnboardingFlow({
               <Field>
                 <Button type="submit" disabled={submitting}>
                   {submitting ? <Spinner /> : null}
-                  {submitting ? "Creating..." : "Create organization"}
+                  {submitting ? t("creating") : t("createOrganization")}
                 </Button>
               </Field>
             </FieldGroup>

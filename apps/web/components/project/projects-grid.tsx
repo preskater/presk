@@ -1,12 +1,12 @@
 "use client"
 
-import Link from "next/link"
 import {
   EllipsisIcon,
   FolderIcon,
   PencilIcon,
   Trash2Icon,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 
 import { DashboardEmpty } from "@/components/dashboard-empty"
 import { MemberAvatar } from "@/components/task/member-avatar"
@@ -41,17 +41,16 @@ import {
 } from "@workspace/ui/components/dropdown-menu"
 import { Progress } from "@workspace/ui/components/progress"
 
+import { Link } from "@/i18n/navigation"
 import { useProjectStore } from "@/lib/projects/store"
 import { useOrgSlug } from "@/lib/organization/use-org-slug"
+import { useEnumLabel } from "@/lib/i18n/labels"
 import { formatDate, type Project } from "@/lib/projects/types"
 
-const PROJECT_STATUS_LABEL: Record<Project["status"], string> = {
-  active: "Active",
-  paused: "Paused",
-  completed: "Completed",
-}
-
 function ProjectCard({ project }: { project: Project }) {
+  const t = useTranslations("Projects")
+  const locale = useLocale()
+  const L = useEnumLabel()
   const orgSlug = useOrgSlug()
   const { tasksForProject, getMember, deleteProject } = useProjectStore()
   const tasks = tasksForProject(project.id)
@@ -73,7 +72,7 @@ function ProjectCard({ project }: { project: Project }) {
               </Link>
             </CardTitle>
             <CardDescription className="line-clamp-2">
-              {project.description ?? "No description"}
+              {project.description ?? t("noDescription")}
             </CardDescription>
           </div>
           <DropdownMenu>
@@ -87,7 +86,7 @@ function ProjectCard({ project }: { project: Project }) {
               }
             >
               <EllipsisIcon />
-              <span className="sr-only">Project actions</span>
+              <span className="sr-only">{t("projectActions")}</span>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
@@ -96,7 +95,7 @@ function ProjectCard({ project }: { project: Project }) {
                   trigger={
                     <DropdownMenuItem>
                       <PencilIcon />
-                      Edit project
+                      {t("editProject")}
                     </DropdownMenuItem>
                   }
                 />
@@ -106,26 +105,29 @@ function ProjectCard({ project }: { project: Project }) {
                     render={
                       <DropdownMenuItem variant="destructive">
                         <Trash2Icon />
-                        Delete project
+                        {t("deleteProject")}
                       </DropdownMenuItem>
                     }
                   />
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete project?</AlertDialogTitle>
+                      <AlertDialogTitle>
+                        {t("deleteProjectQuestion")}
+                      </AlertDialogTitle>
                       <AlertDialogDescription>
-                        This will permanently remove “{project.name}” and its{" "}
-                        {tasks.length} task{tasks.length === 1 ? "" : "s"}. This
-                        action cannot be undone.
+                        {t("deleteProjectTasksDescription", {
+                          name: project.name,
+                          count: tasks.length,
+                        })}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
                       <AlertDialogAction
                         variant="destructive"
                         onClick={() => deleteProject(project.id)}
                       >
-                        Delete
+                        {t("delete")}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -137,9 +139,9 @@ function ProjectCard({ project }: { project: Project }) {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         <div className="flex items-center justify-between gap-2">
-          <Badge variant="outline">{PROJECT_STATUS_LABEL[project.status]}</Badge>
+          <Badge variant="outline">{L.projectStatus(project.status)}</Badge>
           <span className="text-xs text-muted-foreground">
-            {done}/{tasks.length} tasks
+            {t("tasksDone", { done, total: tasks.length })}
           </span>
         </div>
         <Progress value={progress} />
@@ -151,7 +153,7 @@ function ProjectCard({ project }: { project: Project }) {
           </div>
           {project.dueDate ? (
             <span className="text-xs text-muted-foreground">
-              Due {formatDate(project.dueDate)}
+              {t("due", { date: formatDate(project.dueDate, locale) ?? "" })}
             </span>
           ) : null}
         </div>
@@ -161,16 +163,21 @@ function ProjectCard({ project }: { project: Project }) {
 }
 
 export function ProjectsGrid() {
+  const t = useTranslations("Projects")
   const { projects } = useProjectStore()
 
   if (projects.length === 0) {
     return (
       <DashboardEmpty
         icon={FolderIcon}
-        title="No projects yet"
-        description="Create a project to start assigning tasks and tracking progress."
+        title={t("noProjectsTitle")}
+        description={t("noProjectsDescription")}
         className="flex-1 border"
-        action={<ProjectFormDialog trigger={<Button>Create project</Button>} />}
+        action={
+          <ProjectFormDialog
+            trigger={<Button>{t("createProject")}</Button>}
+          />
+        }
       />
     )
   }

@@ -20,7 +20,9 @@ const ROLE_RANK: Record<string, number> = {
 
 function canWrite(ctx: RequestContext) {
   if ((ROLE_RANK[ctx.role] ?? 0) >= 2) return
-  throw new ForbiddenError("Your role cannot modify calendars.")
+  throw new ForbiddenError("Your role cannot modify calendars.", {
+    code: "role_cannot_modify_calendars",
+  })
 }
 
 type CalendarRow = Awaited<

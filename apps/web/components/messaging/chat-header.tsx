@@ -12,6 +12,7 @@ import {
   UsersIcon,
   VideoIcon,
 } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { PresenceDot } from "@/components/messaging/presence-dot"
@@ -43,6 +44,7 @@ export function ChatHeader({
   onStartCall: (kind: "audio" | "video") => void
   onOpenSearch: () => void
 }) {
+  const t = useTranslations("Messaging")
   const { getMember, dmPartner, toggleMute, togglePin, presence } =
     useMessaging()
   const members = conversation.memberIds
@@ -78,7 +80,7 @@ export function ChatHeader({
               <PinIcon className="size-3 shrink-0 text-muted-foreground" />
             ) : null}
             {conversation.muted ? (
-              <Badge variant="outline">Muted</Badge>
+              <Badge variant="outline">{t("muted")}</Badge>
             ) : null}
           </div>
           {conversation.topic ? (
@@ -101,7 +103,7 @@ export function ChatHeader({
                 <Button
                   variant="ghost"
                   size="icon-sm"
-                  aria-label="View members"
+                  aria-label={t("viewMembers")}
                   onClick={onToggleDetails}
                 />
               }
@@ -112,7 +114,7 @@ export function ChatHeader({
                 ))}
               </AvatarGroup>
             </TooltipTrigger>
-            <TooltipContent>{members.length} members</TooltipContent>
+            <TooltipContent>{t("membersCount", { count: members.length })}</TooltipContent>
           </Tooltip>
         ) : null}
 
@@ -122,14 +124,14 @@ export function ChatHeader({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Search messages"
+                aria-label={t("searchMessages")}
                 onClick={onOpenSearch}
               />
             }
           >
             <SearchIcon />
           </TooltipTrigger>
-          <TooltipContent>Search</TooltipContent>
+          <TooltipContent>{t("searchLabel")}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -138,14 +140,14 @@ export function ChatHeader({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Start audio call"
+                aria-label={t("startAudioCall")}
                 onClick={() => onStartCall("audio")}
               />
             }
           >
             <PhoneIcon />
           </TooltipTrigger>
-          <TooltipContent>Audio call</TooltipContent>
+          <TooltipContent>{t("audioCall")}</TooltipContent>
         </Tooltip>
 
         <Tooltip>
@@ -154,14 +156,14 @@ export function ChatHeader({
               <Button
                 variant="ghost"
                 size="icon-sm"
-                aria-label="Start video call"
+                aria-label={t("startVideoCall")}
                 onClick={() => onStartCall("video")}
               />
             }
           >
             <VideoIcon />
           </TooltipTrigger>
-          <TooltipContent>Video call</TooltipContent>
+          <TooltipContent>{t("videoCall")}</TooltipContent>
         </Tooltip>
 
         <Separator orientation="vertical" className="mx-1 h-5" />
@@ -169,7 +171,11 @@ export function ChatHeader({
         <DropdownMenu>
           <DropdownMenuTrigger
             render={
-              <Button variant="ghost" size="icon-sm" aria-label="More options" />
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                aria-label={t("moreOptions")}
+              />
             }
           >
             <MoreHorizontalIcon />
@@ -178,20 +184,24 @@ export function ChatHeader({
             <DropdownMenuGroup>
               <DropdownMenuItem onSelect={onToggleDetails}>
                 <InfoIcon />
-                Conversation details
+                {t("conversationDetails")}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => togglePin(conversation.id)}>
                 <PinIcon />
-                {conversation.pinned ? "Unpin" : "Pin"} conversation
+                {conversation.pinned
+                  ? t("unpinConversation")
+                  : t("pinConversation")}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => toggleMute(conversation.id)}>
                 <BellOffIcon />
-                {conversation.muted ? "Unmute" : "Mute"} notifications
+                {conversation.muted
+                  ? t("unmuteNotifications")
+                  : t("muteNotifications")}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={() => onStartCall("audio")}>
                 <UsersIcon />
-                Meet now
+                {t("meetNow")}
               </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>

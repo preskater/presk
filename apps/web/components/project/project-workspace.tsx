@@ -1,16 +1,18 @@
 "use client"
 
-import Link from "next/link"
+import { useTranslations } from "next-intl"
 import { FolderXIcon } from "lucide-react"
 
 import { ProjectView } from "@/components/project/project-view"
 import { DashboardEmpty } from "@/components/dashboard-empty"
 import { Button } from "@workspace/ui/components/button"
 
+import { Link } from "@/i18n/navigation"
 import { useProjectStore } from "@/lib/projects/store"
 import { useOrgSlug } from "@/lib/organization/use-org-slug"
 
 export function ProjectWorkspace({ projectId }: { projectId: string }) {
+  const t = useTranslations("Projects")
   const { getProject } = useProjectStore()
   const orgSlug = useOrgSlug()
   const project = getProject(projectId)
@@ -20,12 +22,12 @@ export function ProjectWorkspace({ projectId }: { projectId: string }) {
       <div className="flex flex-1 flex-col px-4 py-4 md:py-6 lg:px-6">
         <DashboardEmpty
           icon={FolderXIcon}
-          title="Project not found"
-          description="This project may have been deleted or the link is incorrect."
+          title={t("notFoundTitle")}
+          description={t("notFoundDescription")}
           className="flex-1 border"
           action={
             <Button render={<Link href={`/${orgSlug}/projects`} />} nativeButton={false}>
-              Back to projects
+              {t("backToProjects")}
             </Button>
           }
         />

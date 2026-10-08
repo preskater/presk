@@ -74,6 +74,19 @@ export interface Activity {
   createdAt: string
 }
 
+/**
+ * Persisted activity `action` values are stable camelCase keys that map to the
+ * `Activity` catalog namespace (see `messages/<locale>/activity.json`), e.g.
+ * `created`, `moved`, `deleted`, `commentedOn`, `requestedReviewOn`.
+ *
+ * Task moves additionally need the destination status. Since `target` is a
+ * single string, the status value is appended using this sentinel:
+ *   `target = "<identifier>__STATUS__<statusValue>"` (e.g. `WEB-3__STATUS__in_progress`).
+ * Renderers split on {@link ACTIVITY_STATUS_SENTINEL} and translate the status
+ * via `Enums.taskStatus`, then render `Activity.taskMoved` (`"{identifier} to {status}"`).
+ */
+export const ACTIVITY_STATUS_SENTINEL = "__STATUS__"
+
 export interface ProjectData {
   projects: Project[]
   tasks: Task[]
@@ -82,19 +95,25 @@ export interface ProjectData {
   activities: Activity[]
 }
 
-export const TASK_STATUSES: { value: TaskStatus; label: string }[] = [
-  { value: "backlog", label: "Backlog" },
-  { value: "todo", label: "Todo" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "review", label: "Review" },
-  { value: "done", label: "Done" },
+export const TASK_STATUS_VALUES: TaskStatus[] = [
+  "backlog",
+  "todo",
+  "in_progress",
+  "review",
+  "done",
 ]
 
-export const TASK_PRIORITIES: { value: TaskPriority; label: string }[] = [
-  { value: "low", label: "Low" },
-  { value: "medium", label: "Medium" },
-  { value: "high", label: "High" },
-  { value: "urgent", label: "Urgent" },
+export const TASK_PRIORITY_VALUES: TaskPriority[] = [
+  "low",
+  "medium",
+  "high",
+  "urgent",
+]
+
+export const PROJECT_STATUS_VALUES: ProjectStatus[] = [
+  "active",
+  "paused",
+  "completed",
 ]
 
 export const PRIORITY_BADGE_VARIANT: Record<
@@ -107,9 +126,9 @@ export const PRIORITY_BADGE_VARIANT: Record<
   urgent: "destructive",
 }
 
-export function formatDate(value?: string) {
+export function formatDate(value?: string, locale = "en") {
   if (!value) return null
-  return new Date(value).toLocaleDateString("en-US", {
+  return new Date(value).toLocaleDateString(locale, {
     month: "short",
     day: "numeric",
   })

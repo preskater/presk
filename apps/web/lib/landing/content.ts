@@ -1,67 +1,50 @@
 export interface NavLink {
-  title: string
+  key: string
   href: string
-  description?: string
 }
 
 export interface NavColumn {
-  title: string
+  key: "product" | "solutions" | "resources" | "company"
   links: NavLink[]
 }
 
 export const productNav: NavColumn = {
-  title: "Product",
+  key: "product",
   links: [
-    {
-      title: "Projects",
-      href: "/features",
-      description: "Kanban boards, tasks and progress",
-    },
-    {
-      title: "Messaging",
-      href: "/features",
-      description: "Channels, threads and direct messages",
-    },
-    {
-      title: "Calendars",
-      href: "/features",
-      description: "Team scheduling and availability",
-    },
-    {
-      title: "Files",
-      href: "/features",
-      description: "Documents, sharing and permissions",
-    },
+    { key: "projects", href: "/features" },
+    { key: "messaging", href: "/features" },
+    { key: "calendars", href: "/features" },
+    { key: "files", href: "/features" },
   ],
 }
 
 export const solutionNav: NavColumn = {
-  title: "Solutions",
+  key: "solutions",
   links: [
-    { title: "Engineering", href: "/features", description: "Ship faster together" },
-    { title: "Design", href: "/features", description: "Keep work in sync" },
-    { title: "Operations", href: "/features", description: "Run the business" },
-    { title: "Startups", href: "/pricing", description: "Scale from day one" },
+    { key: "engineering", href: "/features" },
+    { key: "design", href: "/features" },
+    { key: "operations", href: "/features" },
+    { key: "startups", href: "/pricing" },
   ],
 }
 
 export const resourceNav: NavColumn = {
-  title: "Resources",
+  key: "resources",
   links: [
-    { title: "Documentation", href: "/faq", description: "Guides and references" },
-    { title: "Blog", href: "/blog", description: "Product updates" },
-    { title: "Community", href: "/blog", description: "Join the conversation" },
-    { title: "Support", href: "/faq", description: "We're here to help" },
+    { key: "documentation", href: "/faq" },
+    { key: "blog", href: "/blog" },
+    { key: "community", href: "/blog" },
+    { key: "support", href: "/faq" },
   ],
 }
 
 export const companyNav: NavColumn = {
-  title: "Company",
+  key: "company",
   links: [
-    { title: "About", href: "/about", description: "Our mission and team" },
-    { title: "Careers", href: "/careers", description: "Join the team" },
-    { title: "Contact", href: "/contact", description: "Talk to sales" },
-    { title: "Pricing", href: "/pricing", description: "Plans and billing" },
+    { key: "about", href: "/about" },
+    { key: "careers", href: "/careers" },
+    { key: "contact", href: "/contact" },
+    { key: "pricing", href: "/pricing" },
   ],
 }
 
@@ -289,126 +272,78 @@ export const faqs: FaqItem[] = [
   },
 ]
 
-export const footerColumns: { title: string; links: { title: string; href: string }[] }[] =
-  [
-    {
-      title: "Product",
-      links: [
-        { title: "Features", href: "/features" },
-        { title: "Pricing", href: "/pricing" },
-        { title: "FAQ", href: "/faq" },
-        { title: "Blog", href: "/blog" },
-      ],
-    },
-    {
-      title: "Company",
-      links: [
-        { title: "About", href: "/about" },
-        { title: "Careers", href: "/careers" },
-        { title: "Contact", href: "/contact" },
-        { title: "Blog", href: "/blog" },
-      ],
-    },
-    {
-      title: "Resources",
-      links: [
-        { title: "Documentation", href: "/faq" },
-        { title: "Support", href: "/faq" },
-        { title: "Community", href: "/blog" },
-        { title: "Changelog", href: "/blog" },
-      ],
-    },
-    {
-      title: "Legal",
-      links: [
-        { title: "Privacy", href: "/legal/privacy" },
-        { title: "Terms", href: "/legal/terms" },
-        { title: "Security", href: "/legal/security" },
-        { title: "Cookies", href: "/legal/cookies" },
-      ],
-    },
-  ]
+export interface FooterColumn {
+  key: "product" | "company" | "resources" | "legal"
+  links: { key: string; href: string }[]
+}
 
-export const companyValues: { title: string; description: string }[] = [
+export const footerColumns: FooterColumn[] = [
   {
-    title: "Default to clarity",
-    description:
-      "We build tools that make the state of the work obvious, so teams spend less time asking and more time doing.",
+    key: "product",
+    links: [
+      { key: "features", href: "/features" },
+      { key: "pricing", href: "/pricing" },
+      { key: "faq", href: "/faq" },
+      { key: "blog", href: "/blog" },
+    ],
   },
   {
-    title: "AI as a teammate",
-    description:
-      "Assistants should handle the busywork — summaries, updates and follow-ups — so people can focus on judgement.",
+    key: "company",
+    links: [
+      { key: "about", href: "/about" },
+      { key: "careers", href: "/careers" },
+      { key: "contact", href: "/contact" },
+      { key: "blog", href: "/blog" },
+    ],
   },
   {
-    title: "One workspace",
-    description:
-      "Context shouldn't live in five tabs. Projects, chat, calendar and files belong together.",
+    key: "resources",
+    links: [
+      { key: "documentation", href: "/faq" },
+      { key: "support", href: "/faq" },
+      { key: "community", href: "/blog" },
+      { key: "changelog", href: "/blog" },
+    ],
+  },
+  {
+    key: "legal",
+    links: [
+      { key: "privacy", href: "/legal/privacy" },
+      { key: "terms", href: "/legal/terms" },
+      { key: "security", href: "/legal/security" },
+      { key: "cookies", href: "/legal/cookies" },
+    ],
   },
 ]
 
-export const companyStats: { value: string; label: string }[] = [
-  { value: "2019", label: "Founded" },
-  { value: "48", label: "Team members" },
-  { value: "6", label: "Countries" },
-  { value: "12k+", label: "Teams onboarded" },
+export const companyValues: { key: string }[] = [
+  { key: "clarity" },
+  { key: "ai" },
+  { key: "workspace" },
+]
+
+export const companyStats: { value: string; key: string }[] = [
+  { value: "2019", key: "statFounded" },
+  { value: "48", key: "statTeamMembers" },
+  { value: "6", key: "statCountries" },
+  { value: "12k+", key: "statTeamsOnboarded" },
 ]
 
 export interface Job {
   id: string
-  title: string
-  team: string
-  location: string
-  type: string
+  prefix: string
 }
 
 export const jobs: Job[] = [
-  {
-    id: "senior-frontend",
-    title: "Senior Frontend Engineer",
-    team: "Engineering",
-    location: "Remote (EU)",
-    type: "Full-time",
-  },
-  {
-    id: "product-designer",
-    title: "Product Designer",
-    team: "Design",
-    location: "Berlin",
-    type: "Full-time",
-  },
-  {
-    id: "ai-engineer",
-    title: "AI Engineer",
-    team: "Engineering",
-    location: "Remote (Global)",
-    type: "Full-time",
-  },
-  {
-    id: "customer-success",
-    title: "Customer Success Manager",
-    team: "Operations",
-    location: "New York",
-    type: "Full-time",
-  },
+  { id: "senior-frontend", prefix: "seniorFrontend" },
+  { id: "product-designer", prefix: "productDesigner" },
+  { id: "ai-engineer", prefix: "aiEngineer" },
+  { id: "customer-success", prefix: "customerSuccess" },
 ]
 
-export const contactChannels: { title: string; description: string; detail: string }[] =
-  [
-    {
-      title: "Sales",
-      description: "Talk to our team about plans and onboarding.",
-      detail: "sales@presk.app",
-    },
-    {
-      title: "Support",
-      description: "Get help from a product specialist.",
-      detail: "support@presk.app",
-    },
-    {
-      title: "Careers",
-      description: "Questions about working at Presk.",
-      detail: "careers@presk.app",
-    },
-  ]
+export const contactChannels: { key: string; detail: string }[] = [
+  { key: "sales", detail: "sales@presk.app" },
+  { key: "support", detail: "support@presk.app" },
+  { key: "careers", detail: "careers@presk.app" },
+]
 

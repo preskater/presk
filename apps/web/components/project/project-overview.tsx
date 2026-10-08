@@ -6,6 +6,7 @@ import {
   ListTodoIcon,
   TrendingUpIcon,
 } from "lucide-react"
+import { useLocale, useTranslations } from "next-intl"
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 
 import { MemberAvatar } from "@/components/task/member-avatar"
@@ -28,17 +29,33 @@ import { Progress } from "@workspace/ui/components/progress"
 import { Separator } from "@workspace/ui/components/separator"
 
 import { useProjectStore } from "@/lib/projects/store"
+import { useEnumLabel } from "@/lib/i18n/labels"
+import { parseActivityTarget } from "@/lib/projects/activity"
 import {
   formatDate,
-  TASK_STATUSES,
+  TASK_STATUS_VALUES,
   type Project,
 } from "@/lib/projects/types"
 
-const chartConfig = {
-  count: { label: "Tasks", color: "var(--chart-2)" },
-} satisfies ChartConfig
-
 export function ProjectOverview({ project }: { project: Project }) {
+  const t = useTranslations("Projects")
+  const tActivity = useTranslations("Activity")
+  const locale = useLocale()
+  const L = useEnumLabel()
+
+  const renderActivityTarget = (target: string) => {
+    const parsed = parseActivityTarget(target)
+    if (parsed.status) {
+      return tActivity("taskMoved", {
+        identifier: parsed.identifier,
+        status: L.taskStatus(parsed.status),
+      })
+    }
+    return parsed.identifier
+  }
+  const chartConfig = {
+    count: { label: t("tasksChart"), color: "var(--chart-2)" },
+  } satisfies ChartConfig
   const store = useProjectStore()
   const tasks = store.tasksForProject(project.id)
   const activities = store.activitiesForProject(project.id)
@@ -60,34 +77,34 @@ export function ProjectOverview({ project }: { project: Project }) {
 
   const metrics = [
     {
-      label: "Total tasks",
+      label: t("totalTasks"),
       value: String(tasks.length),
-      hint: `${project.memberIds.length} members`,
+      hint: t("memberCount", { count: project.memberIds.length }),
       icon: ListTodoIcon,
     },
     {
-      label: "In progress",
+      label: t("inProgress"),
       value: String(inProgress),
-      hint: "Active work",
+      hint: t("activeWork"),
       icon: CircleDotIcon,
     },
     {
-      label: "Completed",
+      label: t("completed"),
       value: `${completion}%`,
-      hint: `${done} of ${tasks.length} done`,
+      hint: t("doneOf", { done, total: tasks.length }),
       icon: CheckCircle2Icon,
     },
     {
-      label: "Overdue",
+      label: t("overdue"),
       value: String(overdue),
-      hint: "Needs attention",
+      hint: t("needsAttention"),
       icon: TrendingUpIcon,
     },
   ]
 
-  const statusData = TASK_STATUSES.map((status) => ({
-    status: status.label,
-    count: tasks.filter((task) => task.status === status.value).length,
+  const statusData = TASK_STATUS_VALUES.map((status) => ({
+    status: L.taskStatus(status),
+    count: tasks.filter((task) => task.status === status).length,
   }))
 
   const workload = project.memberIds
@@ -130,9 +147,9 @@ export function ProjectOverview({ project }: { project: Project }) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Tasks by status</CardTitle>
+            <CardTitle>{t("tasksByStatus")}</CardTitle>
             <CardDescription>
-              Distribution across the workflow for {project.name}.
+              {t("tasksByStatusDescription", { project: project.name })}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -160,30 +177,34 @@ export function ProjectOverview({ project }: { project: Project }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Progress</CardTitle>
-            <CardDescription>{completion}% complete</CardDescription>
+            <CardTitle>{t("progress")}</CardTitle>
+            <CardDescription>
+              {t("progressComplete", { completion })}
+            </CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             <Progress value={completion} />
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">To do</span>
+                <span className="text-muted-foreground">{t("toDo")}</span>
                 <span className="tabular-nums">{todo}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">In progress</span>
+                <span className="text-muted-foreground">{t("inProgress")}</span>
                 <span className="tabular-nums">{inProgress}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-muted-foreground">Done</span>
+                <span className="text-muted-foreground">{t("doneColumn")}</span>
                 <span className="tabular-nums">{done}</span>
               </div>
               {project.dueDate ? (
                 <>
                   <Separator />
                   <div className="flex items-center justify-between text-sm">
-                    <span className="text-muted-foreground">Target date</span>
-                    <span>{formatDate(project.dueDate)}</span>
+                    <span className="text-muted-foreground">
+                      {t("targetDate")}
+                    </span>
+                    <span>{formatDate(project.dueDate, locale)}</span>
                   </div>
                 </>
               ) : null}
@@ -195,8 +216,8 @@ export function ProjectOverview({ project }: { project: Project }) {
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Team workload</CardTitle>
-            <CardDescription>Assigned tasks per member.</CardDescription>
+            <CardTitle>{t("teamWorkload")}</CardTitle>
+            <CardDescription>{t("teamWorkloadDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             {workload.length ? (
@@ -218,7 +239,7 @@ export function ProjectOverview({ project }: { project: Project }) {
               ))
             ) : (
               <p className="text-sm text-muted-foreground">
-                No members assigned yet.
+                {t("noMembersAssigned")}
               </p>
             )}
           </CardContent>
@@ -226,8 +247,8 @@ export function ProjectOverview({ project }: { project: Project }) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent activity</CardTitle>
-            <CardDescription>Latest updates in this project.</CardDescription>
+            <CardTitle>{t("recentActivity")}</CardTitle>
+            <CardDescription>{t("recentActivityDescription")}</CardDescription>
           </CardHeader>
           <CardContent className="flex flex-col gap-4">
             {activities.length ? (
@@ -239,15 +260,17 @@ export function ProjectOverview({ project }: { project: Project }) {
                     <div className="flex flex-col gap-0.5">
                       <p className="text-sm">
                         <span className="font-medium">
-                          {actor?.name ?? "Someone"}
+                          {actor?.name ?? t("someone")}
                         </span>{" "}
                         <span className="text-muted-foreground">
-                          {activity.action}
+                          {tActivity(activity.action as never)}
                         </span>{" "}
-                        <span className="font-medium">{activity.target}</span>
+                        <span className="font-medium">
+                          {renderActivityTarget(activity.target)}
+                        </span>
                       </p>
                       <span className="text-xs text-muted-foreground">
-                        {formatDate(activity.createdAt)}
+                        {formatDate(activity.createdAt, locale)}
                       </span>
                     </div>
                   </div>
@@ -255,7 +278,7 @@ export function ProjectOverview({ project }: { project: Project }) {
               })
             ) : (
               <p className="text-sm text-muted-foreground">
-                No activity recorded yet.
+                {t("noActivity")}
               </p>
             )}
           </CardContent>

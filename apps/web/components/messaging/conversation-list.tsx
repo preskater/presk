@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import { ChevronRightIcon, MessageCircleIcon } from "lucide-react"
+import { useTranslations } from "next-intl"
 
 import { ConversationItem } from "@/components/messaging/conversation-item"
 import {
@@ -64,6 +65,7 @@ export function ConversationList({
   onSelect: (id: string) => void
   query: string
 }) {
+  const t = useTranslations("Messaging")
   const { teams, conversations } = useMessaging()
 
   const matches = React.useCallback(
@@ -84,7 +86,7 @@ export function ConversationList({
     <div className="flex flex-col gap-0.5 px-1.5 pb-2">
       {pinned.length ? (
         <>
-          <SectionLabel>Pinned</SectionLabel>
+          <SectionLabel>{t("pinned")}</SectionLabel>
           {pinned.map((conversation) => (
             <ConversationItem
               key={conversation.id}
@@ -104,7 +106,7 @@ export function ConversationList({
           <React.Fragment key={team.id}>
             <SectionLabel>{team.name}</SectionLabel>
             <TeamGroup
-              label="Channels"
+              label={t("channels")}
               conversations={teamChannels}
               activeId={activeId}
               onSelect={onSelect}
@@ -115,7 +117,7 @@ export function ConversationList({
 
       {dms.length ? (
         <>
-          <SectionLabel>Direct messages</SectionLabel>
+          <SectionLabel>{t("directMessages")}</SectionLabel>
           {dms.map((conversation) => (
             <ConversationItem
               key={conversation.id}
@@ -130,7 +132,7 @@ export function ConversationList({
       {pinned.length === 0 && dms.length === 0 && teams.length === 0 ? (
         <p className="flex items-center gap-2 px-2 py-6 text-sm text-muted-foreground">
           <MessageCircleIcon className="size-4" />
-          No conversations
+          {t("noConversations")}
         </p>
       ) : null}
     </div>

@@ -5,6 +5,7 @@ import { PrismaPg } from "@prisma/adapter-pg"
 import { PrismaClient } from "../lib/generated/prisma/client"
 import { calendarData } from "../lib/calendars/mock-data"
 import { filesData } from "../lib/files/mock-data"
+import { localizeSeed } from "../lib/i18n/seed-translations"
 import { messagingData } from "../lib/messaging/mock-data"
 import { projectData } from "../lib/projects/mock-data"
 
@@ -14,27 +15,110 @@ const adapter = new PrismaPg({
 
 const prisma = new PrismaClient({ adapter })
 
-const DEMO_ORG = {
+interface SeedOrg {
+  id: string
+  name: string
+  slug: string
+  locale: "en" | "fr"
+  prefix: string
+}
+
+const EN_ORG: SeedOrg = {
   id: "org_demo_presk",
   name: "Presk Demo",
   slug: "presk-demo",
+  locale: "en",
+  prefix: "",
 }
 
-async function seedWorkspace() {
-  const now = new Date()
+const FR_ORG: SeedOrg = {
+  id: "org_demo_presk_fr",
+  name: "Presk Démo",
+  slug: "presk-demo-fr",
+  locale: "fr",
+  prefix: "fr_",
+}
 
+const FR_ID_KEYS = new Set([
+  "id",
+  "parentId",
+  "projectId",
+  "calendarId",
+  "conversationId",
+  "teamId",
+  "labelId",
+])
+
+const FR_ID_LIST_KEYS = new Set(["labelIds", "channelIds"])
+
+function prefixForFr(value: unknown): unknown {
+  if (Array.isArray(value)) {
+    return value.map(prefixForFr)
+  }
+  if (value && typeof value === "object" && !(value instanceof Date)) {
+    const out: Record<string, unknown> = {}
+    for (const [key, item] of Object.entries(value as Record<string, unknown>)) {
+      if (typeof item === "string" && FR_ID_KEYS.has(key)) {
+        out[key] = item.startsWith("u_") ? item : `fr_${item}`
+      } else if (Array.isArray(item) && FR_ID_LIST_KEYS.has(key)) {
+        out[key] = item.map((entry) =>
+          typeof entry === "string" && !entry.startsWith("u_")
+            ? `fr_${entry}`
+            : entry
+        )
+      } else if (
+        item &&
+        typeof item === "object" &&
+        !Array.isArray(item) &&
+        !(item instanceof Date) &&
+        (key === "shares" || key === "versions" || key === "activities")
+      ) {
+        const entries = Object.entries(item as Record<string, unknown>)
+        const isFileMap = entries.every(([, entryValue]) =>
+          Array.isArray(entryValue)
+        )
+        if (isFileMap) {
+          const map: Record<string, unknown> = {}
+          for (const [mapKey, mapValue] of entries) {
+            map[`fr_${mapKey}`] = prefixForFr(mapValue)
+          }
+          out[key] = map
+        } else {
+          out[key] = prefixForFr(item)
+        }
+      } else {
+        out[key] = prefixForFr(item)
+      }
+    }
+    return out
+  }
+  return value
+}
+
+function buildOrgData<T>(data: T, org: SeedOrg): T {
+  if (!org.prefix) {
+    return data
+  }
+  return prefixForFr(localizeSeed(data, org.locale)) as T
+}
+
+async function seedWorkspace(
+  org: SeedOrg,
+  data: typeof projectData,
+  now: Date
+) {
   await prisma.organization.upsert({
-    where: { id: DEMO_ORG.id },
-    update: {},
+    where: { id: org.id },
+    update: { name: org.name, slug: org.slug },
     create: {
-      id: DEMO_ORG.id,
-      name: DEMO_ORG.name,
-      slug: DEMO_ORG.slug,
+      id: org.id,
+      name: org.name,
+      slug: org.slug,
       createdAt: now,
     },
   })
 
-  for (const member of projectData.members) {
+  for (const member of data.members) {
     await prisma.user.upsert({
       where: { id: member.id },
       update: { name: member.name, email: member.email },
@@ -47,11 +131,11 @@ async function seedWorkspace() {
       },
     })
     await prisma.member.upsert({
-      where: { id: `member_${member.id}` },
+      where: { id: `${org.prefix}member_${member.id}` },
       update: { role: member.role },
       create: {
-        id: `member_${member.id}`,
-        organizationId: DEMO_ORG.id,
+        id: `${org.prefix}member_${member.id}`,
+        organizationId: org.id,
         userId: member.id,
         role: member.role,
         createdAt: now,
@@ -60,20 +144,20 @@ async function seedWorkspace() {
   }
 }
 
-async function seedProjects() {
-  const memberIds = projectData.members.map((member) => member.id)
+async function seedProjects(org: SeedOrg, data: typeof projectData) {
+  const memberIds = data.members.map((member) => member.id)
   const labelIdMap = new Map<string, string>()
-  for (const label of projectData.labels) {
+  for (const label of data.labels) {
     const created = await prisma.label.upsert({
       where: {
         organizationId_name: {
-          organizationId: DEMO_ORG.id,
+          organizationId: org.id,
           name: label.name,
         },
       },
       update: { color: label.color },
       create: {
-        organizationId: DEMO_ORG.id,
+        organizationId: org.id,
         name: label.name,
         color: label.color,
       },
@@ -82,7 +166,7 @@ async function seedProjects() {
   }
 
   const projectIdMap = new Map<string, string>()
-  for (const project of projectData.projects) {
+  for (const project of data.projects) {
     const created = await prisma.project.upsert({
       where: { id: project.id },
       update: {
@@ -93,7 +177,7 @@ async function seedProjects() {
       },
       create: {
         id: project.id,
-        organizationId: DEMO_ORG.id,
+        organizationId: org.id,
         name: project.name,
         description: project.description ?? null,
         status: project.status,
@@ -119,7 +203,7 @@ async function seedProjects() {
   }
 
   let order = 0
-  for (const task of projectData.tasks) {
+  for (const task of data.tasks) {
     const created = await prisma.task.upsert({
       where: { id: task.id },
       update: {
@@ -132,7 +216,7 @@ async function seedProjects() {
       },
       create: {
         id: task.id,
-        organizationId: DEMO_ORG.id,
+        organizationId: org.id,
         projectId: projectIdMap.get(task.projectId) ?? task.projectId,
         identifier: task.identifier,
         title: task.title,
@@ -186,7 +270,7 @@ async function seedProjects() {
     }
   }
 
-  for (const activity of projectData.activities) {
+  for (const activity of data.activities) {
     await prisma.projectActivity.upsert({
       where: { id: activity.id },
       update: {},
@@ -204,15 +288,15 @@ async function seedProjects() {
   void memberIds
 }
 
-async function seedCalendars() {
+async function seedCalendars(org: SeedOrg, data: typeof calendarData) {
   const calendarIdMap = new Map<string, string>()
-  for (const calendar of calendarData.calendars) {
+  for (const calendar of data.calendars) {
     const created = await prisma.calendar.upsert({
       where: { id: calendar.id },
       update: { name: calendar.name, color: calendar.color, kind: calendar.kind, visible: calendar.visible },
       create: {
         id: calendar.id,
-        organizationId: DEMO_ORG.id,
+        organizationId: org.id,
         name: calendar.name,
         color: calendar.color,
         kind: calendar.kind,
@@ -229,7 +313,7 @@ async function seedCalendars() {
     }
   }
 
-  for (const event of calendarData.events) {
+  for (const event of data.events) {
     const created = await prisma.calendarEvent.upsert({
       where: { id: event.id },
       update: {
@@ -245,7 +329,7 @@ async function seedCalendars() {
       },
       create: {
         id: event.id,
-        organizationId: DEMO_ORG.id,
+        organizationId: org.id,
         calendarId: calendarIdMap.get(event.calendarId) ?? event.calendarId,
         title: event.title,
         description: event.description ?? null,
@@ -273,8 +357,8 @@ async function seedCalendars() {
   }
 }
 
-async function seedFiles() {
-  for (const file of filesData.files) {
+async function seedFiles(org: SeedOrg, data: typeof filesData) {
+  for (const file of data.files) {
     await prisma.fileNode.upsert({
       where: { id: file.id },
       update: {
@@ -292,7 +376,7 @@ async function seedFiles() {
       },
       create: {
         id: file.id,
-        organizationId: DEMO_ORG.id,
+        organizationId: org.id,
         name: file.name,
         kind: file.kind,
         parentId: file.parentId,
@@ -308,7 +392,7 @@ async function seedFiles() {
     })
   }
 
-  for (const [fileId, entries] of Object.entries(filesData.shares)) {
+  for (const [fileId, entries] of Object.entries(data.shares)) {
     for (const entry of entries) {
       await prisma.fileShare.upsert({
         where: { fileId_userId: { fileId, userId: entry.memberId } },
@@ -318,7 +402,7 @@ async function seedFiles() {
     }
   }
 
-  for (const [fileId, versions] of Object.entries(filesData.versions)) {
+  for (const [fileId, versions] of Object.entries(data.versions)) {
     for (const version of versions) {
       await prisma.fileVersion.upsert({
         where: { id: version.id },
@@ -334,7 +418,7 @@ async function seedFiles() {
     }
   }
 
-  for (const [fileId, activities] of Object.entries(filesData.activities)) {
+  for (const [fileId, activities] of Object.entries(data.activities)) {
     for (const activity of activities) {
       await prisma.fileActivity.upsert({
         where: { id: activity.id },
@@ -351,15 +435,15 @@ async function seedFiles() {
   }
 }
 
-async function seedMessaging() {
+async function seedMessaging(org: SeedOrg, data: typeof messagingData) {
   const teamIdMap = new Map<string, string>()
-  for (const team of messagingData.teams) {
+  for (const team of data.teams) {
     const created = await prisma.chatTeam.upsert({
       where: { id: team.id },
       update: { name: team.name, description: team.description ?? null },
       create: {
         id: team.id,
-        organizationId: DEMO_ORG.id,
+        organizationId: org.id,
         name: team.name,
         description: team.description ?? null,
       },
@@ -368,7 +452,7 @@ async function seedMessaging() {
   }
 
   const conversationIdMap = new Map<string, string>()
-  for (const conversation of messagingData.conversations) {
+  for (const conversation of data.conversations) {
     const created = await prisma.conversation.upsert({
       where: { id: conversation.id },
       update: {
@@ -384,7 +468,7 @@ async function seedMessaging() {
       },
       create: {
         id: conversation.id,
-        organizationId: DEMO_ORG.id,
+        organizationId: org.id,
         kind: conversation.kind,
         name: conversation.name,
         topic: conversation.topic ?? null,
@@ -412,7 +496,7 @@ async function seedMessaging() {
     }
   }
 
-  for (const message of messagingData.messages) {
+  for (const message of data.messages) {
     const created = await prisma.message.upsert({
       where: { id: message.id },
       update: {
@@ -476,18 +560,31 @@ async function seedMessaging() {
   }
 }
 
+async function seedOrganization(org: SeedOrg) {
+  const now = new Date()
+  const localizedProjectData = buildOrgData(projectData, org)
+  const localizedCalendarData = buildOrgData(calendarData, org)
+  const localizedFilesData = buildOrgData(filesData, org)
+  const localizedMessagingData = buildOrgData(messagingData, org)
+
+  console.log(`Seeding workspace (${org.slug})…`)
+  await seedWorkspace(org, localizedProjectData, now)
+  console.log(`Seeding projects (${org.slug})…`)
+  await seedProjects(org, localizedProjectData)
+  console.log(`Seeding calendars (${org.slug})…`)
+  await seedCalendars(org, localizedCalendarData)
+  console.log(`Seeding files (${org.slug})…`)
+  await seedFiles(org, localizedFilesData)
+  console.log(`Seeding messaging (${org.slug})…`)
+  await seedMessaging(org, localizedMessagingData)
+}
+
 async function main() {
-  console.log("Seeding workspace…")
-  await seedWorkspace()
-  console.log("Seeding projects…")
-  await seedProjects()
-  console.log("Seeding calendars…")
-  await seedCalendars()
-  console.log("Seeding files…")
-  await seedFiles()
-  console.log("Seeding messaging…")
-  await seedMessaging()
-  console.log(`Done. Demo organization id: ${DEMO_ORG.id}`)
+  await seedOrganization(EN_ORG)
+  await seedOrganization(FR_ORG)
+  console.log(
+    `Done. Demo organization ids: ${EN_ORG.id}, ${FR_ORG.id}`
+  )
 }
 
 main()

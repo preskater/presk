@@ -1,7 +1,8 @@
 "use client"
 
 import * as React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from "@/i18n/navigation"
+import { useTranslations } from "next-intl"
 import { Building2Icon, CheckIcon, ChevronsUpDownIcon, PlusIcon } from "lucide-react"
 import { toast } from "sonner"
 
@@ -29,6 +30,7 @@ export function OrgSwitcher({
   activeOrganizationId: string | null
 }) {
   const router = useRouter()
+  const t = useTranslations("Org")
   const { data: organizations, isPending } =
     authClient.useListOrganizations()
   const [switching, setSwitching] = React.useState(false)
@@ -47,7 +49,7 @@ export function OrgSwitcher({
       organizationId: organization.id,
     })
     if (error) {
-      toast.error(error.message ?? "Unable to switch organization.")
+      toast.error(error.message ?? t("unableToSwitchOrganization"))
       setSwitching(false)
       return
     }
@@ -73,11 +75,11 @@ export function OrgSwitcher({
             <div className="grid flex-1 text-start text-sm leading-tight">
               <span className="truncate font-medium">
                 {isPending
-                  ? "Loading..."
-                  : (active?.name ?? "Select organization")}
+                  ? t("loading")
+                  : (active?.name ?? t("selectOrganization"))}
               </span>
               <span className="truncate text-xs text-muted-foreground">
-                {active?.slug ?? "Workspace"}
+                {active?.slug ?? t("workspace")}
               </span>
             </div>
             <ChevronsUpDownIcon className="ms-auto size-4" />
@@ -89,7 +91,7 @@ export function OrgSwitcher({
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Organizations
+              {t("organizations")}
             </DropdownMenuLabel>
             <DropdownMenuGroup>
               {(organizations ?? []).map((organization) => (
@@ -118,7 +120,7 @@ export function OrgSwitcher({
               }}
             >
               <PlusIcon />
-              Create organization
+              {t("createOrganization")}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

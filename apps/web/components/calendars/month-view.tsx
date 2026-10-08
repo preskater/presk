@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 
 import { EventChip } from "@/components/calendars/event-block"
 import { EventTooltipContent } from "@/components/calendars/event-tooltip"
@@ -15,7 +16,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/component
 import { useCalendars } from "@/lib/calendars/store"
 import type { CalendarEvent } from "@/lib/calendars/types"
 
-const WEEKDAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+const WEEKDAY_KEYS = [
+  "mon",
+  "tue",
+  "wed",
+  "thu",
+  "fri",
+  "sat",
+  "sun",
+] as const
 const MAX_VISIBLE = 3
 
 export function MonthView({
@@ -27,6 +36,7 @@ export function MonthView({
   onSelectDate: (date: Date) => void
   onOpenEvent: (event: CalendarEvent) => void
 }) {
+  const t = useTranslations("Calendars")
   const { eventsOnDay } = useCalendars()
   const weeks = buildMonthGrid(focusDate)
   const today = new Date()
@@ -34,12 +44,12 @@ export function MonthView({
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="grid grid-cols-7 border-b">
-        {WEEKDAYS.map((day) => (
+        {WEEKDAY_KEYS.map((key) => (
           <div
-            key={day}
+            key={key}
             className="px-2 py-1.5 text-xs font-medium text-muted-foreground"
           >
-            {day}
+            {t(`weekdays.${key}`)}
           </div>
         ))}
       </div>
@@ -100,7 +110,7 @@ export function MonthView({
                         }}
                         className="px-1.5 text-start text-xs text-muted-foreground hover:text-foreground"
                       >
-                        +{overflow} more
+                        {t("moreCount", { count: overflow })}
                       </button>
                     ) : null}
                   </div>

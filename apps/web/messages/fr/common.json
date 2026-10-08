@@ -1,0 +1,15 @@
+{
+  "today": "Aujourd’hui",
+  "yesterday": "Hier",
+  "tomorrow": "Demain",
+  "allDay": "Toute la journée",
+  "now": "à l’instant",
+  "justNow": "À l’instant",
+  "minutesAgo": "il y a {count} min",
+  "hoursAgo": "il y a {count} h",
+  "daysAgo": "il y a {count} jours",
+  "minutesShort": "{count} min",
+  "hoursShort": "{count} h",
+  "daysShort": "{count} j",
+  "toggleTheme": "Changer de thème"
+}

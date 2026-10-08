@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import { useTranslations } from "next-intl"
 import { Building2Icon, MailIcon, UsersIcon } from "lucide-react"
 
 import { DashboardEmpty } from "@/components/dashboard-empty"
@@ -24,6 +25,7 @@ import { parseRoles } from "@/lib/organization/utils"
 import { useOrgPermissions } from "@/lib/organization/use-permissions"
 
 export function OrganizationSettings() {
+  const t = useTranslations("Org")
   const permissions = useOrgPermissions()
   const {
     data: organization,
@@ -45,8 +47,8 @@ export function OrganizationSettings() {
     return (
       <DashboardEmpty
         icon={Building2Icon}
-        title="No active organization"
-        description="Create or join an organization to manage it here."
+        title={t("noActiveOrganization")}
+        description={t("noActiveOrganizationDescription")}
         className="border"
       />
     )
@@ -65,10 +67,10 @@ export function OrganizationSettings() {
   return (
     <Tabs defaultValue="general" className="flex flex-col gap-4">
       <TabsList variant="line" className="w-full justify-start border-b pb-0">
-        <TabsTrigger value="general">General</TabsTrigger>
-        <TabsTrigger value="members">Members</TabsTrigger>
-        <TabsTrigger value="invitations">Invitations</TabsTrigger>
-        <TabsTrigger value="danger">Danger zone</TabsTrigger>
+        <TabsTrigger value="general">{t("general")}</TabsTrigger>
+        <TabsTrigger value="members">{t("members")}</TabsTrigger>
+        <TabsTrigger value="invitations">{t("invitations")}</TabsTrigger>
+        <TabsTrigger value="danger">{t("dangerZone")}</TabsTrigger>
       </TabsList>
 
       <TabsContent value="general">
@@ -86,10 +88,10 @@ export function OrganizationSettings() {
               <div className="flex flex-col gap-1">
                 <CardTitle className="flex items-center gap-2">
                   <UsersIcon className="size-4" />
-                  Members
+                  {t("members")}
                 </CardTitle>
                 <CardDescription>
-                  People with access to {organization.name}.
+                  {t("membersDescription", { name: organization.name })}
                 </CardDescription>
               </div>
               {permissions.canInviteMember ? (
@@ -117,10 +119,10 @@ export function OrganizationSettings() {
               <div className="flex flex-col gap-1">
                 <CardTitle className="flex items-center gap-2">
                   <MailIcon className="size-4" />
-                  Invitations
+                  {t("invitations")}
                 </CardTitle>
                 <CardDescription>
-                  Pending invitations to this organization.
+                  {t("invitationsDescription")}
                 </CardDescription>
               </div>
               {permissions.canInviteMember ? (
