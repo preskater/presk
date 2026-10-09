@@ -1,0 +1,81 @@
+name: Task
+description: Concrete implementation task (backend, frontend, DevOps, etc.)
+title: "[Task] "
+labels: ["task", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this for well-scoped implementation tasks tied to a feature or bug.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Task summary
+      description: One-sentence description of the work.
+      placeholder: e.g., Implement API endpoint to bulk-update contact tags
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: Why is this task needed? Link to parent feature/bug if any.
+      placeholder: e.g., Part of “Bulk actions on contacts” feature (#123).
+
+  - type: textarea
+    id: requirements
+    attributes:
+      label: Technical requirements
+      description: Key implementation details and constraints.
+      placeholder: |
+        - Endpoint: POST /api/contacts/bulk-update-tags
+        - Auth: requires `contacts:write`
+        - Input: array of contact IDs + tags to add/remove
+        - Rate limits, idempotency, error codes, etc.
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Testable conditions for completion.
+      placeholder: |
+        - Endpoint accepts up to 500 contact IDs per call.
+        - Returns 200 with summary of updated/failed IDs.
+        - Logs audit events for tag changes.
+    validations:
+      required: true
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: Implementation checklist (optional)
+      description: Suggested sub-tasks.
+      placeholder: |
+        - [ ] Design API contract
+        - [ ] Implement handler
+        - [ ] Add tests
+        - [ ] Update docs / OpenAPI spec
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Frontend
+        - Backend
+        - DevOps / Infra
+        - Data / Migrations
+        - QA / Testing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Any extra notes, risks, or dependencies.

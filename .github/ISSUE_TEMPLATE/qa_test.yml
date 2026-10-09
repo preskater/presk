@@ -1,0 +1,63 @@
+name: QA / Test Cases
+description: Define test scenarios or QA checklist for a feature/bug
+title: "[QA] "
+labels: ["qa", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this to define test scenarios, edge cases, and QA checklists.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Scope
+      description: Feature/bug this QA issue covers.
+      placeholder: e.g., Bulk email to contacts from list view (#98)
+    validations:
+      required: true
+
+  - type: textarea
+    id: scenarios
+    attributes:
+      label: Test scenarios
+      description: List main flows to test.
+      placeholder: |
+        - Select 1–N contacts and send bulk email.
+        - Send with valid/invalid template.
+        - Behavior with filters, pagination, and permissions.
+    validations:
+      required: true
+
+  - type: textarea
+    id: edge_cases
+    attributes:
+      label: Edge cases & negative tests
+      description: Unusual inputs, failure modes, permission issues.
+      placeholder: |
+        - No contacts selected.
+        - 500+ contacts selected.
+        - User without `emails:send` permission.
+
+  - type: textarea
+    id: data_setup
+    attributes:
+      label: Test data setup
+      description: What data/fixtures are needed?
+      placeholder: e.g., 3 companies, 50 contacts, 2 email templates.
+
+  - type: textarea
+    id: checklist
+    attributes:
+      label: QA checklist
+      description: Concrete steps for QA to execute.
+      placeholder: |
+        - [ ] Verify UI selection behavior
+        - [ ] Verify API responses and error codes
+        - [ ] Verify audit logs and contact timelines
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Links to related issues, builds, or environments.
