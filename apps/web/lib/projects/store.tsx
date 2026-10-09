@@ -92,9 +92,13 @@ interface ProjectStore {
   createTask: (input: CreateTaskInput) => void
   updateTask: (
     id: string,
-    patch: Omit<Partial<Task>, "labelIds" | "dueDate" | "assigneeId"> & {
+    patch: Omit<
+      Partial<Task>,
+      "labelIds" | "dueDate" | "endDate" | "assigneeId"
+    > & {
       labelIds?: string[]
       dueDate?: string | null
+      endDate?: string | null
       assigneeId?: string | null
     },
     options?: { silent?: boolean }
@@ -243,6 +247,7 @@ export function ProjectStoreProvider({
           assigneeId: input.assigneeId ?? undefined,
           labelIds: input.labelIds ?? [],
           dueDate: input.dueDate ?? undefined,
+          endDate: input.endDate ?? undefined,
           createdAt: new Date().toISOString(),
           subtasks: [],
           comments: [],
@@ -276,6 +281,7 @@ export function ProjectStoreProvider({
                   ...patch,
                   assigneeId: patch.assigneeId ?? undefined,
                   dueDate: patch.dueDate ?? undefined,
+                  endDate: patch.endDate ?? undefined,
                 }
               : task
           )

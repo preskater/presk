@@ -68,6 +68,7 @@
   "priority": "Priorité",
   "assignee": "Assigné à",
   "dueDate": "Échéance",
+  "endDate": "Date de fin",
   "labels": "Étiquettes",
   "selectTask": "Sélectionner {identifier}",
   "dash": "—",

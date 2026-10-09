@@ -149,6 +149,7 @@ export class ProjectRepository {
     priority?: string
     assigneeId?: string | null
     dueDate?: Date | null
+    endDate?: Date | null
     order: number
     labelIds: string[]
   }) {
@@ -163,6 +164,7 @@ export class ProjectRepository {
         priority: data.priority ?? "medium",
         assigneeId: data.assigneeId ?? null,
         dueDate: data.dueDate ?? null,
+        endDate: data.endDate ?? null,
         order: data.order,
         labels: {
           create: data.labelIds.map((labelId) => ({ labelId })),
@@ -185,6 +187,7 @@ export class ProjectRepository {
       priority?: string
       assigneeId?: string | null
       dueDate?: Date | null
+      endDate?: Date | null
     }
   ) {
     return this.db.task.update({

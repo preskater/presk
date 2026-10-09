@@ -7,6 +7,8 @@ import { enUS, fr } from "react-day-picker/locale"
 import { Calendar } from "@workspace/ui/components/calendar"
 
 import { useCalendars } from "@/lib/calendars/store"
+import { tasksOnDay } from "@/lib/calendars/tasks"
+import { useProjectStore } from "@/lib/projects/store"
 
 const DAY_PICKER_LOCALES = { en: enUS, fr }
 
@@ -18,18 +20,21 @@ export function MiniCalendar({
   onSelectDate: (date: Date) => void
 }) {
   const locale = useLocale()
-  const { eventsOnDay } = useCalendars()
+  const { eventsOnDay, showTasks } = useCalendars()
+  const { tasks } = useProjectStore()
   const eventDates = React.useMemo(() => {
     const dates: Date[] = []
     const cursor = new Date(focusDate)
     cursor.setDate(1)
     const month = cursor.getMonth()
     while (cursor.getMonth() === month) {
-      if (eventsOnDay(cursor).length > 0) dates.push(new Date(cursor))
+      const hasEvents = eventsOnDay(cursor).length > 0
+      const hasTasks = showTasks && tasksOnDay(tasks, cursor).length > 0
+      if (hasEvents || hasTasks) dates.push(new Date(cursor))
       cursor.setDate(cursor.getDate() + 1)
     }
     return dates
-  }, [focusDate, eventsOnDay])
+  }, [focusDate, eventsOnDay, showTasks, tasks])
 
   return (
     <Calendar

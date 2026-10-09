@@ -241,6 +241,7 @@ model Task {
   priority       String       @default("medium")
   assigneeId     String?
   dueDate        DateTime?
+  endDate        DateTime?
   order          Int          @default(0)
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt

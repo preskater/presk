@@ -4,6 +4,7 @@ import * as React from "react"
 import { useLocale, useTranslations } from "next-intl"
 
 import { EventBlock } from "@/components/calendars/event-block"
+import { TaskChip } from "@/components/calendars/task-chip"
 import { useTimeGridInteraction } from "@/components/calendars/use-calendars-drag"
 import {
   DAY_END_HOUR,
@@ -13,9 +14,11 @@ import {
   isSameDay,
   layoutDayEvents,
 } from "@/lib/calendars/date-utils"
+import { tasksOnDay } from "@/lib/calendars/tasks"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useCalendars } from "@/lib/calendars/store"
+import { useProjectStore } from "@/lib/projects/store"
 import type { CalendarEvent } from "@/lib/calendars/types"
 
 const HOURS = Array.from(
@@ -138,7 +141,8 @@ export function TimeGrid({
 }) {
   const locale = useLocale()
   const t = useTranslations("Calendars")
-  const { visibleEvents } = useCalendars()
+  const { visibleEvents, showTasks } = useCalendars()
+  const { tasks } = useProjectStore()
   const today = new Date()
   const multiDay = days.length > 1
 
@@ -200,6 +204,11 @@ export function TimeGrid({
                   {event.title}
                 </button>
               ))}
+              {showTasks
+                ? tasksOnDay(tasks, day).map((task) => (
+                    <TaskChip key={task.id} task={task} />
+                  ))
+                : null}
             </div>
           )
         })}

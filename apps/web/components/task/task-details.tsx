@@ -146,6 +146,13 @@ function TaskDetailsBody({ taskId }: { taskId: string }) {
           />
         </Field>
         <Field>
+          <FieldLabel htmlFor="detail-end">{t("endDate")}</FieldLabel>
+          <DatePicker
+            value={task.endDate}
+            onChange={(value) => updateTask(task.id, { endDate: value }, SILENT)}
+          />
+        </Field>
+        <Field>
           <FieldLabel htmlFor="detail-priority">{t("priority")}</FieldLabel>
           <ToggleGroup
             value={[task.priority]}

@@ -4,16 +4,19 @@ import * as React from "react"
 import { useTranslations } from "next-intl"
 
 import { EventChip } from "@/components/calendars/event-block"
+import { TaskChip } from "@/components/calendars/task-chip"
 import { EventTooltipContent } from "@/components/calendars/event-tooltip"
 import {
   buildMonthGrid,
   isSameDay,
   isSameMonth,
 } from "@/lib/calendars/date-utils"
+import { tasksOnDay } from "@/lib/calendars/tasks"
 import { cn } from "@workspace/ui/lib/utils"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/tooltip"
 
 import { useCalendars } from "@/lib/calendars/store"
+import { useProjectStore } from "@/lib/projects/store"
 import type { CalendarEvent } from "@/lib/calendars/types"
 
 const WEEKDAY_KEYS = [
@@ -37,7 +40,8 @@ export function MonthView({
   onOpenEvent: (event: CalendarEvent) => void
 }) {
   const t = useTranslations("Calendars")
-  const { eventsOnDay } = useCalendars()
+  const { eventsOnDay, showTasks } = useCalendars()
+  const { tasks } = useProjectStore()
   const weeks = buildMonthGrid(focusDate)
   const today = new Date()
 
@@ -58,8 +62,9 @@ export function MonthView({
           <div key={weekIndex} className="grid grid-cols-7 border-b last:border-b-0">
             {week.map((day) => {
               const dayEvents = eventsOnDay(day)
-              const visible = dayEvents.slice(0, MAX_VISIBLE)
-              const overflow = dayEvents.length - visible.length
+              const dayTasks = showTasks ? tasksOnDay(tasks, day) : []
+              const visibleEvents = dayEvents.slice(0, MAX_VISIBLE)
+              const overflow = dayEvents.length - visibleEvents.length
               const inMonth = isSameMonth(day, focusDate)
               const isToday = isSameDay(day, today)
               return (
@@ -88,7 +93,7 @@ export function MonthView({
                     </span>
                   </div>
                   <div className="flex flex-col gap-0.5">
-                    {visible.map((event) => (
+                    {visibleEvents.map((event) => (
                       <Tooltip key={event.id}>
                         <TooltipTrigger render={<span className="block" />}>
                           <EventChip event={event} onClick={onOpenEvent} />
@@ -100,6 +105,9 @@ export function MonthView({
                           <EventTooltipContent event={event} />
                         </TooltipContent>
                       </Tooltip>
+                    ))}
+                    {dayTasks.slice(0, Math.max(0, MAX_VISIBLE - visibleEvents.length)).map((task) => (
+                      <TaskChip key={task.id} task={task} className="text-primary" />
                     ))}
                     {overflow > 0 ? (
                       <button

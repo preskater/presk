@@ -15,7 +15,9 @@ import {
   InputGroupInput,
 } from "@workspace/ui/components/input-group"
 import { Tabs, TabsList, TabsTrigger } from "@workspace/ui/components/tabs"
+import { Toggle } from "@workspace/ui/components/toggle"
 import {
+  CheckSquareIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
   PlusIcon,
@@ -40,6 +42,8 @@ export function CalendarsHeader({
   onPrev,
   onNext,
   onSearch,
+  showTasks,
+  onToggleTasks,
 }: {
   rangeLabel: string
   view: CalendarView
@@ -48,6 +52,8 @@ export function CalendarsHeader({
   onPrev: () => void
   onNext: () => void
   onSearch: () => void
+  showTasks: boolean
+  onToggleTasks: () => void
 }) {
   const t = useTranslations("Calendars")
   return (
@@ -101,6 +107,17 @@ export function CalendarsHeader({
         <Button variant="outline" size="icon-sm" aria-label={t("searchLabel")} onClick={onSearch} className="md:hidden">
           <SearchIcon />
         </Button>
+
+        <Toggle
+          variant="outline"
+          size="sm"
+          pressed={showTasks}
+          onPressedChange={onToggleTasks}
+          aria-label={t("showTasks")}
+        >
+          <CheckSquareIcon data-icon="inline-start" />
+          {t("showTasks")}
+        </Toggle>
 
         <EventDialog
           trigger={

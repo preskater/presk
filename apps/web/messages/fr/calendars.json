@@ -14,6 +14,7 @@
   "noEventsFound": "Aucun événement trouvé.",
   "events": "Événements",
   "newEvent": "Nouvel événement",
+  "showTasks": "Afficher les tâches",
   "editEvent": "Modifier l'événement",
   "createEvent": "Créer un événement",
   "eventDescription": "Planifiez une réunion ou un événement d'équipe.",

@@ -39,7 +39,8 @@ const VIEWS: CalendarView[] = [
 export function CalendarsWorkspace() {
   const locale = useLocale()
   const t = useTranslations("Calendars")
-  const { moveEvent, members, currentUserId } = useCalendars()
+  const { moveEvent, members, currentUserId, showTasks, toggleShowTasks } =
+    useCalendars()
   const { record, active, hydrated } = useRecents()
   const [focusDate, setFocusDate] = React.useState(new Date())
   const [view, setView] = React.useState<CalendarView>("week")
@@ -166,6 +167,8 @@ export function CalendarsWorkspace() {
               onPrev={() => shift(-1)}
               onNext={() => shift(1)}
               onSearch={() => setSearchOpen(true)}
+              showTasks={showTasks}
+              onToggleTasks={toggleShowTasks}
             />
             {view === "month" ? (
               <MonthView

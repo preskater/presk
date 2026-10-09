@@ -114,6 +114,7 @@ export class ProjectService {
       assigneeId: row.assigneeId ?? undefined,
       labelIds: row.labels.map((label) => label.labelId),
       dueDate: iso(row.dueDate),
+      endDate: iso(row.endDate),
       createdAt: requiredIso(row.createdAt),
       subtasks: row.subtasks.map(
         (subtask): Subtask => ({
@@ -259,6 +260,7 @@ export class ProjectService {
       priority: input.priority,
       assigneeId: input.assigneeId,
       dueDate: input.dueDate ? new Date(input.dueDate) : null,
+      endDate: input.endDate ? new Date(input.endDate) : null,
       order: existing.length,
       labelIds: input.labelIds ?? [],
     })
@@ -291,6 +293,12 @@ export class ProjectService {
           : input.dueDate === null
             ? null
             : new Date(input.dueDate),
+      endDate:
+        input.endDate === undefined
+          ? undefined
+          : input.endDate === null
+            ? null
+            : new Date(input.endDate),
     })
     if (input.labelIds) await this.repo.setTaskLabels(id, input.labelIds)
     const fresh = await this.repo.findTask(ctx.organizationId, id)
