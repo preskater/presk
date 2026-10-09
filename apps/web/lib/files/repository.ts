@@ -66,8 +66,8 @@ export class FileRepository {
     ownerId: string
     sizeBytes?: number
     mimeType?: string
-    storageKey?: string
-    checksum?: string
+    oid?: number
+    sha256?: string
   }) {
     return this.db.fileNode.create({
       data: {
@@ -78,8 +78,8 @@ export class FileRepository {
         ownerId: data.ownerId,
         sizeBytes: data.sizeBytes,
         mimeType: data.mimeType,
-        storageKey: data.storageKey,
-        checksum: data.checksum,
+        oid: data.oid,
+        sha256: data.sha256,
       },
       include: {
         shares: true,
@@ -98,7 +98,8 @@ export class FileRepository {
       ownerId: string
       sizeBytes?: number
       mimeType?: string
-      storageKey?: string
+      oid?: number
+      sha256?: string
     }[]
   ) {
     return this.db.$transaction(
@@ -121,8 +122,8 @@ export class FileRepository {
       modifiedAt?: Date
       sizeBytes?: number
       mimeType?: string
-      storageKey?: string
-      checksum?: string
+      oid?: number
+      sha256?: string
     }
   ) {
     return this.db.fileNode.update({
@@ -167,8 +168,9 @@ export class FileRepository {
     fileId: string
     userId: string
     note: string
-    storageKey?: string
+    oid?: number
     mimeType?: string
+    sha256?: string
     sizeBytes?: number
   }) {
     return this.db.fileVersion.create({ data })

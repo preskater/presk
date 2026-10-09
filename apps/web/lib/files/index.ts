@@ -6,6 +6,8 @@ import { FileService } from "./service"
 export const fileRepository = new FileRepository(prisma)
 export const fileService = new FileService(fileRepository)
 
+export { orgQuotaBytes, orgUsedBytes } from "./storage"
+
 export { FileRepository, FileService }
 export * from "./schemas"
 export type {

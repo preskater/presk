@@ -12,7 +12,6 @@ import {
   createFolderAction,
   deleteFileAction,
   duplicateFileAction,
-  finalizeUploadAction,
   moveFileAction,
   removeShareAction,
   renameFileAction,
@@ -24,7 +23,7 @@ import {
 } from "@/actions/files"
 import { unwrapActionResult } from "@/lib/core/action"
 import { useErrorTranslator } from "@/lib/i18n/errors"
-import { buildUploadPath } from "@/lib/files/paths"
+import { uploadFile } from "@/lib/files/upload-client"
 import type { Member } from "@/lib/projects/types"
 
 import { kindFromName } from "./file-utils"
@@ -236,30 +235,16 @@ export function FilesProvider({
       parentId: string | null
     ) {
       try {
-        const { upload } = await import("@vercel/blob/client")
         updateUpload(item.id, { status: "uploading" })
-        const blob = await upload(
-          buildUploadPath(organizationId, file.name),
-          file,
-          {
-            access: "private",
-            handleUploadUrl: "/api/files/upload",
-            onUploadProgress: ({ percentage }) => {
-              updateUpload(item.id, {
-                progress: Math.round(percentage),
-                status: "uploading",
-              })
-            },
-          }
-        )
-        const result = await finalizeUploadAction({
+        const created = await uploadFile(file, {
           parentId,
-          name: file.name,
-          sizeBytes: file.size,
-          mimeType: file.type || undefined,
-          storageKey: blob.pathname,
+          onProgress: ({ percentage }) => {
+            updateUpload(item.id, {
+              progress: Math.round(percentage),
+              status: "uploading",
+            })
+          },
         })
-        const created = unwrapActionResult(result)
         setFiles((prev) => [created, ...prev])
         updateUpload(item.id, { progress: 100, status: "done" })
       } catch (error) {

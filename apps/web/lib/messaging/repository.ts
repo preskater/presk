@@ -115,8 +115,9 @@ export class MessagingRepository {
       name: string
       kind: string
       meta?: string
-      storageKey?: string
+      oid?: number
       mimeType?: string
+      sha256?: string
       sizeBytes?: number
     }[]
   }) {
@@ -135,8 +136,9 @@ export class MessagingRepository {
                 name: attachment.name,
                 kind: attachment.kind,
                 meta: attachment.meta,
-                storageKey: attachment.storageKey,
+                oid: attachment.oid,
                 mimeType: attachment.mimeType,
+                sha256: attachment.sha256,
                 sizeBytes: attachment.sizeBytes,
               })),
             }

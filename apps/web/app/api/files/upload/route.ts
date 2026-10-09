@@ -1,66 +1,96 @@
-import { handleUpload, type HandleUploadBody } from "@vercel/blob/client"
+import { Readable } from "node:stream"
+
 import { NextResponse } from "next/server"
 
 import { getRequestContext } from "@/lib/core/auth-context"
-import {
-  isOwnedPath,
-  orgQuotaBytes,
-  orgUsedBytes,
-} from "@/lib/files/storage"
+import { toAppError } from "@/lib/core/errors"
+import { jsonError } from "@/lib/core/http"
+import { fileService } from "@/lib/files"
+import { orgQuotaBytes, orgUsedBytes } from "@/lib/files/storage"
+import { uploadLargeObject, unlinkLargeObject } from "@/lib/large-object"
 import { ROLE_RANK } from "@/lib/organization/roles"
 
-const MAX_FILE_BYTES = 100 * 1024 * 1024
+const MAX_FILE_BYTES = 4 * 1024 * 1024
 
 export const runtime = "nodejs"
 
 export async function POST(request: Request): Promise<NextResponse> {
-  const body = (await request.json()) as HandleUploadBody
-
   try {
     const ctx = await getRequestContext({ request })
 
     if ((ROLE_RANK[ctx.role] ?? 0) < 2) {
       return NextResponse.json(
-        { error: "Your role cannot modify files." },
+        { error: { code: "forbidden", message: "Your role cannot modify files." } },
         { status: 403 }
       )
     }
 
-    const jsonResponse = await handleUpload({
-      body,
-      request,
-      onBeforeGenerateToken: async (pathname) => {
-        if (!isOwnedPath(ctx.organizationId, pathname)) {
-          throw new Error("Invalid upload path.")
-        }
-        const [quota, used] = await Promise.all([
-          orgQuotaBytes(ctx.organizationId),
-          orgUsedBytes(ctx.organizationId),
-        ])
-        const maximumSizeInBytes = Math.min(
-          MAX_FILE_BYTES,
-          Math.max(0, quota - used)
-        )
-        if (maximumSizeInBytes <= 0) {
-          throw new Error("Storage quota exceeded.")
-        }
-        return {
-          access: "private",
-          addRandomSuffix: true,
-          maximumSizeInBytes,
-          tokenPayload: JSON.stringify({
-            organizationId: ctx.organizationId,
-            userId: ctx.userId,
-          }),
-        }
-      },
-    })
+    const url = new URL(request.url)
+    const name = url.searchParams.get("name")
+    const parentId = url.searchParams.get("parentId")
+    const mimeType = url.searchParams.get("mimeType") || undefined
 
-    return NextResponse.json(jsonResponse)
-  } catch (error) {
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Upload failed." },
-      { status: 400 }
+    if (!name) {
+      return NextResponse.json(
+        { error: { code: "bad_request", message: "A file name is required." } },
+        { status: 400 }
+      )
+    }
+
+    if (!request.body) {
+      return NextResponse.json(
+        { error: { code: "bad_request", message: "A request body is required." } },
+        { status: 400 }
+      )
+    }
+
+    const [quota, used] = await Promise.all([
+      orgQuotaBytes(ctx.organizationId),
+      orgUsedBytes(ctx.organizationId),
+    ])
+    const maxBytes = Math.min(MAX_FILE_BYTES, Math.max(0, quota - used))
+    if (maxBytes <= 0) {
+      return NextResponse.json(
+        { error: { code: "conflict", message: "Storage quota exceeded." } },
+        { status: 413 }
+      )
+    }
+
+    const body = Readable.fromWeb(
+      request.body as Parameters<typeof Readable.fromWeb>[0]
     )
+
+    const uploaded = await uploadLargeObject(body, { maxBytes })
+
+    // Transient uploads (e.g. message attachments) only need the large object;
+    // their metadata is persisted later by the caller that references the oid.
+    if (url.searchParams.get("transient") === "1") {
+      return NextResponse.json(uploaded)
+    }
+
+    try {
+      const file = await fileService.finalizeUpload(ctx, {
+        name,
+        parentId: parentId || null,
+        sizeBytes: uploaded.size,
+        mimeType,
+        oid: uploaded.oid,
+        sha256: uploaded.sha256,
+      })
+      return NextResponse.json(file)
+    } catch (error) {
+      // The bytes are already committed; drop the orphaned large object so we
+      // do not leak storage when the metadata write fails.
+      await unlinkLargeObject(uploaded.oid).catch((unlinkError) =>
+        console.error(
+          `[files] failed to unlink orphaned large object ${uploaded.oid}`,
+          unlinkError
+        )
+      )
+      throw error
+    }
+  } catch (error) {
+    return jsonError(toAppError(error))
   }
 }
+

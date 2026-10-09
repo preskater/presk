@@ -10,7 +10,6 @@ import {
   bulkFileIdsSchema,
   createFilesSchema,
   createFolderSchema,
-  finalizeUploadSchema,
   moveFileSchema,
   removeShareSchema,
   renameFileSchema,
@@ -21,14 +20,6 @@ import {
 export const listFilesAction = withAction(async () => {
   const ctx = await getRequestContext()
   return fileService.list(ctx)
-})
-
-export const finalizeUploadAction = withAction(async (input: unknown) => {
-  const ctx = await getRequestContext()
-  const parsed = await parseLocalized(finalizeUploadSchema, input)
-  const file = await fileService.finalizeUpload(ctx, parsed)
-  await revalidateOrgPath(ctx.organizationId, "/files")
-  return file
 })
 
 export const createFolderAction = withAction(async (input: unknown) => {

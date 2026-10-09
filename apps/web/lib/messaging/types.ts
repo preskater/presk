@@ -9,7 +9,8 @@ export interface Attachment {
   name: string
   kind: AttachmentKind
   meta?: string
-  storageKey?: string
+  oid?: number
+  sha256?: string
   mimeType?: string
   sizeBytes?: number
   hasStorage?: boolean

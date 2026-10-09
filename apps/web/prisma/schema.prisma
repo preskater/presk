@@ -417,9 +417,9 @@ model FileNode {
   trashedAt      DateTime?
   shared         Boolean      @default(false)
   restricted     Boolean      @default(false)
-  storageKey     String?
+  oid            BigInt?      @unique
   mimeType       String?
-  checksum       String?
+  sha256         String?
   createdAt      DateTime     @default(now())
 
   shares     FileShare[]
@@ -451,8 +451,9 @@ model FileVersion {
   userId     String
   at         DateTime @default(now())
   note       String
-  storageKey String?
+  oid        BigInt?
   mimeType   String?
+  sha256     String?
   sizeBytes  Int?
 
   @@index([fileId])
@@ -567,8 +568,9 @@ model MessageAttachment {
   name       String
   kind       String  @default("file")
   meta       String?
-  storageKey String?
+  oid        BigInt?
   mimeType   String?
+  sha256     String?
   sizeBytes  Int?
 
   @@index([messageId])

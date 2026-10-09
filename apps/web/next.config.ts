@@ -12,6 +12,9 @@ const nextConfig: NextConfig = {
   output: "standalone",
   outputFileTracingRoot: path.join(projectRoot, "../../"),
   transpilePackages: ["@workspace/ui"],
+  // `pg-large-object` is CommonJS with native `pg` bindings; keep it external
+  // so the server bundle loads it at runtime instead of trying to bundle it.
+  serverExternalPackages: ["pg-large-object", "pg"],
   pageExtensions: ["js", "jsx", "md", "mdx", "ts", "tsx"],
   experimental: {
     globalNotFound: true,

@@ -1,5 +1,6 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
+import { unlinkLargeObject } from "@/lib/large-object"
 
 import { kindFromName } from "./file-utils"
 import { FileRepository } from "./repository"
@@ -106,7 +107,7 @@ export class FileService {
       modifiedAt: row.modifiedAt.toISOString(),
       sizeBytes: row.sizeBytes ?? undefined,
       mimeType: row.mimeType ?? undefined,
-      hasStorage: Boolean(row.storageKey),
+      hasStorage: row.oid !== null,
       starred: row.starred,
       trashed: row.trashed,
       trashedAt: row.trashedAt?.toISOString(),
@@ -129,7 +130,7 @@ export class FileService {
       at: version.at.toISOString(),
       note: version.note,
       sizeBytes: version.sizeBytes ?? undefined,
-      hasStorage: Boolean(version.storageKey),
+      hasStorage: version.oid !== null,
     }))
   }
 
@@ -296,7 +297,8 @@ export class FileService {
         ownerId: ctx.userId,
         sizeBytes: file.sizeBytes,
         mimeType: file.mimeType,
-        storageKey: file.storageKey,
+        oid: file.oid,
+        sha256: file.sha256,
       }))
     )
     return rows.map((row) => this.mapFile(row as FileRow))
@@ -316,14 +318,16 @@ export class FileService {
       ownerId: ctx.userId,
       sizeBytes: input.sizeBytes,
       mimeType: input.mimeType,
-      storageKey: input.storageKey,
+      oid: input.oid,
+      sha256: input.sha256,
     })
     await this.repo.addVersion({
       fileId: row.id,
       userId: ctx.userId,
       note: "Initial upload",
-      storageKey: input.storageKey,
+      oid: input.oid,
       mimeType: input.mimeType,
+      sha256: input.sha256,
       sizeBytes: input.sizeBytes,
     })
     await this.repo.addActivity(row.id, ctx.userId, "uploadedThisFile")
@@ -405,9 +409,32 @@ export class FileService {
   }
 
   async deleteForever(ctx: RequestContext, id: string): Promise<{ id: string }> {
-    await this.requireWrite(ctx, id)
+    const row = await this.requireWrite(ctx, id)
     await this.repo.delete(id)
+    await this.unlinkRows([row])
     return { id }
+  }
+
+  /**
+   * Best-effort removal of the large objects backing a set of files and their
+   * versions. Runs after the Prisma delete succeeded; failures are logged so a
+   * missing/undecodable object never fails the request or leaks the rest.
+   */
+  private async unlinkRows(rows: FileRow[]): Promise<void> {
+    const oids = new Set<string>()
+    for (const row of rows) {
+      if (row.oid !== null) oids.add(row.oid.toString())
+      for (const version of row.versions) {
+        if (version.oid !== null) oids.add(version.oid.toString())
+      }
+    }
+    await Promise.all(
+      Array.from(oids, (oid) =>
+        unlinkLargeObject(Number(oid)).catch((error) =>
+          console.error(`[files] failed to unlink large object ${oid}`, error)
+        )
+      )
+    )
   }
 
   private async writeMany(
@@ -442,7 +469,11 @@ export class FileService {
     ctx: RequestContext,
     ids: string[]
   ): Promise<{ count: number }> {
-    return this.writeMany(ctx, ids, () => this.repo.deleteMany(ids))
+    canWrite(ctx)
+    const rows = await Promise.all(ids.map((id) => this.requireWrite(ctx, id)))
+    const result = await this.repo.deleteMany(ids)
+    await this.unlinkRows(rows)
+    return result
   }
 
   async sharesFor(ctx: RequestContext, id: string): Promise<ShareEntry[]> {

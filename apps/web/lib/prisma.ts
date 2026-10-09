@@ -15,6 +15,7 @@ import { PrismaClient } from "./generated/prisma/client"
  */
 const globalForPrisma = globalThis as unknown as {
   prisma: PrismaClient | undefined
+  pool: Pool | undefined
 }
 
 function poolMax() {
@@ -33,14 +34,25 @@ function makePool() {
   })
 }
 
+/**
+ * A single shared pool used by both Prisma and the large-object helpers
+ * (`lib/large-object.ts`). Prisma must never dispose of it, otherwise the
+ * large-object code would be left holding a dead pool. Keep this singleton
+ * on `globalThis` so hot reloads and warm serverless invocations reuse it.
+ */
+export const pool = globalForPrisma.pool ?? makePool()
+
 function createPrisma() {
-  const adapter = new PrismaPg(makePool(), { disposeExternalPool: true })
+  const adapter = new PrismaPg(pool, { disposeExternalPool: false })
   return new PrismaClient({ adapter })
 }
 
 export const prisma = globalForPrisma.prisma ?? createPrisma()
 
 // Cache across warm invocations of the same serverless instance.
+if (!globalForPrisma.pool) {
+  globalForPrisma.pool = pool
+}
 if (!globalForPrisma.prisma) {
   globalForPrisma.prisma = prisma
 }

@@ -1,5 +1,6 @@
 import { ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import type { RequestContext } from "@/lib/core/context"
+import { unlinkLargeObject } from "@/lib/large-object"
 import { prisma } from "@/lib/prisma"
 
 import { MessagingRepository } from "./repository"
@@ -73,7 +74,7 @@ export class MessagingService {
         kind: attachment.kind as Message["attachments"][number]["kind"],
         meta: attachment.meta ?? undefined,
         sizeBytes: attachment.sizeBytes ?? undefined,
-        hasStorage: Boolean(attachment.storageKey),
+        hasStorage: attachment.oid !== null,
       })),
       parentId: row.parentId ?? undefined,
       edited: row.edited,
@@ -185,8 +186,9 @@ export class MessagingService {
         name: attachment.name,
         kind: attachment.kind,
         meta: attachment.meta,
-        storageKey: attachment.storageKey,
+        oid: attachment.oid,
         mimeType: attachment.mimeType,
+        sha256: attachment.sha256,
         sizeBytes: attachment.sizeBytes,
       })),
     })
@@ -220,7 +222,17 @@ export class MessagingService {
     canWrite(ctx)
     const existing = await this.repo.findMessage(ctx.organizationId, id)
     if (!existing) throw new NotFoundError("Message")
+    const oids = existing.attachments
+      .map((attachment) => attachment.oid)
+      .filter((oid): oid is bigint => oid !== null)
     await this.repo.deleteMessage(id)
+    await Promise.all(
+      oids.map((oid) =>
+        unlinkLargeObject(Number(oid)).catch((error) =>
+          console.error(`[messaging] failed to unlink large object ${oid}`, error)
+        )
+      )
+    )
     return { id }
   }
 

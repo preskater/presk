@@ -27,7 +27,7 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/tooltip"
 
 import { useMessaging } from "@/lib/messaging/store"
-import { buildUploadPath } from "@/lib/files/paths"
+import { uploadAttachment } from "@/lib/files/upload-client"
 import type { Attachment } from "@/lib/messaging/types"
 
 const EMOJI = [
@@ -48,7 +48,7 @@ export function MessageComposer({
   onScheduleMeeting?: () => void
 }) {
   const t = useTranslations("Messaging")
-  const { sendMessage, currentUserId, organizationId, setTyping } = useMessaging()
+  const { sendMessage, currentUserId, setTyping } = useMessaging()
   const [value, setValue] = React.useState("")
   const [attachments, setAttachments] = React.useState<Attachment[]>([])
   const [uploading, setUploading] = React.useState(false)
@@ -70,13 +70,8 @@ export function MessageComposer({
     if (!files || files.length === 0) return
     setUploading(true)
     try {
-      const { upload } = await import("@vercel/blob/client")
       for (const file of Array.from(files)) {
-        const blob = await upload(
-          buildUploadPath(organizationId, file.name),
-          file,
-          { access: "private", handleUploadUrl: "/api/files/upload" }
-        )
+        const uploaded = await uploadAttachment(file)
         setAttachments((prev) => [
           ...prev,
           {
@@ -84,9 +79,12 @@ export function MessageComposer({
             name: file.name,
             kind,
             hasStorage: true,
-            sizeBytes: file.size,
+            sizeBytes: uploaded.size,
+            oid: uploaded.oid,
+            sha256: uploaded.sha256,
+            mimeType: file.type || undefined,
             meta: file.type || undefined,
-          } as Attachment & { storageKey?: string },
+          } as Attachment,
         ])
       }
     } catch {

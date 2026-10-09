@@ -11,8 +11,9 @@ export const attachmentSchema = z.object({
   name: z.string().min(1),
   kind: attachmentKindSchema.default("file"),
   meta: z.string().optional(),
-  storageKey: z.string().max(1024).optional(),
+  oid: z.number().int().nonnegative().optional(),
   mimeType: z.string().max(255).optional(),
+  sha256: z.string().max(64).optional(),
   sizeBytes: z.number().int().nonnegative().optional(),
 })
 

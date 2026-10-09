@@ -1,8 +1,10 @@
+import { Readable } from "node:stream"
+
 import { NextResponse } from "next/server"
 
 import { getRequestContext } from "@/lib/core/auth-context"
 import { fileService } from "@/lib/files"
-import { getPrivateBlob } from "@/lib/files/storage"
+import { openLargeObjectStream } from "@/lib/large-object"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
@@ -22,24 +24,20 @@ export async function GET(
 
   const file = await prisma.fileNode.findFirst({
     where: { id: fileId, organizationId: ctx.organizationId },
-    select: { name: true, storageKey: true, mimeType: true },
+    select: { name: true, oid: true, mimeType: true },
   })
 
-  if (!file || !file.storageKey) {
+  if (!file || file.oid === null) {
     return new NextResponse("Not found", { status: 404 })
   }
 
-  const result = await getPrivateBlob(file.storageKey)
-  if (!result || result.statusCode !== 200 || !result.stream) {
-    return new NextResponse("Not found", { status: 404 })
-  }
+  const { size, stream } = await openLargeObjectStream(Number(file.oid))
 
-  const contentType =
-    result.blob.contentType || file.mimeType || "application/octet-stream"
-
-  return new NextResponse(result.stream, {
+  const body = Readable.toWeb(stream) as unknown as ReadableStream
+  return new NextResponse(body, {
     headers: {
-      "Content-Type": contentType,
+      "Content-Type": file.mimeType || "application/octet-stream",
+      "Content-Length": String(size),
       "X-Content-Type-Options": "nosniff",
       "Content-Disposition": `attachment; filename="${encodeURIComponent(file.name)}"`,
       "Cache-Control": "private, no-cache",

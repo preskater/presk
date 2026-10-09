@@ -23,7 +23,8 @@ export const createFilesSchema = z.object({
         name: z.string().min(1).max(200),
         sizeBytes: z.number().int().nonnegative().default(0),
         mimeType: z.string().max(255).optional(),
-        storageKey: z.string().max(1024).optional(),
+        oid: z.number().int().nonnegative().optional(),
+        sha256: z.string().max(64).optional(),
       })
     )
     .min(1),
@@ -34,7 +35,8 @@ export const finalizeUploadSchema = z.object({
   name: z.string().min(1).max(200),
   sizeBytes: z.number().int().nonnegative().default(0),
   mimeType: z.string().max(255).optional(),
-  storageKey: z.string().min(1).max(1024),
+  oid: z.number().int().positive(),
+  sha256: z.string().max(64),
 })
 
 export const renameFileSchema = z.object({
