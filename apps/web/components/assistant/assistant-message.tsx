@@ -1,14 +1,15 @@
 "use client"
 
-import {
-  isReasoningUIPart,
-  isTextUIPart,
-  isToolUIPart,
-  getToolName,
-  type UIMessage,
-} from "ai"
 import { useTranslations } from "next-intl"
 import { SparklesIcon, WrenchIcon } from "lucide-react"
+
+import {
+  getToolName,
+  isReasoningPart,
+  isTextPart,
+  isToolPart,
+  type ChatMessage,
+} from "@/lib/assistant/chat"
 
 import {
   Bubble,
@@ -23,7 +24,7 @@ import { Badge } from "@workspace/ui/components/badge"
 
 import { Markdown } from "@/components/assistant/markdown"
 
-export function AssistantMessage({ message }: { message: UIMessage }) {
+export function AssistantMessage({ message }: { message: ChatMessage }) {
   const t = useTranslations("Assistant")
   const isUser = message.role === "user"
 
@@ -38,7 +39,7 @@ export function AssistantMessage({ message }: { message: UIMessage }) {
       ) : null}
       <MessageContent>
         {message.parts.map((part, index) => {
-          if (isTextUIPart(part)) {
+          if (isTextPart(part)) {
             return (
               <Bubble
                 key={`text-${index}`}
@@ -56,7 +57,7 @@ export function AssistantMessage({ message }: { message: UIMessage }) {
             )
           }
 
-          if (isReasoningUIPart(part)) {
+          if (isReasoningPart(part)) {
             return (
               <Bubble key={`reasoning-${index}`} variant="ghost" align="start">
                 <BubbleContent className="flex items-start gap-1.5 text-xs text-muted-foreground italic">
@@ -69,7 +70,7 @@ export function AssistantMessage({ message }: { message: UIMessage }) {
             )
           }
 
-          if (isToolUIPart(part)) {
+          if (isToolPart(part)) {
             return (
               <Bubble key={`tool-${index}`} variant="outline" align="start">
                 <BubbleContent className="flex items-center gap-2 text-xs">

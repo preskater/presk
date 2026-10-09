@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import { useChat } from "@ai-sdk/react"
 import { useTranslations } from "next-intl"
 import { ArrowUpIcon, SparklesIcon, XIcon } from "lucide-react"
 import { AssistantMessage } from "@/components/assistant/assistant-message"
@@ -18,18 +17,12 @@ import {
 import { Badge } from "@workspace/ui/components/badge"
 import { cn } from "@workspace/ui/lib/utils"
 
-import {
-  assistantInitialMessages,
-  assistantTransport,
-} from "@/lib/assistant/chat"
+import { useAssistant } from "@/lib/assistant/use-assistant"
 import { suggestions } from "@/lib/assistant/suggestions"
 
 export function AssistantBar() {
   const t = useTranslations("Assistant")
-  const { messages, sendMessage, status, error } = useChat({
-    messages: assistantInitialMessages,
-    transport: assistantTransport,
-  })
+  const { messages, sendMessage, status, error } = useAssistant()
   const [input, setInput] = React.useState("")
   const [open, setOpen] = React.useState(false)
   const overlayOpen = useOverlayOpen()
