@@ -54,7 +54,6 @@ export function OrgSwitcher({
       return
     }
     router.push(`/${organization.slug}`)
-    router.refresh()
   }
 
   return (
