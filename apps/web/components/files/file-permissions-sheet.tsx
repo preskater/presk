@@ -45,14 +45,15 @@ export function FilePermissionsSheet({
   open: boolean
   onOpenChange: (open: boolean) => void
 }) {
-  const { getMember, sharesFor, setPermission, removeShare } = useFiles()
+  const { getMember, sharesFor, setPermission, removeShare, setRestricted } =
+    useFiles()
   const t = useTranslations("Files")
   const L = useEnumLabel()
-  const [inherited, setInherited] = React.useState(true)
   const [linkAccess, setLinkAccess] = React.useState("view")
 
   if (!file) return null
   const entries = sharesFor(file.id)
+  const inherited = !file.restricted
 
   const permissionItems = (["view", "comment", "edit"] as const).map((value) => ({
     label: L.sharePermission(value),
@@ -140,7 +141,9 @@ export function FilePermissionsSheet({
             <label className="flex items-start gap-2">
               <Checkbox
                 checked={inherited}
-                onCheckedChange={(checked) => setInherited(checked === true)}
+                onCheckedChange={(checked) =>
+                  setRestricted(file.id, checked !== true)
+                }
               />
               <span className="text-sm">
                 {t("inheritPermissions")}

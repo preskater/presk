@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 
 import { getRequestContext } from "@/lib/core/auth-context"
+import { fileService } from "@/lib/files"
 import { getPrivateBlob } from "@/lib/files/storage"
 import { prisma } from "@/lib/prisma"
 
@@ -12,6 +13,12 @@ export async function GET(
 ) {
   const ctx = await getRequestContext({ request })
   const { fileId } = await params
+
+  try {
+    await fileService.get(ctx, fileId)
+  } catch {
+    return new NextResponse("Not found", { status: 404 })
+  }
 
   const file = await prisma.fileNode.findFirst({
     where: { id: fileId, organizationId: ctx.organizationId },

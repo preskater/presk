@@ -14,6 +14,7 @@ import {
   moveFileSchema,
   removeShareSchema,
   renameFileSchema,
+  setFileRestrictedSchema,
   updateShareSchema,
 } from "@/lib/files/schemas"
 
@@ -146,5 +147,15 @@ export const removeShareAction = withAction(
     const shares = await fileService.removeShare(ctx, id, parsed)
     await revalidateOrgPath(ctx.organizationId, "/files")
     return shares
+  }
+)
+
+export const setFileRestrictedAction = withAction(
+  async (id: string, input: unknown) => {
+    const ctx = await getRequestContext()
+    const parsed = await parseLocalized(setFileRestrictedSchema, input)
+    const file = await fileService.setRestricted(ctx, id, parsed.restricted)
+    await revalidateOrgPath(ctx.organizationId, "/files")
+    return file
   }
 )

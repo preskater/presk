@@ -10,6 +10,7 @@
   "roleCannotManageMembers": "Votre rôle ne permet pas de gérer les membres de l'espace de travail.",
   "emailAlreadyMember": "Cette adresse e-mail est déjà membre.",
   "roleCannotModifyFiles": "Votre rôle ne permet pas de modifier les fichiers.",
+  "filePermissionDenied": "Vous n'avez pas la permission de modifier ce fichier.",
   "roleCannotModifyCalendars": "Votre rôle ne permet pas de modifier les calendriers.",
   "roleCannotSendMessages": "Votre rôle ne permet pas d'envoyer des messages.",
   "labelColorAlreadyUsed": "Cette couleur est déjà utilisée par une autre étiquette.",

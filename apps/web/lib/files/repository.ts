@@ -26,6 +26,38 @@ export class FileRepository {
     })
   }
 
+  async findAncestorChain(organizationId: string, id: string) {
+    type ChainNode = {
+      id: string
+      parentId: string | null
+      ownerId: string
+      restricted: boolean
+      shared: boolean
+      shares: { userId: string; permission: string }[]
+    }
+    const chain: ChainNode[] = []
+    const seen = new Set<string>()
+    let current: string | null = id
+    while (current && !seen.has(current)) {
+      seen.add(current)
+      const node: ChainNode | null = await this.db.fileNode.findFirst({
+        where: { id: current, organizationId },
+        select: {
+          id: true,
+          parentId: true,
+          ownerId: true,
+          restricted: true,
+          shared: true,
+          shares: { select: { userId: true, permission: true } },
+        },
+      })
+      if (!node) break
+      chain.push(node)
+      current = node.parentId
+    }
+    return chain
+  }
+
   create(data: {
     organizationId: string
     name: string
@@ -85,6 +117,7 @@ export class FileRepository {
       trashed?: boolean
       trashedAt?: Date | null
       shared?: boolean
+      restricted?: boolean
       modifiedAt?: Date
       sizeBytes?: number
       mimeType?: string

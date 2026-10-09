@@ -10,6 +10,7 @@
   "roleCannotManageMembers": "Your role cannot manage workspace members.",
   "emailAlreadyMember": "That email is already a member.",
   "roleCannotModifyFiles": "Your role cannot modify files.",
+  "filePermissionDenied": "You do not have permission to modify this file.",
   "roleCannotModifyCalendars": "Your role cannot modify calendars.",
   "roleCannotSendMessages": "Your role cannot send messages.",
   "labelColorAlreadyUsed": "That color is already used by another label.",
