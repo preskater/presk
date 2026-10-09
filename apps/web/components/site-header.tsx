@@ -15,6 +15,7 @@ const titleKeys = {
   "/messages": "messages",
   "/calendars": "calendars",
   "/files": "files",
+  "/settings/account": "account",
   "/settings": "settings",
   "/search": "search",
   "/help": "getHelp",
