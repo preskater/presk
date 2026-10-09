@@ -66,10 +66,18 @@ export class CalendarService {
   }
 
   async list(ctx: RequestContext): Promise<CalendarData> {
-    const [calendars, events] = await Promise.all([
-      this.repo.listCalendars(ctx.organizationId),
-      this.repo.listEvents(ctx.organizationId),
-    ])
+    let calendars = await this.repo.listCalendars(ctx.organizationId)
+    if (calendars.length === 0) {
+      await this.repo.createCalendar({
+        organizationId: ctx.organizationId,
+        name: "Personal",
+        kind: "personal",
+        color: "blue",
+        memberIds: [ctx.userId],
+      })
+      calendars = await this.repo.listCalendars(ctx.organizationId)
+    }
+    const events = await this.repo.listEvents(ctx.organizationId)
     return {
       calendars: calendars.map((calendar) => this.mapCalendar(calendar)),
       events: events.map((event) => this.mapEvent(event)),

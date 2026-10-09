@@ -138,5 +138,7 @@
   "deleteLabel": "Supprimer {label}",
   "projects": "Projets",
   "selectAll": "Tout sélectionner",
-  "sendInvite": "Envoyer l'invitation"
+  "sendInvite": "Envoyer l'invitation",
+  "nameRequired": "Veuillez saisir un nom.",
+  "titleRequired": "Veuillez saisir un titre."
 }

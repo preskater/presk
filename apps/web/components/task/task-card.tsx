@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import {
   CalendarDaysIcon,
   EllipsisIcon,
@@ -24,7 +25,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog"
 import { Button } from "@workspace/ui/components/button"
 import {
@@ -118,6 +118,8 @@ export function TaskCard({
 }) {
   const t = useTranslations("Projects")
   const { deleteTask } = useProjectStore()
+  const [editOpen, setEditOpen] = React.useState(false)
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
   const {
     setNodeRef,
     attributes,
@@ -164,56 +166,57 @@ export function TaskCard({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuGroup>
-              <DropdownMenuItem onSelect={() => onOpen(task.id)}>
+              <DropdownMenuItem onClick={() => onOpen(task.id)}>
                 <SquareCheckIcon />
                 {t("viewDetails")}
               </DropdownMenuItem>
-              <TaskFormDialog
-                projectId={projectId}
-                task={task}
-                trigger={
-                  <DropdownMenuItem onSelect={(event) => event.preventDefault()}>
-                    <PencilIcon />
-                    {t("editTask")}
-                  </DropdownMenuItem>
-                }
-              />
+              <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                <PencilIcon />
+                {t("editTask")}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
-              <AlertDialog>
-                <AlertDialogTrigger
-                  render={
-                    <DropdownMenuItem variant="destructive">
-                      <Trash2Icon />
-                      {t("deleteTask")}
-                    </DropdownMenuItem>
-                  }
-                />
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>
-                      {t("deleteTaskQuestion", {
-                        identifier: task.identifier,
-                      })}
-                    </AlertDialogTitle>
-                    <AlertDialogDescription>
-                      {t("deleteTaskDescription", { title: task.title })}
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-                    <AlertDialogAction
-                      variant="destructive"
-                      onClick={() => deleteTask(task.id)}
-                    >
-                      {t("delete")}
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => setDeleteOpen(true)}
+              >
+                <Trash2Icon />
+                {t("deleteTask")}
+              </DropdownMenuItem>
             </DropdownMenuGroup>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
+
+      <TaskFormDialog
+        projectId={projectId}
+        task={task}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("deleteTaskQuestion", {
+                identifier: task.identifier,
+              })}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteTaskDescription", { title: task.title })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => deleteTask(task.id)}
+            >
+              {t("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

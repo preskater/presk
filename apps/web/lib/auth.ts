@@ -23,6 +23,19 @@ export const auth = betterAuth({
       membershipLimit: 100,
       creatorRole: "owner",
       requireEmailVerificationOnInvitation: false,
+      organizationHooks: {
+        afterCreateOrganization: async ({ organization, user }) => {
+          await prisma.calendar.create({
+            data: {
+              organizationId: organization.id,
+              name: "Personal",
+              kind: "personal",
+              color: "blue",
+              members: { create: [{ userId: user.id }] },
+            },
+          })
+        },
+      },
     }),
     admin(),
     nextCookies(),

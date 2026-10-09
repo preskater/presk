@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import {
   EllipsisIcon,
   FolderIcon,
@@ -20,7 +21,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -53,6 +53,8 @@ function ProjectCard({ project }: { project: Project }) {
   const L = useEnumLabel()
   const orgSlug = useOrgSlug()
   const { tasksForProject, getMember, deleteProject } = useProjectStore()
+  const [editOpen, setEditOpen] = React.useState(false)
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
   const tasks = tasksForProject(project.id)
   const done = tasks.filter((task) => task.status === "done").length
   const progress = tasks.length ? Math.round((done / tasks.length) * 100) : 0
@@ -90,48 +92,18 @@ function ProjectCard({ project }: { project: Project }) {
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <ProjectFormDialog
-                  project={project}
-                  trigger={
-                    <DropdownMenuItem>
-                      <PencilIcon />
-                      {t("editProject")}
-                    </DropdownMenuItem>
-                  }
-                />
+                <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                  <PencilIcon />
+                  {t("editProject")}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <DropdownMenuItem variant="destructive">
-                        <Trash2Icon />
-                        {t("deleteProject")}
-                      </DropdownMenuItem>
-                    }
-                  />
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {t("deleteProjectQuestion")}
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t("deleteProjectTasksDescription", {
-                          name: project.name,
-                          count: tasks.length,
-                        })}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-                      <AlertDialogAction
-                        variant="destructive"
-                        onClick={() => deleteProject(project.id)}
-                      >
-                        {t("delete")}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  <Trash2Icon />
+                  {t("deleteProject")}
+                </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -158,6 +130,37 @@ function ProjectCard({ project }: { project: Project }) {
           ) : null}
         </div>
       </CardContent>
+
+      <ProjectFormDialog
+        project={project}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {t("deleteProjectQuestion")}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteProjectTasksDescription", {
+                name: project.name,
+                count: tasks.length,
+              })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => deleteProject(project.id)}
+            >
+              {t("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Card>
   )
 }

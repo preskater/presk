@@ -17,6 +17,7 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
@@ -42,9 +43,13 @@ import {
 export function ProjectFormDialog({
   trigger,
   project,
+  open: controlledOpen,
+  onOpenChange,
 }: {
-  trigger: React.ReactElement
+  trigger?: React.ReactElement
   project?: Project
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
   const t = useTranslations("Projects")
   const L = useEnumLabel()
@@ -53,7 +58,9 @@ export function ProjectFormDialog({
     value,
   }))
   const { createProject, updateProject } = useProjectStore()
-  const [open, setOpen] = React.useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const open = controlledOpen ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
   const [name, setName] = React.useState(project?.name ?? "")
   const [description, setDescription] = React.useState(
     project?.description ?? ""
@@ -61,17 +68,21 @@ export function ProjectFormDialog({
   const [status, setStatus] = React.useState<ProjectStatus>(
     project?.status ?? "active"
   )
+  const [submitted, setSubmitted] = React.useState(false)
+  const nameInvalid = submitted && !name.trim()
 
   React.useEffect(() => {
     if (open) {
       setName(project?.name ?? "")
       setDescription(project?.description ?? "")
       setStatus(project?.status ?? "active")
+      setSubmitted(false)
     }
   }, [open, project])
 
   function handleSubmit(event: React.FormEvent) {
     event.preventDefault()
+    setSubmitted(true)
     if (!name.trim()) return
     if (project) {
       updateProject(project.id, { name, description, status })
@@ -83,7 +94,7 @@ export function ProjectFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent>
         <DialogHeader>
           <DialogTitle>
@@ -97,15 +108,19 @@ export function ProjectFormDialog({
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <FieldGroup>
-            <Field>
+            <Field data-invalid={nameInvalid}>
               <FieldLabel htmlFor="project-name">{t("name")}</FieldLabel>
               <Input
                 id="project-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder={t("namePlaceholder")}
+                aria-invalid={nameInvalid}
                 autoFocus
               />
+              {nameInvalid ? (
+                <FieldError>{t("nameRequired")}</FieldError>
+              ) : null}
             </Field>
             <Field>
               <FieldLabel htmlFor="project-description">

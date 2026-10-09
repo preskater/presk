@@ -23,7 +23,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
-import { Field, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
+import { Field, FieldError, FieldGroup, FieldLabel } from "@workspace/ui/components/field"
 import { Input } from "@workspace/ui/components/input"
 import { ScrollArea } from "@workspace/ui/components/scroll-area"
 import {
@@ -79,10 +79,13 @@ function CalendarRow({
 
 function AddCalendarDialog() {
   const { addCalendar } = useCalendars()
+  const t = useTranslations("Calendars")
   const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState("")
   const [kind, setKind] = React.useState<CalendarKind>("personal")
   const [color, setColor] = React.useState<EventColor>("blue")
+  const [submitted, setSubmitted] = React.useState(false)
+  const nameInvalid = submitted && !name.trim()
 
   const kindItems = [
     { label: "Personal", value: "personal" },
@@ -90,7 +93,13 @@ function AddCalendarDialog() {
   ]
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (next) setSubmitted(false)
+      }}
+    >
       <DialogTrigger render={<Button variant="ghost" size="sm" className="w-full justify-start" />}>
         <CalendarPlusIcon data-icon="inline-start" />
         Add calendar
@@ -106,6 +115,7 @@ function AddCalendarDialog() {
           className="flex flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault()
+            setSubmitted(true)
             if (!name.trim()) return
             addCalendar(name.trim(), kind, color)
             setName("")
@@ -113,15 +123,19 @@ function AddCalendarDialog() {
           }}
         >
           <FieldGroup>
-            <Field>
+            <Field data-invalid={nameInvalid}>
               <FieldLabel htmlFor="calendar-name">Name</FieldLabel>
               <Input
                 id="calendar-name"
                 value={name}
                 onChange={(event) => setName(event.target.value)}
                 placeholder="e.g. Field Sales"
+                aria-invalid={nameInvalid}
                 autoFocus
               />
+              {nameInvalid ? (
+                <FieldError>{t("nameRequired")}</FieldError>
+              ) : null}
             </Field>
             <Field>
               <FieldLabel htmlFor="calendar-kind">Type</FieldLabel>

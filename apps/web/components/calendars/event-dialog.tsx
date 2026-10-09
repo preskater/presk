@@ -21,6 +21,7 @@ import {
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
@@ -109,8 +110,14 @@ export function EventDialog({
   const [color, setColor] = React.useState<EventColor>("blue")
   const [reminder, setReminder] = React.useState("15")
   const [attendees, setAttendees] = React.useState<AttendeeDraft[]>([])
+  const [submitted, setSubmitted] = React.useState(false)
+
+  const titleInvalid = submitted && !title.trim()
+  const dateInvalid = submitted && !date
+  const calendarInvalid = submitted && !calendarId
 
   function reset() {
+    setSubmitted(false)
     const start = event?.startAt
       ? new Date(event.startAt)
       : (defaultStart ?? new Date())
@@ -166,7 +173,8 @@ export function EventDialog({
 
   function handleSubmit(formEvent: React.FormEvent) {
     formEvent.preventDefault()
-    if (!title.trim() || !date) return
+    setSubmitted(true)
+    if (!title.trim() || !date || !calendarId) return
     const start = new Date(date)
     const end = new Date(date)
     if (allDay) {
@@ -211,26 +219,34 @@ export function EventDialog({
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <FieldGroup>
-            <Field>
+            <Field data-invalid={titleInvalid}>
               <FieldLabel htmlFor="event-title">{t("title")}</FieldLabel>
               <Input
                 id="event-title"
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder={t("titlePlaceholder")}
+                aria-invalid={titleInvalid}
                 autoFocus
               />
+              {titleInvalid ? (
+                <FieldError>{t("titleRequired")}</FieldError>
+              ) : null}
             </Field>
 
             <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <Field>
+              <Field data-invalid={calendarInvalid}>
                 <FieldLabel htmlFor="event-calendar">{t("calendar")}</FieldLabel>
                 <Select
                   items={calendarItems}
                   value={calendarId}
                   onValueChange={(value) => setCalendarId(value as string)}
                 >
-                  <SelectTrigger id="event-calendar" className="w-full">
+                  <SelectTrigger
+                    id="event-calendar"
+                    className="w-full"
+                    aria-invalid={calendarInvalid}
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -243,10 +259,16 @@ export function EventDialog({
                     </SelectGroup>
                   </SelectContent>
                 </Select>
+                {calendarInvalid ? (
+                  <FieldError>{t("calendarRequired")}</FieldError>
+                ) : null}
               </Field>
-              <Field>
+              <Field data-invalid={dateInvalid}>
                 <FieldLabel htmlFor="event-date">{t("date")}</FieldLabel>
                 <DatePicker value={date} onChange={setDate} />
+                {dateInvalid ? (
+                  <FieldError>{t("dateRequired")}</FieldError>
+                ) : null}
               </Field>
             </div>
 

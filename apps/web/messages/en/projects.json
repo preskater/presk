@@ -138,5 +138,7 @@
   "deleteLabel": "Delete {label}",
   "projects": "Projects",
   "selectAll": "Select all",
-  "sendInvite": "Send invite"
+  "sendInvite": "Send invite",
+  "nameRequired": "Please enter a name.",
+  "titleRequired": "Please enter a title."
 }

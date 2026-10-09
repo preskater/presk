@@ -8,6 +8,7 @@ import { MemberPicker } from "@/components/task/member-picker"
 import {
   Field,
   FieldDescription,
+  FieldError,
   FieldGroup,
   FieldLabel,
 } from "@workspace/ui/components/field"
@@ -74,6 +75,8 @@ export function TaskForm({
   )
   const [dueDate, setDueDate] = React.useState<string | undefined>(task?.dueDate)
   const [endDate, setEndDate] = React.useState<string | undefined>(task?.endDate)
+  const [submitted, setSubmitted] = React.useState(false)
+  const titleInvalid = submitted && !title.trim()
 
   return (
     <form
@@ -81,6 +84,7 @@ export function TaskForm({
       className="flex flex-col gap-4"
       onSubmit={(event) => {
         event.preventDefault()
+        setSubmitted(true)
         if (!title.trim()) return
         onSubmit({
           projectId,
@@ -96,15 +100,19 @@ export function TaskForm({
       }}
     >
       <FieldGroup>
-        <Field>
+        <Field data-invalid={titleInvalid}>
           <FieldLabel htmlFor={`${formId}-title`}>{t("title")}</FieldLabel>
           <Input
             id={`${formId}-title`}
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder={t("titlePlaceholder")}
+            aria-invalid={titleInvalid}
             autoFocus
           />
+          {titleInvalid ? (
+            <FieldError>{t("titleRequired")}</FieldError>
+          ) : null}
         </Field>
         <Field>
           <FieldLabel htmlFor={`${formId}-description`}>

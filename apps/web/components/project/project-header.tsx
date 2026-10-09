@@ -1,5 +1,6 @@
 "use client"
 
+import * as React from "react"
 import { EllipsisIcon, PencilIcon, PlusIcon, Trash2Icon } from "lucide-react"
 import { useLocale, useTranslations } from "next-intl"
 
@@ -15,7 +16,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "@workspace/ui/components/alert-dialog"
 import {
   Breadcrumb,
@@ -59,6 +59,8 @@ export function ProjectHeader({
   const L = useEnumLabel()
   const { getMember, deleteProject } = useProjectStore()
   const orgSlug = useOrgSlug()
+  const [editOpen, setEditOpen] = React.useState(false)
+  const [deleteOpen, setDeleteOpen] = React.useState(false)
   const members = project.memberIds
     .map((id) => getMember(id))
     .filter((member) => member !== undefined)
@@ -131,53 +133,52 @@ export function ProjectHeader({
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuGroup>
-                <ProjectFormDialog
-                  project={project}
-                  trigger={
-                    <DropdownMenuItem>
-                      <PencilIcon />
-                      {t("editProject")}
-                    </DropdownMenuItem>
-                  }
-                />
+                <DropdownMenuItem onClick={() => setEditOpen(true)}>
+                  <PencilIcon />
+                  {t("editProject")}
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
-                <AlertDialog>
-                  <AlertDialogTrigger
-                    render={
-                      <DropdownMenuItem variant="destructive">
-                        <Trash2Icon />
-                        {t("deleteProject")}
-                      </DropdownMenuItem>
-                    }
-                  />
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>
-                        {t("deleteProjectQuestion")}
-                      </AlertDialogTitle>
-                      <AlertDialogDescription>
-                        {t("deleteProjectDescription", { name: project.name })}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
-                      <AlertDialogAction
-                        variant="destructive"
-                        onClick={() => {
-                          deleteProject(project.id)
-                          onDeleted()
-                        }}
-                      >
-                        {t("delete")}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setDeleteOpen(true)}
+                >
+                  <Trash2Icon />
+                  {t("deleteProject")}
+                </DropdownMenuItem>
               </DropdownMenuGroup>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
       </div>
+
+      <ProjectFormDialog
+        project={project}
+        open={editOpen}
+        onOpenChange={setEditOpen}
+      />
+
+      <AlertDialog open={deleteOpen} onOpenChange={setDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("deleteProjectQuestion")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("deleteProjectDescription", { name: project.name })}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("cancel")}</AlertDialogCancel>
+            <AlertDialogAction
+              variant="destructive"
+              onClick={() => {
+                deleteProject(project.id)
+                onDeleted()
+              }}
+            >
+              {t("delete")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

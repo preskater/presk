@@ -31,14 +31,20 @@ export function TaskFormDialog({
   projectId,
   task,
   trigger,
+  open: controlledOpen,
+  onOpenChange,
 }: {
   projectId: string
   task?: Task
-  trigger: React.ReactElement
+  trigger?: React.ReactElement
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }) {
   const t = useTranslations("Projects")
   const { createTask, updateTask, templatesForProject } = useProjectStore()
-  const [open, setOpen] = React.useState(false)
+  const [uncontrolledOpen, setUncontrolledOpen] = React.useState(false)
+  const open = controlledOpen ?? uncontrolledOpen
+  const setOpen = onOpenChange ?? setUncontrolledOpen
   const [templateId, setTemplateId] = React.useState<string>("blank")
   const formId = React.useId()
   const templates = templatesForProject(projectId)
@@ -55,7 +61,7 @@ export function TaskFormDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={trigger} />
+      {trigger ? <DialogTrigger render={trigger} /> : null}
       <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-lg">
         <DialogHeader>
           <DialogTitle>

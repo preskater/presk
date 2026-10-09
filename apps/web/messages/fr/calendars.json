@@ -69,6 +69,10 @@
   "resizeEvent": "Redimensionner l'événement",
   "allDayShort": "journée",
   "hour": "heure",
+  "titleRequired": "Veuillez saisir un titre.",
+  "dateRequired": "Veuillez choisir une date.",
+  "calendarRequired": "Veuillez sélectionner un calendrier.",
+  "nameRequired": "Veuillez saisir un nom.",
   "weekdays": {
     "mon": "Lun",
     "tue": "Mar",
