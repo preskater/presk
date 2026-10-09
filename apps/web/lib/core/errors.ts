@@ -20,6 +20,7 @@ export type ServiceErrorCode =
   | "role_cannot_modify_files"
   | "role_cannot_modify_calendars"
   | "role_cannot_send_messages"
+  | "label_color_already_used"
 
 export type ErrorCode = AppErrorCode | ServiceErrorCode
 

@@ -123,7 +123,7 @@
   "addLabelDescription": "Les étiquettes aident à catégoriser les tâches du projet.",
   "labelNamePlaceholder": "ex. Design",
   "color": "Couleur",
-  "useColor": "Utiliser la couleur {color}",
+  "colorAlreadyUsed": "Cette couleur est déjà utilisée par une autre étiquette.",
   "deleteLabel": "Supprimer {label}",
   "projects": "Projets",
   "selectAll": "Tout sélectionner",

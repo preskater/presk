@@ -16,6 +16,7 @@ const CODE_KEYS: Record<string, string> = {
   role_cannot_modify_files: "roleCannotModifyFiles",
   role_cannot_modify_calendars: "roleCannotModifyCalendars",
   role_cannot_send_messages: "roleCannotSendMessages",
+  label_color_already_used: "labelColorAlreadyUsed",
 }
 
 export function useErrorTranslator() {
