@@ -21,6 +21,8 @@ import {
 } from "@workspace/ui/components/message"
 import { Badge } from "@workspace/ui/components/badge"
 
+import { Markdown } from "@/components/assistant/markdown"
+
 export function AssistantMessage({ message }: { message: UIMessage }) {
   const t = useTranslations("Assistant")
   const isUser = message.role === "user"
@@ -43,8 +45,12 @@ export function AssistantMessage({ message }: { message: UIMessage }) {
                 variant={isUser ? "default" : "muted"}
                 align={isUser ? "end" : "start"}
               >
-                <BubbleContent className="whitespace-pre-wrap">
-                  {part.text}
+                <BubbleContent>
+                  {isUser ? (
+                    <span className="whitespace-pre-wrap">{part.text}</span>
+                  ) : (
+                    <Markdown>{part.text}</Markdown>
+                  )}
                 </BubbleContent>
               </Bubble>
             )

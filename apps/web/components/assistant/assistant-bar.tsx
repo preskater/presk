@@ -4,7 +4,6 @@ import * as React from "react"
 import { useChat } from "@ai-sdk/react"
 import { useTranslations } from "next-intl"
 import { ArrowUpIcon, SparklesIcon, XIcon } from "lucide-react"
-
 import { AssistantMessage } from "@/components/assistant/assistant-message"
 import { useOverlayOpen } from "@/components/assistant/use-overlay-open"
 import { Button } from "@workspace/ui/components/button"
@@ -27,7 +26,7 @@ import { suggestions } from "@/lib/assistant/suggestions"
 
 export function AssistantBar() {
   const t = useTranslations("Assistant")
-  const { messages, sendMessage, status } = useChat({
+  const { messages, sendMessage, status, error } = useChat({
     messages: assistantInitialMessages,
     transport: assistantTransport,
   })
@@ -114,6 +113,12 @@ export function AssistantBar() {
             ))}
           </div>
         )}
+
+        {error ? (
+          <div className="border-t border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive">
+            {error.message || t("error")}
+          </div>
+        ) : null}
 
         <form onSubmit={handleSubmit} className="flex items-center gap-2 p-2.5">
           <SparklesIcon className="ms-1.5 size-4 shrink-0 text-muted-foreground" />
