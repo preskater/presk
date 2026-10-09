@@ -67,8 +67,10 @@ export function MessageItem({
 }) {
   const t = useTranslations("Messaging")
   const locale = useLocale()
-  const { getMember, presence, deleteMessage, toggleReaction } = useMessaging()
+  const { getMember, presence, currentUserId, deleteMessage, toggleReaction } =
+    useMessaging()
   const author = getMember(message.authorId)
+  const isOwn = message.authorId === currentUserId
   const replyCount = useMessaging().repliesFor(message.id).length
   const [editOpen, setEditOpen] = React.useState(false)
 
@@ -87,12 +89,13 @@ export function MessageItem({
           <div
             className={cn(
               "group flex gap-3 px-4 hover:bg-muted/40",
+              isOwn && "flex-row-reverse",
               compact ? "py-1" : "py-2"
             )}
           />
         }
       >
-        <div className="relative mt-0.5 shrink-0">
+        <div className="relative mt-0.5 size-8 shrink-0">
           <Avatar size="sm" className="size-8">
             {author?.avatarUrl ? (
               <AvatarImage src={author.avatarUrl} alt={author.name} />
@@ -101,16 +104,24 @@ export function MessageItem({
               {author ? initials(author.name) : "?"}
             </AvatarFallback>
           </Avatar>
-          <PresenceDot
-            presence={message.authorId ? presence[message.authorId] : undefined}
-            className="absolute -end-0.5 -bottom-0.5"
-          />
+          {!isOwn ? (
+            <PresenceDot
+              presence={
+                message.authorId ? presence[message.authorId] : undefined
+              }
+            />
+          ) : null}
         </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="flex items-baseline gap-2">
+        <div className={cn("min-w-0 flex-1", isOwn && "flex flex-col items-end")}>
+          <div
+            className={cn(
+              "flex items-baseline gap-2",
+              isOwn && "flex-row-reverse"
+            )}
+          >
             <span className="text-sm font-medium">
-              {author?.name ?? t("unknown")}
+              {isOwn ? t("you") : (author?.name ?? t("unknown"))}
             </span>
             <span className="text-xs text-muted-foreground">
               {formatTime(message.createdAt, locale)}
@@ -123,11 +134,23 @@ export function MessageItem({
           </div>
 
           {message.body ? (
-            <p className="text-sm whitespace-pre-wrap">{message.body}</p>
+            <p
+              className={cn(
+                "text-sm whitespace-pre-wrap",
+                isOwn && "text-end"
+              )}
+            >
+              {message.body}
+            </p>
           ) : null}
 
           {message.attachments.length > 0 ? (
-            <div className="mt-2 flex flex-wrap gap-2">
+            <div
+              className={cn(
+                "mt-2 flex flex-wrap gap-2",
+                isOwn && "justify-end"
+              )}
+            >
               {message.attachments.map((attachment) => (
                 <div
                   key={attachment.id}
@@ -165,7 +188,7 @@ export function MessageItem({
           <ReactionBar
             messageId={message.id}
             reactions={message.reactions}
-            className="mt-1.5"
+            className={cn("mt-1.5", isOwn && "justify-end")}
           />
 
           {replyCount > 0 ? (
@@ -179,7 +202,12 @@ export function MessageItem({
             </button>
           ) : null}
 
-          <div className="mt-1 hidden items-center gap-1 group-hover:flex">
+          <div
+            className={cn(
+              "mt-1 hidden items-center gap-1 group-hover:flex",
+              isOwn && "justify-end"
+            )}
+          >
             {QUICK_REACTIONS.slice(0, 3).map((emoji) => (
               <Button
                 key={emoji}

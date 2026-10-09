@@ -27,12 +27,15 @@ export class MessagingRepository {
     })
   }
 
-  findDm(organizationId: string, userId: string) {
+  findDm(organizationId: string, currentUserId: string, partnerId: string) {
     return this.db.conversation.findFirst({
       where: {
         organizationId,
         kind: "dm",
-        members: { some: { userId } },
+        AND: [
+          { members: { some: { userId: currentUserId } } },
+          { members: { some: { userId: partnerId } } },
+        ],
       },
       include: { members: true },
     })

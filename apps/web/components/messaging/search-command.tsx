@@ -29,7 +29,13 @@ export function SearchCommand({
   const t = useTranslations("Messaging")
   const tc = useTranslations("Common")
   const locale = useLocale()
-  const { conversations, messages, getConversation, getMember } = useMessaging()
+  const { conversations, messages, getConversation, getMember, dmPartner } =
+    useMessaging()
+
+  const labelFor = (conversation: (typeof conversations)[number]) =>
+    conversation.kind === "channel"
+      ? conversation.name
+      : (getMember(dmPartner(conversation))?.name ?? t("directMessage"))
 
   return (
     <CommandDialog
@@ -52,7 +58,7 @@ export function SearchCommand({
             {conversations.map((conversation) => (
               <CommandItem
                 key={conversation.id}
-                value={`conv ${conversation.name}`}
+                value={`conv ${labelFor(conversation)}`}
                 onSelect={() => {
                   onSelectConversation(conversation.id)
                   onOpenChange(false)
@@ -63,7 +69,7 @@ export function SearchCommand({
                 ) : (
                   <MessageSquareIcon />
                 )}
-                <span>{conversation.name}</span>
+                <span>{labelFor(conversation)}</span>
               </CommandItem>
             ))}
           </CommandGroup>
@@ -86,7 +92,7 @@ export function SearchCommand({
                     <span className="truncate text-xs text-muted-foreground">
                       {t("authorInConversation", {
                         author: author?.name ?? "",
-                        conversation: conversation?.name ?? "",
+                        conversation: conversation ? labelFor(conversation) : "",
                       })}{" "}
                       · {formatRelative(message.createdAt, locale, tc)}
                     </span>
