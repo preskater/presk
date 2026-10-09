@@ -11,10 +11,12 @@ import type {
   AddMemberInput,
   CreateProjectInput,
   CreateTaskInput,
+  CreateTaskTemplateInput,
   MoveTaskInput,
   UpdateMemberRoleInput,
   UpdateProjectInput,
   UpdateTaskInput,
+  UpdateTaskTemplateInput,
 } from "./schemas"
 import type {
   Activity,
@@ -24,6 +26,7 @@ import type {
   ProjectData,
   Subtask,
   Task,
+  TaskTemplate,
 } from "./types"
 import { ACTIVITY_STATUS_SENTINEL } from "./types"
 
@@ -64,6 +67,9 @@ function taskKey(name: string, tasks: Task[]) {
 type ProjectRow = NonNullable<Awaited<ReturnType<ProjectRepository["findById"]>>>
 type TaskRow = Awaited<ReturnType<ProjectRepository["listTasks"]>>[number]
 type MemberRow = Awaited<ReturnType<ProjectRepository["listMembers"]>>[number]
+type TemplateRow = Awaited<
+  ReturnType<ProjectRepository["listTemplates"]>
+>[number]
 
 export class ProjectService {
   constructor(
@@ -87,6 +93,18 @@ export class ProjectService {
 
   private mapMember(row: MemberRow): Member {
     return toMemberView(row)
+  }
+
+  private mapTemplate(row: TemplateRow): TaskTemplate {
+    return {
+      id: row.id,
+      projectId: row.projectId,
+      name: row.name,
+      description: row.description ?? undefined,
+      status: row.status as TaskTemplate["status"],
+      priority: row.priority as TaskTemplate["priority"],
+      labelIds: row.labelIds,
+    }
   }
 
   private mapProject(row: ProjectRow): Project {
@@ -143,10 +161,11 @@ export class ProjectService {
   }
 
   async list(ctx: RequestContext): Promise<ProjectData> {
-    const [projects, labels, members] = await Promise.all([
+    const [projects, labels, members, templates] = await Promise.all([
       this.repo.list(ctx.organizationId),
       this.repo.listLabels(ctx.organizationId),
       this.listMembersView(ctx),
+      this.repo.listTemplates(ctx.organizationId),
     ])
 
     const tasks = projects.flatMap((project) =>
@@ -175,6 +194,15 @@ export class ProjectService {
           color: label.color,
         })
       ),
+      templates: templates.map((template): TaskTemplate => ({
+        id: template.id,
+        projectId: template.projectId,
+        name: template.name,
+        description: template.description ?? undefined,
+        status: template.status as TaskTemplate["status"],
+        priority: template.priority as TaskTemplate["priority"],
+        labelIds: template.labelIds,
+      })),
       activities,
     }
   }
@@ -472,6 +500,55 @@ export class ProjectService {
   async removeLabel(ctx: RequestContext, id: string): Promise<{ id: string }> {
     this.canWrite(ctx)
     await this.repo.deleteLabel(id)
+    return { id }
+  }
+
+  async listTemplates(ctx: RequestContext): Promise<TaskTemplate[]> {
+    const rows = await this.repo.listTemplates(ctx.organizationId)
+    return rows.map((row) => this.mapTemplate(row))
+  }
+
+  async createTemplate(
+    ctx: RequestContext,
+    input: CreateTaskTemplateInput
+  ): Promise<TaskTemplate> {
+    this.canManage(ctx)
+    await this.get(ctx, input.projectId)
+    const row = await this.repo.createTemplate({
+      organizationId: ctx.organizationId,
+      projectId: input.projectId,
+      name: input.name,
+      description: input.description,
+      status: input.status,
+      priority: input.priority,
+      labelIds: input.labelIds ?? [],
+    })
+    return this.mapTemplate(row)
+  }
+
+  async updateTemplate(
+    ctx: RequestContext,
+    id: string,
+    input: UpdateTaskTemplateInput
+  ): Promise<TaskTemplate> {
+    this.canManage(ctx)
+    const existing = await this.repo.findTemplate(ctx.organizationId, id)
+    if (!existing) throw new NotFoundError("Task template")
+    const row = await this.repo.updateTemplate(id, {
+      name: input.name,
+      description: input.description,
+      status: input.status,
+      priority: input.priority,
+      labelIds: input.labelIds,
+    })
+    return this.mapTemplate(row)
+  }
+
+  async removeTemplate(ctx: RequestContext, id: string): Promise<{ id: string }> {
+    this.canManage(ctx)
+    const existing = await this.repo.findTemplate(ctx.organizationId, id)
+    if (!existing) throw new NotFoundError("Task template")
+    await this.repo.deleteTemplate(id)
     return { id }
   }
 }

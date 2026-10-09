@@ -10,19 +10,26 @@ import {
   addMemberAction,
   createProjectAction,
   createTaskAction,
+  createTaskTemplateAction,
   deleteProjectAction,
   deleteTaskAction,
   moveTaskAction,
   removeLabelAction,
   removeMemberAction,
+  removeTaskTemplateAction,
   toggleSubtaskAction,
   updateMemberRoleAction,
   updateProjectAction,
   updateTaskAction,
+  updateTaskTemplateAction,
 } from "@/actions/projects"
 import { unwrapActionResult } from "@/lib/core/action"
 import { useErrorTranslator } from "@/lib/i18n/errors"
-import type { CreateTaskInput } from "@/lib/projects/schemas"
+import type {
+  CreateTaskInput,
+  CreateTaskTemplateInput,
+  UpdateTaskTemplateInput,
+} from "@/lib/projects/schemas"
 import type {
   Activity,
   Comment,
@@ -35,6 +42,7 @@ import type {
   Task,
   TaskPriority,
   TaskStatus,
+  TaskTemplate,
 } from "@/lib/projects/types"
 import { ACTIVITY_STATUS_SENTINEL } from "@/lib/projects/types"
 
@@ -112,6 +120,11 @@ interface ProjectStore {
   removeMember: (id: string) => void
   addLabel: (name: string, color: string) => void
   removeLabel: (id: string) => void
+  templates: TaskTemplate[]
+  templatesForProject: (projectId: string) => TaskTemplate[]
+  createTemplate: (input: CreateTaskTemplateInput) => void
+  updateTemplate: (id: string, input: UpdateTaskTemplateInput) => void
+  removeTemplate: (id: string) => void
 }
 
 const ProjectStoreContext = React.createContext<ProjectStore | null>(null)
@@ -131,6 +144,9 @@ export function ProjectStoreProvider({
   const [tasks, setTasks] = React.useState<Task[]>(initialData.tasks)
   const [members, setMembers] = React.useState<Member[]>(initialData.members)
   const [labels, setLabels] = React.useState<Label[]>(initialData.labels)
+  const [templates, setTemplates] = React.useState<TaskTemplate[]>(
+    initialData.templates
+  )
   const [activities, setActivities] = React.useState<Activity[]>(
     initialData.activities
   )
@@ -140,6 +156,7 @@ export function ProjectStoreProvider({
     setTasks(initialData.tasks)
     setMembers(initialData.members)
     setLabels(initialData.labels)
+    setTemplates(initialData.templates)
     setActivities(initialData.activities)
   }, [initialData])
 
@@ -171,6 +188,7 @@ export function ProjectStoreProvider({
       tasks,
       members,
       labels,
+      templates,
       activities,
       currentUserId,
       getProject,
@@ -178,6 +196,8 @@ export function ProjectStoreProvider({
       getLabel,
       tasksForProject: (projectId) =>
         tasks.filter((task) => task.projectId === projectId),
+      templatesForProject: (projectId) =>
+        templates.filter((template) => template.projectId === projectId),
       activitiesForProject: (projectId) =>
         activities.filter((activity) => activity.projectId === projectId),
       createProject: (input) => {
@@ -224,6 +244,7 @@ export function ProjectStoreProvider({
       deleteProject: (id) => {
         setProjects((prev) => prev.filter((project) => project.id !== id))
         setTasks((prev) => prev.filter((task) => task.projectId !== id))
+        setTemplates((prev) => prev.filter((template) => template.projectId !== id))
         setActivities((prev) =>
           prev.filter((activity) => activity.projectId !== id)
         )
@@ -442,8 +463,65 @@ export function ProjectStoreProvider({
           })
           .catch((error) => toast.error(te(error, "deleteFailed")))
       },
+      createTemplate: (input) => {
+        const optimistic: TaskTemplate = {
+          id: uid("tt"),
+          projectId: input.projectId,
+          name: input.name,
+          description: input.description,
+          status: input.status ?? "todo",
+          priority: input.priority ?? "medium",
+          labelIds: input.labelIds ?? [],
+        }
+        setTemplates((prev) => [...prev, optimistic])
+        void createTaskTemplateAction(input)
+          .then((result) => {
+            const template = unwrapActionResult(result)
+            setTemplates((prev) =>
+              prev.map((item) => (item.id === optimistic.id ? template : item))
+            )
+            toast.success(t("templateCreated", { name: template.name }))
+          })
+          .catch((error) => {
+            setTemplates((prev) =>
+              prev.filter((item) => item.id !== optimistic.id)
+            )
+            toast.error(te(error, "createTemplateFailed"))
+          })
+      },
+      updateTemplate: (id, input) => {
+        setTemplates((prev) =>
+          prev.map((template) =>
+            template.id === id
+              ? {
+                  ...template,
+                  ...input,
+                  description: input.description ?? undefined,
+                }
+              : template
+          )
+        )
+        void updateTaskTemplateAction(id, input)
+          .then((result) => {
+            const template = unwrapActionResult(result)
+            setTemplates((prev) =>
+              prev.map((item) => (item.id === id ? template : item))
+            )
+            toast.success(t("templateUpdated"))
+          })
+          .catch((error) => toast.error(te(error, "updateFailed")))
+      },
+      removeTemplate: (id) => {
+        setTemplates((prev) => prev.filter((template) => template.id !== id))
+        void removeTaskTemplateAction(id)
+          .then((result) => {
+            unwrapActionResult(result)
+            toast.success(t("templateDeleted"))
+          })
+          .catch((error) => toast.error(te(error, "deleteFailed")))
+      },
     }
-  }, [projects, tasks, members, labels, activities, currentUserId, pushActivity])
+  }, [projects, tasks, members, labels, templates, activities, currentUserId, pushActivity])
 
   return (
     <ProjectStoreContext.Provider value={store}>

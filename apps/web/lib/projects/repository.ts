@@ -264,6 +264,50 @@ export class ProjectRepository {
     return this.db.label.delete({ where: { id } })
   }
 
+  // --- task templates ---
+
+  listTemplates(organizationId: string) {
+    return this.db.taskTemplate.findMany({
+      where: { organizationId },
+      orderBy: { createdAt: "asc" },
+    })
+  }
+
+  findTemplate(organizationId: string, id: string) {
+    return this.db.taskTemplate.findFirst({
+      where: { id, organizationId },
+    })
+  }
+
+  createTemplate(data: {
+    organizationId: string
+    projectId: string
+    name: string
+    description?: string
+    status?: string
+    priority?: string
+    labelIds: string[]
+  }) {
+    return this.db.taskTemplate.create({ data })
+  }
+
+  updateTemplate(
+    id: string,
+    data: {
+      name?: string
+      description?: string | null
+      status?: string
+      priority?: string
+      labelIds?: string[]
+    }
+  ) {
+    return this.db.taskTemplate.update({ where: { id }, data })
+  }
+
+  deleteTemplate(id: string) {
+    return this.db.taskTemplate.delete({ where: { id } })
+  }
+
   // --- members ---
 
   listMembers(organizationId: string) {

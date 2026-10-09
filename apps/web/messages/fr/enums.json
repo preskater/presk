@@ -98,6 +98,7 @@
     "member": "Membre",
     "invitation": "Invitation",
     "label": "Étiquette",
+    "taskTemplate": "Modèle de tâche",
     "resource": "Ressource"
   }
 }

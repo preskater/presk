@@ -98,6 +98,7 @@
     "member": "Member",
     "invitation": "Invitation",
     "label": "Label",
+    "taskTemplate": "Task template",
     "resource": "Resource"
   }
 }

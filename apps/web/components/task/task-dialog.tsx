@@ -15,6 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@workspace/ui/components/dialog"
+import {
+  Select,
+  SelectContent,
+  SelectGroup,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select"
 
 import { useProjectStore } from "@/lib/projects/store"
 import type { Task } from "@/lib/projects/types"
@@ -29,9 +37,12 @@ export function TaskFormDialog({
   trigger: React.ReactElement
 }) {
   const t = useTranslations("Projects")
-  const { createTask, updateTask } = useProjectStore()
+  const { createTask, updateTask, templatesForProject } = useProjectStore()
   const [open, setOpen] = React.useState(false)
+  const [templateId, setTemplateId] = React.useState<string>("blank")
   const formId = React.useId()
+  const templates = templatesForProject(projectId)
+  const template = templates.find((item) => item.id === templateId)
 
   function handleSubmit(value: TaskFormValue) {
     if (task) {
@@ -56,11 +67,42 @@ export function TaskFormDialog({
             {task ? t("updateTaskDescription") : t("createTaskDescription")}
           </DialogDescription>
         </DialogHeader>
+        {!task && templates.length > 0 ? (
+          <div className="flex flex-col gap-1.5">
+            <span className="text-sm font-medium">{t("template")}</span>
+            <Select
+              items={[
+                { value: "blank", label: t("quickTask") },
+                ...templates.map((item) => ({
+                  value: item.id,
+                  label: item.name,
+                })),
+              ]}
+              value={templateId}
+              onValueChange={(value) => setTemplateId(value ?? "blank")}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem value="blank">{t("quickTask")}</SelectItem>
+                  {templates.map((item) => (
+                    <SelectItem key={item.id} value={item.id}>
+                      {item.name}
+                    </SelectItem>
+                  ))}
+                </SelectGroup>
+              </SelectContent>
+            </Select>
+          </div>
+        ) : null}
         <TaskForm
-          key={open ? "open" : "closed"}
+          key={`${open ? "open" : "closed"}-${templateId}`}
           formId={formId}
           projectId={projectId}
           task={task}
+          template={task ? undefined : template}
           onSubmit={handleSubmit}
         />
         <DialogFooter>
