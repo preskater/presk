@@ -6,6 +6,7 @@
   "placeholder": "Ask the Presk assistant…",
   "ask": "Ask the Presk assistant",
   "send": "Send",
+  "error": "The assistant ran into an error. Please try again.",
   "catchMeUp": "Catch me up",
   "catchMeUpPrompt": "Catch me up on my workspace",
   "planMyDay": "Plan my day",

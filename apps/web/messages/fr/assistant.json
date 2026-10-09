@@ -6,6 +6,7 @@
   "placeholder": "Demandez à l'assistant Presk…",
   "ask": "Demandez à l'assistant Presk",
   "send": "Envoyer",
+  "error": "L'assistant a rencontré une erreur. Veuillez réessayer.",
   "catchMeUp": "Rattrapez-moi",
   "catchMeUpPrompt": "Rattrapez-moi sur mon espace de travail",
   "planMyDay": "Planifier ma journée",
