@@ -1,0 +1,71 @@
+name: Bug Report
+description: Report a bug in the CRM web app
+title: "[Bug] "
+labels: ["bug", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to fill out this bug report.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Short summary
+      description: One-sentence description of the bug.
+      placeholder: e.g., Contact list fails to load when filtering by tag
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: Describe what’s happening and why it’s a problem.
+      placeholder: Include expected vs actual behavior.
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce
+      description: List the steps to reproduce the issue.
+      placeholder: |
+        1. Go to ...
+        2. Click on ...
+        3. Enter ...
+        4. Observe ...
+    validations:
+      required: true
+
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Browser, OS, device, and app version/commit.
+      placeholder: e.g., Chrome 131, macOS 15, staging, commit abc123
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs & screenshots
+      description: Paste relevant console logs, network errors, or attach screenshots.
+      placeholder: (You can drag & drop images into this field.)
+
+  - type: input
+    id: impact
+    attributes:
+      label: Impact / severity
+      description: Who is affected and how badly?
+      placeholder: e.g., All users; blocks viewing contact details
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Any related issues, recent changes, or hypotheses.

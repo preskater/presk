@@ -1,0 +1,76 @@
+name: Feature Request
+description: Propose a new feature for the CRM
+title: "[Feature] "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this template to propose new CRM features or improvements.
+
+  - type: input
+    id: summary
+    attributes:
+      label: Feature summary
+      description: One-sentence description of the feature.
+      placeholder: e.g., Add bulk email to contacts from list view
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What problem does this solve? For whom?
+      placeholder: Describe the user pain point or opportunity.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Describe how the feature should work (UX + behavior).
+      placeholder: |
+        - Where does it appear in the UI?
+        - What actions can the user take?
+        - How does it behave with filters, pagination, permissions?
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: Acceptance criteria
+      description: Clear, testable conditions for “done”.
+      placeholder: |
+        - User can select multiple contacts and trigger bulk email.
+        - System validates email templates before sending.
+        - Sent emails are logged on each contact timeline.
+    validations:
+      required: true
+
+  - type: textarea
+    id: out_of_scope
+    attributes:
+      label: Out of scope (explicitly)
+      description: Clarify what this issue does NOT cover.
+      placeholder: e.g., No automation rules, no scheduling, no analytics in v1.
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P0 – Critical / blocking
+        - P1 – High
+        - P2 – Medium
+        - P3 – Low
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Additional context
+      description: Links to designs, docs, or related issues.
