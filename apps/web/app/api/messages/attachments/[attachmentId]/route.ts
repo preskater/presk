@@ -7,6 +7,7 @@ import { openLargeObjectStream } from "@/lib/large-object"
 import { prisma } from "@/lib/prisma"
 
 export const runtime = "nodejs"
+export const maxDuration = 60
 
 export async function GET(
   request: Request,

@@ -27,6 +27,7 @@ import { Textarea } from "@workspace/ui/components/textarea"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@workspace/ui/components/tooltip"
 
 import { useMessaging } from "@/lib/messaging/store"
+import { useErrorTranslator } from "@/lib/i18n/errors"
 import { uploadAttachment } from "@/lib/files/upload-client"
 import type { Attachment } from "@/lib/messaging/types"
 
@@ -48,6 +49,7 @@ export function MessageComposer({
   onScheduleMeeting?: () => void
 }) {
   const t = useTranslations("Messaging")
+  const te = useErrorTranslator()
   const { sendMessage, currentUserId, setTyping } = useMessaging()
   const [value, setValue] = React.useState("")
   const [attachments, setAttachments] = React.useState<Attachment[]>([])
@@ -87,8 +89,8 @@ export function MessageComposer({
           } as Attachment,
         ])
       }
-    } catch {
-      toast.error(t("attachFailed"))
+    } catch (error) {
+      toast.error(te(error, "attachFailed"))
     } finally {
       setUploading(false)
     }

@@ -1,4 +1,5 @@
 import type { FileNode } from "./types"
+import { UPLOAD_CHUNK_RETRIES, UPLOAD_CHUNK_SIZE } from "./upload-config"
 
 export interface UploadedLargeObject {
   oid: number
@@ -12,90 +13,171 @@ export interface UploadProgress {
   percentage: number
 }
 
-function postUpload(
+interface UploadSessionResponse {
+  uploadId: string
+  oid: number
+  receivedBytes: number
+  expectedSize: number | null
+}
+
+export class UploadError extends Error {
+  readonly code?: string
+  constructor(message: string, code?: string) {
+    super(message)
+    this.name = "UploadError"
+    this.code = code
+  }
+}
+
+function parseErrorBody(body: unknown, fallback: string): UploadError {
+  const error = (body as { error?: { message?: string; code?: string } } | null)
+    ?.error
+  return new UploadError(error?.message ?? fallback, error?.code)
+}
+
+async function jsonRequest(
   url: string,
-  file: File,
-  onProgress?: (progress: UploadProgress) => void
+  init: RequestInit
 ): Promise<unknown> {
+  const response = await fetch(url, init)
+  const body = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw parseErrorBody(body, "Upload failed.")
+  }
+  return body
+}
+
+/** Send one raw-bytes chunk, reporting progress relative to the whole file. */
+function putChunk(
+  uploadId: string,
+  blob: Blob,
+  offset: number,
+  fileSize: number,
+  onProgress?: (progress: UploadProgress) => void
+): Promise<void> {
   return new Promise((resolve, reject) => {
     const xhr = new XMLHttpRequest()
-    xhr.open("POST", url)
+    xhr.open("PUT", `/api/files/uploads/${uploadId}`)
+    xhr.setRequestHeader("x-chunk-offset", String(offset))
     xhr.responseType = "json"
 
     if (onProgress) {
       xhr.upload.onprogress = (event) => {
-        if (!event.lengthComputable || event.total === 0) return
+        if (!event.lengthComputable || fileSize === 0) return
+        const loaded = Math.min(fileSize, offset + event.loaded)
         onProgress({
-          loaded: event.loaded,
-          total: event.total,
-          percentage: (event.loaded / event.total) * 100,
+          loaded,
+          total: fileSize,
+          percentage: (loaded / fileSize) * 100,
         })
       }
     }
 
     xhr.onload = () => {
-      const response = xhr.response as
-        | { error?: { message?: string } }
+      const body = xhr.response as
+        | { error?: { message?: string; code?: string } }
         | null
       if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(response)
+        resolve()
         return
       }
-      reject(new Error(response?.error?.message ?? "Upload failed."))
+      reject(parseErrorBody(body, "Upload failed."))
     }
-    xhr.onerror = () => reject(new Error("Upload failed."))
-    xhr.onabort = () => reject(new Error("Upload cancelled."))
+    xhr.onerror = () => reject(new UploadError("Upload failed."))
+    xhr.onabort = () => reject(new UploadError("Upload cancelled."))
 
-    xhr.send(file)
+    xhr.send(blob)
   })
 }
 
-function uploadParams(file: File, extra?: Record<string, string>) {
+interface UploadOptions {
+  parentId?: string | null
+  transient?: boolean
+  onProgress?: (progress: UploadProgress) => void
+}
+
+async function uploadInChunks(
+  file: File,
+  options: UploadOptions
+): Promise<
+  { session: UploadSessionResponse; completed: UploadedLargeObject | FileNode }
+> {
   const params = new URLSearchParams({ name: file.name })
   if (file.type) params.set("mimeType", file.type)
-  for (const [key, value] of Object.entries(extra ?? {})) {
-    params.set(key, value)
+  if (options.parentId) params.set("parentId", options.parentId)
+  if (options.transient) params.set("transient", "1")
+  if (Number.isFinite(file.size)) params.set("expectedSize", String(file.size))
+
+  const session = (await jsonRequest(`/api/files/uploads?${params}`, {
+    method: "POST",
+  })) as UploadSessionResponse
+
+  try {
+    let offset = 0
+    while (offset < file.size) {
+      const end = Math.min(file.size, offset + UPLOAD_CHUNK_SIZE)
+      const slice = file.slice(offset, end)
+
+      let attempt = 0
+      for (;;) {
+        try {
+          await putChunk(session.uploadId, slice, offset, file.size, options.onProgress)
+          break
+        } catch (error) {
+          attempt += 1
+          if (attempt > UPLOAD_CHUNK_RETRIES) throw error
+        }
+      }
+      offset = end
+    }
+
+    const completed = await jsonRequest(
+      `/api/files/uploads/${session.uploadId}/complete`,
+      { method: "POST" }
+    )
+    options.onProgress?.({
+      loaded: file.size,
+      total: file.size,
+      percentage: 100,
+    })
+    return { session, completed: completed as UploadedLargeObject | FileNode }
+  } catch (error) {
+    // Best-effort abort so the server can unlink the partial large object.
+    void fetch(`/api/files/uploads/${session.uploadId}`, {
+      method: "DELETE",
+    }).catch(() => undefined)
+    throw error
   }
-  return params.toString()
 }
 
 /**
- * Stream a file to `/api/files/upload` using the raw request body (no
- * multipart/form-data, so nothing is buffered in memory). Returns the created
- * `FileNode` plus the large-object reference it was stored under.
+ * Chunked upload of a workspace file. Returns the created `FileNode`. Files are
+ * split into sub-4.5 MB chunks (Vercel's request-body cap is 4.5 MB); each chunk
+ * is retried in memory.
  */
 export async function uploadFile(
   file: File,
-  options: {
-    parentId: string | null
-    onProgress?: (progress: UploadProgress) => void
-  }
+  options: { parentId: string | null; onProgress?: (progress: UploadProgress) => void }
 ): Promise<FileNode> {
-  const params = uploadParams(file, {
-    ...(options.parentId ? { parentId: options.parentId } : {}),
+  const { completed } = await uploadInChunks(file, {
+    parentId: options.parentId,
+    transient: false,
+    onProgress: options.onProgress,
   })
-  const response = await postUpload(
-    `/api/files/upload?${params}`,
-    file,
-    options.onProgress
-  )
-  return response as FileNode
+  return completed as FileNode
 }
 
 /**
- * Upload bytes for a message attachment. The large object is created now and
- * its `oid` is persisted when the message is sent, so the composer does not
- * create a `FileNode` in the workspace.
+ * Chunked upload of message-attachment bytes. Returns the large-object
+ * reference; the `oid` is persisted when the message is sent.
  */
 export async function uploadAttachment(
   file: File,
   options: { onProgress?: (progress: UploadProgress) => void } = {}
 ): Promise<UploadedLargeObject> {
-  const params = uploadParams(file, { transient: "1" })
-  const response = await postUpload(
-    `/api/files/upload?${params}`,
-    file,
-    options.onProgress
-  )
-  return response as UploadedLargeObject
+  const { completed } = await uploadInChunks(file, {
+    transient: true,
+    onProgress: options.onProgress,
+  })
+  return completed as UploadedLargeObject
 }

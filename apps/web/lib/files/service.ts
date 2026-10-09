@@ -184,6 +184,19 @@ export class FileService {
     await this.requireWrite(ctx, parentId)
   }
 
+  /**
+   * Validate that the caller may start/complete an upload into `parentId`.
+   * Used before bytes are accepted so an unauthorized upload never creates a
+   * large object.
+   */
+  async assertUploadAccess(
+    ctx: RequestContext,
+    parentId: string | null | undefined
+  ): Promise<void> {
+    canWrite(ctx)
+    await this.requireParentWrite(ctx, parentId)
+  }
+
   async list(ctx: RequestContext): Promise<FilesData> {
     const rows = await this.repo.list(ctx.organizationId)
     const byId = new Map(rows.map((row) => [row.id, row]))
@@ -310,6 +323,17 @@ export class FileService {
   ): Promise<FileNode> {
     canWrite(ctx)
     await this.requireParentWrite(ctx, input.parentId)
+    return this.createUploadedFile(ctx, input)
+  }
+
+  /**
+   * Persist a completed upload (chunked or single-shot). Shared by the
+   * `finalizeUpload` server action and the chunked-upload completion route.
+   */
+  async createUploadedFile(
+    ctx: RequestContext,
+    input: FinalizeUploadInput
+  ): Promise<FileNode> {
     const row = await this.repo.create({
       organizationId: ctx.organizationId,
       name: input.name,

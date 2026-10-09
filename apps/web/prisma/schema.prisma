@@ -431,6 +431,34 @@ model FileNode {
   @@map("fileNode")
 }
 
+/// A resumable chunked upload in progress. Vercel caps a function request body
+/// at 4.5 MB, so a file is streamed into a PostgreSQL large object across
+/// several requests; this row tracks the large object and the bytes received.
+/// `status` is `open`, `complete`, or `aborted`. Orphaned `open` rows (and their
+/// large objects) are swept once `expiresAt` passes.
+model UploadSession {
+  id             String   @id @default(cuid())
+  organizationId String
+  userId         String
+  name           String
+  parentId       String?
+  kind           String   @default("other")
+  mimeType       String?
+  oid            BigInt
+  expectedSize   Int?
+  receivedBytes  Int      @default(0)
+  sha256         String?
+  transient      Boolean  @default(false)
+  status         String   @default("open")
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  expiresAt      DateTime
+
+  @@index([organizationId, status])
+  @@index([expiresAt])
+  @@map("uploadSession")
+}
+
 model FileShare {
   id         String   @id @default(cuid())
   fileId     String

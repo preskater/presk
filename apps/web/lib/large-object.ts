@@ -2,7 +2,7 @@ import { createHash } from "node:crypto"
 import { Readable, Transform } from "node:stream"
 import { pipeline } from "node:stream/promises"
 
-import { LargeObjectManager } from "pg-large-object"
+import { LargeObject, LargeObjectManager } from "pg-large-object"
 import type { LargeObjectManagerSettings } from "pg-large-object"
 import type { PoolClient } from "pg"
 
@@ -187,3 +187,107 @@ export async function unlinkLargeObject(oid: number): Promise<void> {
     client.release()
   }
 }
+
+/**
+ * Create an empty large object and return its oid. The object becomes visible
+ * once the transaction commits. Used by chunked uploads, which then append to
+ * it across several requests.
+ */
+export async function createLargeObject(): Promise<number> {
+  const client = await pool.connect()
+  try {
+    await client.query("BEGIN")
+    const manager = new LargeObjectManager(asPgClient(client))
+    const oid = await manager.createAsync()
+    await client.query("COMMIT")
+    return oid
+  } catch (error) {
+    await rollback(client)
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
+/**
+ * Append `chunk` to the end of a large object and return the new total size.
+ * Each call runs in its own transaction so a chunked upload can span multiple
+ * requests (and stay under Vercel's 4.5 MB request-body limit).
+ */
+export async function appendLargeObject(
+  oid: number,
+  chunk: Buffer
+): Promise<number> {
+  if (!oid) throw new Error("A large object id is required.")
+
+  const client = await pool.connect()
+  try {
+    await client.query("BEGIN")
+    const manager = new LargeObjectManager(asPgClient(client))
+    const object = await manager.openAsync(oid, LargeObjectManager.READWRITE)
+    let size: number
+    try {
+      await object.seekAsync(0, LargeObject.SEEK_END)
+      await object.writeAsync(chunk)
+      // `write` advances the position to the new end of the object.
+      size = Number(await object.tellAsync())
+      await object.closeAsync()
+    } catch (error) {
+      await object.closeAsync().catch(() => undefined)
+      throw error
+    }
+    await client.query("COMMIT")
+    return size
+  } catch (error) {
+    await rollback(client)
+    throw error
+  } finally {
+    client.release()
+  }
+}
+
+/**
+ * Read a whole large object back to recompute its size and SHA-256. Used at
+ * finalize so a chunked upload is validated against the stored bytes rather
+ * than trusting the client's declared size/hash.
+ */
+export async function hashLargeObject(
+  oid: number
+): Promise<{ size: number; sha256: string }> {
+  if (!oid) throw new Error("A large object id is required.")
+
+  const client = await pool.connect()
+  try {
+    await client.query("BEGIN")
+    const manager = new LargeObjectManager(asPgClient(client))
+    const [rawSize, stream] = await manager.openAndReadableStreamAsync(
+      oid,
+      LARGE_OBJECT_BUFFER_SIZE
+    )
+    const size = Number(rawSize)
+    const hash = createHash("sha256")
+
+    await new Promise<void>((resolve, reject) => {
+      let settled = false
+      const done = (error?: Error) => {
+        if (settled) return
+        settled = true
+        if (error) reject(error)
+        else resolve()
+      }
+      stream.on("data", (chunk: Buffer) => hash.update(chunk))
+      stream.on("end", () => done())
+      stream.on("error", (error: Error) => done(error))
+      stream.on("close", () => done())
+    })
+
+    await client.query("COMMIT")
+    return { size, sha256: hash.digest("hex") }
+  } catch (error) {
+    await rollback(client)
+    throw error
+  } finally {
+    client.release()
+  }
+}
+

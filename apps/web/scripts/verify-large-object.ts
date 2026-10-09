@@ -6,12 +6,16 @@ import { pipeline } from "node:stream/promises"
 
 import { pool } from "../lib/prisma"
 import {
+  appendLargeObject,
+  createLargeObject,
+  hashLargeObject,
   openLargeObjectStream,
   unlinkLargeObject,
   uploadLargeObject,
 } from "../lib/large-object"
 
 const SIZE = 8 * 1024 * 1024 + 1234 // > 4 default 2048-byte pages, unaligned
+const CHUNK = 3 * 1024 * 1024
 
 function sha256(buffer: Buffer) {
   return createHash("sha256").update(buffer).digest("hex")
@@ -85,6 +89,41 @@ async function main() {
   }
   console.log(
     `PASS  no orphaned large objects (count back to ${afterUnlink}/${baseline})`
+  )
+
+  // Chunked path: create an empty LO, append page-aligned chunks (as the
+  // upload-session flow does), validate the recomputed hash, then abort.
+  console.log("exercising chunked create/append/hash path…")
+  const chunkedOid = await createLargeObject()
+  let chunkedSize = 0
+  for (let offset = 0; offset < input.length; offset += CHUNK) {
+    const chunk = input.subarray(offset, Math.min(input.length, offset + CHUNK))
+    chunkedSize = await appendLargeObject(chunkedOid, chunk)
+  }
+  const chunked = await hashLargeObject(chunkedOid)
+
+  const chunkedChecks: Array<[string, boolean]> = [
+    ["chunked appended size matches input", chunkedSize === input.length],
+    ["chunked recounted size matches input", chunked.size === input.length],
+    ["chunked sha256 matches input", chunked.sha256 === inputHash],
+  ]
+  for (const [label, ok] of chunkedChecks) {
+    console.log(`${ok ? "PASS" : "FAIL"}  ${label}`)
+  }
+  if (chunkedChecks.some(([, ok]) => !ok)) {
+    throw new Error("chunked integrity assertions failed")
+  }
+
+  console.log("aborting chunked upload…")
+  await unlinkLargeObject(chunkedOid)
+  const afterChunked = await countLargeObjects()
+  if (afterChunked !== baseline) {
+    throw new Error(
+      `orphaned large object after chunked abort: count is ${afterChunked}, expected ${baseline}`
+    )
+  }
+  console.log(
+    `PASS  chunked abort left no orphans (count ${afterChunked}/${baseline})`
   )
 
   console.log("\nAll large-object verification checks passed.")
