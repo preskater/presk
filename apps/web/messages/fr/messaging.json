@@ -43,6 +43,7 @@
   "typingTwo": "{first} et {second} écrivent",
   "replyCount": "{count, plural, one {# réponse} other {# réponses}}",
   "unknown": "Inconnu",
+  "you": "Vous",
   "edited": "(modifié)",
   "reactWith": "Réagir {emoji}",
   "replyInThread": "Répondre dans le fil",

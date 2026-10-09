@@ -43,6 +43,7 @@
   "typingTwo": "{first} and {second} are typing",
   "replyCount": "{count, plural, one {# reply} other {# replies}}",
   "unknown": "Unknown",
+  "you": "You",
   "edited": "(edited)",
   "reactWith": "React {emoji}",
   "replyInThread": "Reply in thread",

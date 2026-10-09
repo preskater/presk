@@ -42,7 +42,7 @@ export function ConversationItem({
         active ? "bg-muted text-foreground" : "hover:bg-muted/60"
       )}
     >
-      <div className="relative shrink-0">
+      <div className="relative size-8 shrink-0">
         {conversation.kind === "channel" ? (
           <span className="flex size-8 items-center justify-center rounded-lg bg-muted text-muted-foreground">
             <HashIcon className="size-4" />
@@ -59,7 +59,6 @@ export function ConversationItem({
             </Avatar>
             <PresenceDot
               presence={partnerId ? presence[partnerId] : undefined}
-              className="absolute -end-0.5 -bottom-0.5"
             />
           </>
         )}
@@ -73,7 +72,9 @@ export function ConversationItem({
               conversation.unreadCount > 0 ? "font-semibold" : "font-medium"
             )}
           >
-            {conversation.name}
+            {conversation.kind === "channel"
+              ? conversation.name
+              : (partner?.name ?? t("directMessage"))}
           </span>
           {conversation.pinned ? (
             <PinIcon className="size-3 shrink-0 text-muted-foreground" />

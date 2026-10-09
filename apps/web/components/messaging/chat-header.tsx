@@ -61,12 +61,9 @@ export function ChatHeader({
             <HashIcon className="size-4" />
           </span>
         ) : (
-          <div className="relative">
+          <div className="relative size-8 shrink-0">
             <MemberAvatar member={partner} />
-            <PresenceDot
-              presence={partnerId ? presence[partnerId] : undefined}
-              className="absolute -end-0.5 -bottom-0.5"
-            />
+            <PresenceDot presence={partnerId ? presence[partnerId] : undefined} />
           </div>
         )}
         <div className="flex min-w-0 flex-col">
@@ -74,7 +71,7 @@ export function ChatHeader({
             <h2 className="truncate text-sm font-semibold">
               {conversation.kind === "channel"
                 ? `#${conversation.name}`
-                : conversation.name}
+                : (partner?.name ?? t("directMessage"))}
             </h2>
             {conversation.pinned ? (
               <PinIcon className="size-3 shrink-0 text-muted-foreground" />

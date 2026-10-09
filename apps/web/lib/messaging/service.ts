@@ -278,10 +278,18 @@ export class MessagingService {
     input: StartDmInput
   ): Promise<Conversation> {
     canWrite(ctx)
-    const existing = await this.repo.findDm(ctx.organizationId, input.memberId)
+    const existing = await this.repo.findDm(
+      ctx.organizationId,
+      ctx.userId,
+      input.memberId
+    )
     if (existing) return this.mapConversation(existing)
 
-    const name = ctx.userName
+    const member = await prisma.member.findFirst({
+      where: { organizationId: ctx.organizationId, userId: input.memberId },
+      select: { user: { select: { name: true } } },
+    })
+    const name = member?.user.name ?? ctx.userName
     const row = await this.repo.createConversation({
       organizationId: ctx.organizationId,
       kind: "dm",

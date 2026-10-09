@@ -27,7 +27,9 @@ export function ConversationDetailsSheet({
   onOpenChange: (open: boolean) => void
 }) {
   const t = useTranslations("Messaging")
-  const { getMember, presence } = useMessaging()
+  const { getMember, dmPartner, presence } = useMessaging()
+  const partnerId = dmPartner(conversation)
+  const partner = getMember(partnerId)
   const members = conversation.memberIds
     .map((id) => getMember(id))
     .filter((member) => member !== undefined)
@@ -39,7 +41,7 @@ export function ConversationDetailsSheet({
           <SheetTitle>
             {conversation.kind === "channel"
               ? `#${conversation.name}`
-              : conversation.name}
+              : (partner?.name ?? t("directMessage"))}
           </SheetTitle>
           <SheetDescription>
             {conversation.topic ?? t("conversationDetails")}

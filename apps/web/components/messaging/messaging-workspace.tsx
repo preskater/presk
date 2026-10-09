@@ -23,7 +23,8 @@ import { useRecents } from "@/lib/recents/store"
 export function MessagingWorkspace() {
   const t = useTranslations("Messaging")
   const L = useEnumLabel()
-  const { conversations, getConversation, dmPartner, markRead } = useMessaging()
+  const { conversations, getConversation, getMember, dmPartner, markRead } =
+    useMessaging()
   const { record, active, hydrated } = useRecents()
   const [activeId, setActiveId] = React.useState<string | undefined>(
     () => active.messages ?? conversations[0]?.id
@@ -59,7 +60,7 @@ export function MessagingWorkspace() {
       label:
         conversation.kind === "channel"
           ? `#${conversation.name}`
-          : conversation.name,
+          : (getMember(dmPartner(conversation))?.name ?? t("directMessage")),
       hint: dmPartner(conversation)
         ? L.conversationKind("dm")
         : L.conversationKind("channel"),
