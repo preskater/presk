@@ -72,7 +72,11 @@ export const updateMemberRoleSchema = z.object({
 
 export const addLabelSchema = z.object({
   name: z.string().min(1).max(60),
-  color: z.string().min(1).max(60),
+  color: z
+    .string()
+    .trim()
+    .regex(/^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/, "Enter a valid hex color.")
+    .transform((value) => value.toLowerCase()),
 })
 
 export type CreateProjectInput = z.infer<typeof createProjectSchema>

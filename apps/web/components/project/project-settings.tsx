@@ -67,15 +67,14 @@ import {
   type Project,
 } from "@/lib/projects/types"
 
+import {
+  LABEL_COLOR_PALETTE,
+  LabelColorPicker,
+} from "./label-color-picker"
+
 const ROLE_VALUES: MemberRole[] = ["owner", "admin", "member", "viewer"]
 
-const LABEL_COLORS = [
-  "var(--chart-1)",
-  "var(--chart-2)",
-  "var(--chart-3)",
-  "var(--chart-4)",
-  "var(--chart-5)",
-]
+const HEX_PATTERN = /^#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/
 
 function InviteMemberDialog() {
   const t = useTranslations("Projects")
@@ -170,13 +169,31 @@ function InviteMemberDialog() {
 
 function AddLabelDialog() {
   const t = useTranslations("Projects")
-  const { addLabel } = useProjectStore()
+  const { labels, addLabel } = useProjectStore()
   const [open, setOpen] = React.useState(false)
   const [name, setName] = React.useState("")
-  const [color, setColor] = React.useState(LABEL_COLORS[0] as string)
+  const [color, setColor] = React.useState<string>(LABEL_COLOR_PALETTE[0])
+
+  const normalized = color.trim().toLowerCase()
+  const colorValid = HEX_PATTERN.test(normalized)
+  const colorTaken = labels.some(
+    (label) => label.color.trim().toLowerCase() === normalized
+  )
+  const canSubmit = name.trim().length > 0 && colorValid && !colorTaken
+
+  function reset() {
+    setName("")
+    setColor(LABEL_COLOR_PALETTE[0])
+  }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        setOpen(next)
+        if (!next) reset()
+      }}
+    >
       <DialogTrigger render={<Button size="sm" />}>
         <PlusIcon data-icon="inline-start" />
         {t("addLabel")}
@@ -190,9 +207,9 @@ function AddLabelDialog() {
           className="flex flex-col gap-4"
           onSubmit={(event) => {
             event.preventDefault()
-            if (!name.trim()) return
-            addLabel(name.trim(), color)
-            setName("")
+            if (!canSubmit) return
+            addLabel(name.trim(), normalized)
+            reset()
             setOpen(false)
           }}
         >
@@ -209,27 +226,21 @@ function AddLabelDialog() {
             </Field>
             <Field>
               <FieldLabel>{t("color")}</FieldLabel>
-              <div className="flex flex-wrap gap-2">
-                {LABEL_COLORS.map((option) => (
-                  <button
-                    key={option}
-                    type="button"
-                    aria-label={t("useColor", { color: option })}
-                    aria-pressed={color === option}
-                    onClick={() => setColor(option)}
-                    className="size-7 rounded-full ring-offset-2 ring-offset-background transition-shadow data-[selected=true]:ring-2 data-[selected=true]:ring-ring"
-                    data-selected={color === option}
-                    style={{ backgroundColor: option }}
-                  />
-                ))}
-              </div>
+              <LabelColorPicker value={color} onChange={setColor} />
+              {colorTaken ? (
+                <p className="text-xs text-destructive">
+                  {t("colorAlreadyUsed")}
+                </p>
+              ) : null}
             </Field>
           </FieldGroup>
           <DialogFooter>
             <DialogClose render={<Button variant="outline" type="button" />}>
               {t("cancel")}
             </DialogClose>
-            <Button type="submit">{t("addLabel")}</Button>
+            <Button type="submit" disabled={!canSubmit}>
+              {t("addLabel")}
+            </Button>
           </DialogFooter>
         </form>
       </DialogContent>

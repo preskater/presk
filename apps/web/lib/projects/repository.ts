@@ -251,6 +251,12 @@ export class ProjectRepository {
     return this.db.label.create({ data: { organizationId, name, color } })
   }
 
+  findByColor(organizationId: string, color: string) {
+    return this.db.label.findFirst({
+      where: { organizationId, color: { equals: color, mode: "insensitive" } },
+    })
+  }
+
   deleteLabel(id: string) {
     return this.db.label.delete({ where: { id } })
   }

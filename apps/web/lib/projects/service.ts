@@ -447,6 +447,12 @@ export class ProjectService {
 
   async addLabel(ctx: RequestContext, input: AddLabelInput): Promise<Label> {
     this.canWrite(ctx)
+    const existing = await this.repo.findByColor(ctx.organizationId, input.color)
+    if (existing) {
+      throw new ConflictError("That color is already used by another label.", {
+        code: "label_color_already_used",
+      })
+    }
     const label = await this.repo.createLabel(
       ctx.organizationId,
       input.name,
