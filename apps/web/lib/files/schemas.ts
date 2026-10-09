@@ -63,6 +63,10 @@ export const bulkFileIdsSchema = z.object({
   ids: z.array(z.string().min(1)).min(1),
 })
 
+export const setFileRestrictedSchema = z.object({
+  restricted: z.boolean(),
+})
+
 export type CreateFolderInput = z.infer<typeof createFolderSchema>
 export type CreateFilesInput = z.infer<typeof createFilesSchema>
 export type FinalizeUploadInput = z.infer<typeof finalizeUploadSchema>
@@ -72,3 +76,4 @@ export type AddShareInput = z.infer<typeof addShareSchema>
 export type UpdateShareInput = z.infer<typeof updateShareSchema>
 export type RemoveShareInput = z.infer<typeof removeShareSchema>
 export type BulkFileIdsInput = z.infer<typeof bulkFileIdsSchema>
+export type SetFileRestrictedInput = z.infer<typeof setFileRestrictedSchema>

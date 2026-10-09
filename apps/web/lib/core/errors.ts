@@ -18,6 +18,7 @@ export type ServiceErrorCode =
   | "role_cannot_manage_members"
   | "email_already_member"
   | "role_cannot_modify_files"
+  | "file_permission_denied"
   | "role_cannot_modify_calendars"
   | "role_cannot_send_messages"
   | "label_color_already_used"

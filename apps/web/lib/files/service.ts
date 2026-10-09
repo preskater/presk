@@ -29,6 +29,15 @@ const ROLE_RANK: Record<string, number> = {
   viewer: 1,
 }
 
+const PERMISSION_RANK: Record<string, number> = {
+  view: 1,
+  comment: 2,
+  edit: 3,
+}
+
+const VIEW_RANK = 1
+const EDIT_RANK = 3
+
 function canWrite(ctx: RequestContext) {
   if ((ROLE_RANK[ctx.role] ?? 0) >= 2) return
   throw new ForbiddenError("Your role cannot modify files.", {
@@ -37,6 +46,52 @@ function canWrite(ctx: RequestContext) {
 }
 
 type FileRow = Awaited<ReturnType<FileRepository["list"]>>[number]
+type AncestorNode = Awaited<
+  ReturnType<FileRepository["findAncestorChain"]>
+>[number]
+
+interface FileAccess {
+  canRead: boolean
+  canWrite: boolean
+}
+
+/**
+ * Resolve what the current user may do with a file/folder from its ancestor
+ * chain (the node itself followed by each parent).
+ *
+ * - Owners see and edit everything.
+ * - The file's owner controls their own file.
+ * - A restricted node hides itself and its subtree from everyone without an
+ *   explicit share on that node or an ancestor.
+ * - Non-restricted files are readable org-wide; writing still requires the
+ *   member role (viewers are read-only).
+ */
+function resolveAccess(
+  ctx: RequestContext,
+  chain: AncestorNode[]
+): FileAccess {
+  if (ctx.role === "owner") return { canRead: true, canWrite: true }
+  if (chain.some((node) => node.ownerId === ctx.userId)) {
+    return { canRead: true, canWrite: true }
+  }
+
+  let granted = 0
+  for (const node of chain) {
+    for (const share of node.shares) {
+      if (share.userId === ctx.userId) {
+        granted = Math.max(granted, PERMISSION_RANK[share.permission] ?? 0)
+      }
+    }
+  }
+
+  const restricted = chain.some((node) => node.restricted)
+  const canRead = granted >= VIEW_RANK || !restricted
+  const canWrite =
+    (ROLE_RANK[ctx.role] ?? 0) >= 2 &&
+    (granted >= EDIT_RANK || !restricted)
+
+  return { canRead, canWrite }
+}
 
 export class FileService {
   constructor(private readonly repo: FileRepository) {}
@@ -87,27 +142,126 @@ export class FileService {
     }))
   }
 
+  private async accessFor(
+    ctx: RequestContext,
+    id: string
+  ): Promise<FileAccess> {
+    const chain = await this.repo.findAncestorChain(ctx.organizationId, id)
+    return resolveAccess(ctx, chain)
+  }
+
+  private async requireRead(ctx: RequestContext, id: string): Promise<FileRow> {
+    const row = await this.repo.findById(ctx.organizationId, id)
+    if (!row) throw new NotFoundError("File")
+    const access = await this.accessFor(ctx, id)
+    if (!access.canRead) throw new NotFoundError("File")
+    return row
+  }
+
+  private async requireWrite(
+    ctx: RequestContext,
+    id: string
+  ): Promise<FileRow> {
+    canWrite(ctx)
+    const row = await this.repo.findById(ctx.organizationId, id)
+    if (!row) throw new NotFoundError("File")
+    const access = await this.accessFor(ctx, id)
+    if (!access.canWrite) {
+      throw new ForbiddenError(
+        "You do not have permission to modify this file.",
+        { code: "file_permission_denied" }
+      )
+    }
+    return row
+  }
+
+  private async requireParentWrite(
+    ctx: RequestContext,
+    parentId: string | null | undefined
+  ): Promise<void> {
+    if (!parentId) return
+    await this.requireWrite(ctx, parentId)
+  }
+
   async list(ctx: RequestContext): Promise<FilesData> {
     const rows = await this.repo.list(ctx.organizationId)
+    const byId = new Map(rows.map((row) => [row.id, row]))
+    const cache = new Map<string, FileAccess>()
+    const visible = rows.filter((row) => this.accessFromMap(ctx, row.id, byId, cache).canRead)
     const shares: Record<string, ShareEntry[]> = {}
     const versions: Record<string, FileVersion[]> = {}
     const activities: Record<string, FileActivity[]> = {}
-    for (const row of rows) {
+    for (const row of visible) {
       shares[row.id] = this.mapShares(row)
       versions[row.id] = this.mapVersions(row)
       activities[row.id] = this.mapActivities(row)
     }
     return {
-      files: rows.map((row) => this.mapFile(row)),
+      files: visible.map((row) => this.mapFile(row)),
       shares,
       versions,
       activities,
     }
   }
 
+  /**
+   * Resolve access from an in-memory node map so folders can inherit from
+   * their parents without extra queries.
+   */
+  private accessFromMap(
+    ctx: RequestContext,
+    id: string,
+    byId: Map<string, FileRow>,
+    cache: Map<string, FileAccess>
+  ): FileAccess {
+    const cached = cache.get(id)
+    if (cached) return cached
+    if (ctx.role === "owner") {
+      const access = { canRead: true, canWrite: true }
+      cache.set(id, access)
+      return access
+    }
+
+    const row = byId.get(id)
+    if (!row) {
+      const access = { canRead: false, canWrite: false }
+      cache.set(id, access)
+      return access
+    }
+
+    if (row.ownerId === ctx.userId) {
+      const access = { canRead: true, canWrite: true }
+      cache.set(id, access)
+      return access
+    }
+
+    let granted = 0
+    for (const share of row.shares) {
+      if (share.userId === ctx.userId) {
+        granted = Math.max(granted, PERMISSION_RANK[share.permission] ?? 0)
+      }
+    }
+
+    const parentAccess =
+      row.parentId && byId.has(row.parentId)
+        ? this.accessFromMap(ctx, row.parentId, byId, cache)
+        : { canRead: true, canWrite: true }
+
+    const canRead =
+      granted >= VIEW_RANK ||
+      (!row.restricted && parentAccess.canRead)
+    const canWrite =
+      (ROLE_RANK[ctx.role] ?? 0) >= 2 &&
+      (granted >= EDIT_RANK ||
+        (!row.restricted && parentAccess.canWrite))
+
+    const access = { canRead, canWrite }
+    cache.set(id, access)
+    return access
+  }
+
   async get(ctx: RequestContext, id: string): Promise<FileNode> {
-    const row = await this.repo.findById(ctx.organizationId, id)
-    if (!row) throw new NotFoundError("File")
+    const row = await this.requireRead(ctx, id)
     return this.mapFile(row)
   }
 
@@ -116,6 +270,7 @@ export class FileService {
     input: CreateFolderInput
   ): Promise<FileNode> {
     canWrite(ctx)
+    await this.requireParentWrite(ctx, input.parentId)
     const row = await this.repo.create({
       organizationId: ctx.organizationId,
       name: input.name.trim(),
@@ -131,6 +286,7 @@ export class FileService {
     input: CreateFilesInput
   ): Promise<FileNode[]> {
     canWrite(ctx)
+    await this.requireParentWrite(ctx, input.parentId)
     const rows = await this.repo.createMany(
       input.files.map((file) => ({
         organizationId: ctx.organizationId,
@@ -151,6 +307,7 @@ export class FileService {
     input: FinalizeUploadInput
   ): Promise<FileNode> {
     canWrite(ctx)
+    await this.requireParentWrite(ctx, input.parentId)
     const row = await this.repo.create({
       organizationId: ctx.organizationId,
       name: input.name,
@@ -174,22 +331,12 @@ export class FileService {
     return this.mapFile((withRelations ?? row) as FileRow)
   }
 
-  private async require(
-    ctx: RequestContext,
-    id: string
-  ): Promise<NonNullable<Awaited<ReturnType<FileRepository["findById"]>>>> {
-    const row = await this.repo.findById(ctx.organizationId, id)
-    if (!row) throw new NotFoundError("File")
-    return row
-  }
-
   async renameFile(
     ctx: RequestContext,
     id: string,
     input: RenameFileInput
   ): Promise<FileNode> {
-    canWrite(ctx)
-    await this.require(ctx, id)
+    await this.requireWrite(ctx, id)
     const row = await this.repo.update(id, {
       name: input.name.trim(),
       modifiedAt: new Date(),
@@ -203,8 +350,8 @@ export class FileService {
     id: string,
     input: MoveFileInput
   ): Promise<FileNode> {
-    canWrite(ctx)
-    await this.require(ctx, id)
+    await this.requireWrite(ctx, id)
+    await this.requireParentWrite(ctx, input.parentId)
     const row = await this.repo.update(id, {
       parentId: input.parentId,
       modifiedAt: new Date(),
@@ -214,7 +361,8 @@ export class FileService {
 
   async duplicateFile(ctx: RequestContext, id: string): Promise<FileNode> {
     canWrite(ctx)
-    const source = await this.require(ctx, id)
+    const source = await this.requireRead(ctx, id)
+    await this.requireParentWrite(ctx, source.parentId)
     const dotIndex = source.name.lastIndexOf(".")
     const copyName =
       dotIndex > 0
@@ -232,14 +380,13 @@ export class FileService {
   }
 
   async toggleStar(ctx: RequestContext, id: string): Promise<FileNode> {
-    const existing = await this.require(ctx, id)
+    const existing = await this.requireRead(ctx, id)
     const row = await this.repo.update(id, { starred: !existing.starred })
     return this.mapFile(row)
   }
 
   async trashFile(ctx: RequestContext, id: string): Promise<FileNode> {
-    canWrite(ctx)
-    await this.require(ctx, id)
+    await this.requireWrite(ctx, id)
     const row = await this.repo.update(id, {
       trashed: true,
       trashedAt: new Date(),
@@ -249,8 +396,7 @@ export class FileService {
   }
 
   async restoreFile(ctx: RequestContext, id: string): Promise<FileNode> {
-    canWrite(ctx)
-    await this.require(ctx, id)
+    await this.requireWrite(ctx, id)
     const row = await this.repo.update(id, {
       trashed: false,
       trashedAt: null,
@@ -259,48 +405,59 @@ export class FileService {
   }
 
   async deleteForever(ctx: RequestContext, id: string): Promise<{ id: string }> {
-    canWrite(ctx)
-    await this.require(ctx, id)
+    await this.requireWrite(ctx, id)
     await this.repo.delete(id)
     return { id }
+  }
+
+  private async writeMany(
+    ctx: RequestContext,
+    ids: string[],
+    run: () => Promise<{ count: number }>
+  ): Promise<{ count: number }> {
+    canWrite(ctx)
+    await Promise.all(ids.map((id) => this.requireWrite(ctx, id)))
+    return run()
   }
 
   async moveToTrashMany(
     ctx: RequestContext,
     ids: string[]
   ): Promise<{ count: number }> {
-    canWrite(ctx)
-    const result = await this.repo.updateMany(ids, {
-      trashed: true,
-      trashedAt: new Date(),
-    })
-    return { count: result.count }
+    return this.writeMany(ctx, ids, () =>
+      this.repo.updateMany(ids, { trashed: true, trashedAt: new Date() })
+    )
   }
 
   async restoreMany(
     ctx: RequestContext,
     ids: string[]
   ): Promise<{ count: number }> {
-    canWrite(ctx)
-    const result = await this.repo.updateMany(ids, {
-      trashed: false,
-      trashedAt: null,
-    })
-    return { count: result.count }
+    return this.writeMany(ctx, ids, () =>
+      this.repo.updateMany(ids, { trashed: false, trashedAt: null })
+    )
   }
 
   async deleteMany(
     ctx: RequestContext,
     ids: string[]
   ): Promise<{ count: number }> {
-    canWrite(ctx)
-    const result = await this.repo.deleteMany(ids)
-    return { count: result.count }
+    return this.writeMany(ctx, ids, () => this.repo.deleteMany(ids))
   }
 
   async sharesFor(ctx: RequestContext, id: string): Promise<ShareEntry[]> {
-    const row = await this.require(ctx, id)
+    const row = await this.requireRead(ctx, id)
     return this.mapShares(row)
+  }
+
+  async setRestricted(
+    ctx: RequestContext,
+    id: string,
+    restricted: boolean
+  ): Promise<FileNode> {
+    await this.requireWrite(ctx, id)
+    const row = await this.repo.update(id, { restricted })
+    return this.mapFile(row)
   }
 
   async addShare(
@@ -308,12 +465,11 @@ export class FileService {
     id: string,
     input: AddShareInput
   ): Promise<ShareEntry[]> {
-    canWrite(ctx)
-    await this.require(ctx, id)
+    await this.requireWrite(ctx, id)
     await this.repo.addShare(id, input.memberId, input.permission)
     await this.repo.update(id, { shared: true })
-    const row = await this.require(ctx, id)
-    return this.mapShares(row)
+    const row = await this.repo.findById(ctx.organizationId, id)
+    return row ? this.mapShares(row) : []
   }
 
   async updateShare(
@@ -321,11 +477,10 @@ export class FileService {
     id: string,
     input: UpdateShareInput
   ): Promise<ShareEntry[]> {
-    canWrite(ctx)
-    await this.require(ctx, id)
+    await this.requireWrite(ctx, id)
     await this.repo.addShare(id, input.memberId, input.permission)
-    const row = await this.require(ctx, id)
-    return this.mapShares(row)
+    const row = await this.repo.findById(ctx.organizationId, id)
+    return row ? this.mapShares(row) : []
   }
 
   async removeShare(
@@ -333,10 +488,9 @@ export class FileService {
     id: string,
     input: RemoveShareInput
   ): Promise<ShareEntry[]> {
-    canWrite(ctx)
-    await this.require(ctx, id)
+    await this.requireWrite(ctx, id)
     await this.repo.removeShare(id, input.memberId)
-    const row = await this.require(ctx, id)
-    return this.mapShares(row)
+    const row = await this.repo.findById(ctx.organizationId, id)
+    return row ? this.mapShares(row) : []
   }
 }

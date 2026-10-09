@@ -17,6 +17,7 @@ import {
   removeShareAction,
   renameFileAction,
   restoreFileAction,
+  setFileRestrictedAction,
   toggleStarAction,
   trashFileAction,
   updateShareAction,
@@ -74,6 +75,7 @@ interface FilesStore extends FilesData {
     permission: SharePermission
   ) => void
   removeShare: (id: string, memberId: string) => void
+  setRestricted: (id: string, restricted: boolean) => void
   enqueueUploads: (files: File[], parentId: string | null) => void
   removeUpload: (id: string) => void
   clearCompletedUploads: () => void
@@ -506,6 +508,14 @@ export function FilesProvider({
             toast.success(t("accessRemoved"))
           })
           .catch((error) => toast.error(te(error, "removeFailed")))
+      },
+      setRestricted: (id, restricted) => {
+        setFiles((prev) =>
+          prev.map((file) => (file.id === id ? { ...file, restricted } : file))
+        )
+        void setFileRestrictedAction(id, { restricted })
+          .then((result) => unwrapActionResult(result))
+          .catch((error) => toast.error(te(error, "updateFailed")))
       },
       enqueueUploads: (files, parentId) => {
         const queued: Array<{ item: UploadItem; file: File }> = files.map(
