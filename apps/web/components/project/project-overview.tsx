@@ -102,7 +102,9 @@ export function ProjectOverview({ project }: { project: Project }) {
     },
   ]
 
-  const statusData = TASK_STATUS_VALUES.map((status) => ({
+  const statusData = TASK_STATUS_VALUES.filter(
+    (status) => status !== "done"
+  ).map((status) => ({
     status: L.taskStatus(status),
     count: tasks.filter((task) => task.status === status).length,
   }))
