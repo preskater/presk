@@ -11,7 +11,6 @@ import { useTranslations } from "next-intl"
 
 import { authClient } from "@/lib/auth-client"
 import { Link, useRouter } from "@/i18n/navigation"
-import { useOrgSlug } from "@/lib/organization/use-org-slug"
 import {
   Avatar,
   AvatarFallback,
@@ -55,7 +54,6 @@ export function NavUser({
   const { isMobile } = useSidebar()
   const t = useTranslations("UserMenu")
   const router = useRouter()
-  const orgSlug = useOrgSlug()
   const initials = getInitials(user.name)
 
   async function handleSignOut() {
@@ -111,7 +109,7 @@ export function NavUser({
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem render={<Link href={`/${orgSlug}/settings`} />}>
+              <DropdownMenuItem render={<Link href="/settings/account" />}>
                 <CircleUserRoundIcon />
                 {t("account")}
               </DropdownMenuItem>

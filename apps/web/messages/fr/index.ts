@@ -1,3 +1,4 @@
+import account from "./account.json"
 import activity from "./activity.json"
 import announcement from "./announcement.json"
 import appPages from "./appPages.json"
@@ -29,6 +30,7 @@ import toasts from "./toasts.json"
 import userMenu from "./userMenu.json"
 
 export default {
+  Account: account,
   Activity: activity,
   Announcement: announcement,
   AppPages: appPages,
