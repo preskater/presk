@@ -25,6 +25,13 @@ export function getRoleMeta(role: string | null | undefined): RoleMeta {
   return ORG_ROLES.find((item) => item.value === role) ?? { value: "member", badge: "outline" }
 }
 
+export function roleRank(role: string | null | undefined): number {
+  const primary = (role ?? "")
+    .split(",")[0]
+    ?.trim()
+  return primary ? (ROLE_RANK[primary as OrgRole] ?? 0) : 0
+}
+
 export function parseRoles(role: string | null | undefined): OrgRole[] {
   const roles = (role ?? "")
     .split(",")

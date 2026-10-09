@@ -1,6 +1,7 @@
 import { ConflictError, ForbiddenError, NotFoundError } from "@/lib/core/errors"
 import { toMemberView } from "@/lib/core/members"
 import type { RequestContext } from "@/lib/core/context"
+import { roleRank } from "@/lib/organization/roles"
 import type { PrismaClient } from "@/lib/generated/prisma/client"
 
 import { ProjectRepository } from "./repository"
@@ -132,7 +133,12 @@ export class ProjectService {
 
   private async listMembersView(ctx: RequestContext): Promise<Member[]> {
     const rows = await this.repo.listMembers(ctx.organizationId)
-    return rows.map((row) => this.mapMember(row))
+    return rows
+      .map((row) => this.mapMember(row))
+      .sort(
+        (a, b) =>
+          roleRank(b.role) - roleRank(a.role) || a.name.localeCompare(b.name)
+      )
   }
 
   async list(ctx: RequestContext): Promise<ProjectData> {
