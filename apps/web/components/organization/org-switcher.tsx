@@ -89,10 +89,10 @@ export function OrgSwitcher({
             side="bottom"
             sideOffset={4}
           >
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
-              {t("organizations")}
-            </DropdownMenuLabel>
             <DropdownMenuGroup>
+              <DropdownMenuLabel className="text-xs text-muted-foreground">
+                {t("organizations")}
+              </DropdownMenuLabel>
               {(organizations ?? []).map((organization) => (
                 <DropdownMenuItem
                   key={organization.id}
