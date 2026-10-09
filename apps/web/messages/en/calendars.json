@@ -14,6 +14,7 @@
   "noEventsFound": "No events found.",
   "events": "Events",
   "newEvent": "New event",
+  "showTasks": "Show tasks",
   "editEvent": "Edit event",
   "createEvent": "Create event",
   "eventDescription": "Schedule a meeting or team event.",

@@ -68,6 +68,7 @@
   "priority": "Priority",
   "assignee": "Assignee",
   "dueDate": "Due date",
+  "endDate": "End date",
   "labels": "Labels",
   "selectTask": "Select {identifier}",
   "dash": "—",

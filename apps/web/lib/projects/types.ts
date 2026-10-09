@@ -49,6 +49,7 @@ export interface Task {
   assigneeId?: string
   labelIds: string[]
   dueDate?: string
+  endDate?: string
   createdAt: string
   subtasks: Subtask[]
   comments: Comment[]

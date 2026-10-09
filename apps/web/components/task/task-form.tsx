@@ -64,6 +64,7 @@ export function TaskForm({
   )
   const [labelIds, setLabelIds] = React.useState<string[]>(task?.labelIds ?? [])
   const [dueDate, setDueDate] = React.useState<string | undefined>(task?.dueDate)
+  const [endDate, setEndDate] = React.useState<string | undefined>(task?.endDate)
 
   return (
     <form
@@ -81,6 +82,7 @@ export function TaskForm({
           assigneeId,
           labelIds,
           dueDate,
+          endDate,
         })
       }}
     >
@@ -186,10 +188,16 @@ export function TaskForm({
           </ToggleGroup>
           <FieldDescription>{t("labelsHint")}</FieldDescription>
         </Field>
-        <Field>
-          <FieldLabel htmlFor={`${formId}-due`}>{t("dueDate")}</FieldLabel>
-          <DatePicker value={dueDate} onChange={setDueDate} />
-        </Field>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field>
+            <FieldLabel htmlFor={`${formId}-due`}>{t("dueDate")}</FieldLabel>
+            <DatePicker value={dueDate} onChange={setDueDate} />
+          </Field>
+          <Field>
+            <FieldLabel htmlFor={`${formId}-end`}>{t("endDate")}</FieldLabel>
+            <DatePicker value={endDate} onChange={setEndDate} />
+          </Field>
+        </div>
       </FieldGroup>
     </form>
   )

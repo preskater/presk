@@ -11,6 +11,8 @@ import {
   isSameDay,
 } from "@/lib/calendars/date-utils"
 import { EVENT_COLOR_CLASSES } from "@/lib/calendars/event-colors"
+import { tasksOnDay } from "@/lib/calendars/tasks"
+import { TaskChip } from "@/components/calendars/task-chip"
 import { MemberAvatar } from "@/components/task/member-avatar"
 import { Badge } from "@workspace/ui/components/badge"
 import { Button } from "@workspace/ui/components/button"
@@ -25,6 +27,7 @@ import { Separator } from "@workspace/ui/components/separator"
 import { cn } from "@workspace/ui/lib/utils"
 
 import { useCalendars } from "@/lib/calendars/store"
+import { useProjectStore } from "@/lib/projects/store"
 import type { CalendarEvent } from "@/lib/calendars/types"
 
 function EventRow({
@@ -94,12 +97,16 @@ export function AgendaView({
   const locale = useLocale()
   const t = useTranslations("Calendars")
   const tc = useTranslations("Common")
-  const { eventsOnDay } = useCalendars()
+  const { eventsOnDay, showTasks } = useCalendars()
+  const { tasks } = useProjectStore()
   const days = eachDay(focusDate, new Date(focusDate.getTime() + 13 * 86400000))
   const groups = days
-    .map((day) => ({ day, events: eventsOnDay(day) }))
-    .filter((group) => group.events.length > 0)
-
+    .map((day) => ({
+      day,
+      events: eventsOnDay(day),
+      tasks: showTasks ? tasksOnDay(tasks, day) : [],
+    }))
+    .filter((group) => group.events.length > 0 || group.tasks.length > 0)
   if (groups.length === 0) {
     return (
       <Empty className="flex-1">
@@ -143,6 +150,9 @@ export function AgendaView({
                   colorClass={EVENT_COLOR_CLASSES[event.color].dot}
                 />
               </React.Fragment>
+            ))}
+            {group.tasks.map((task) => (
+              <TaskChip key={task.id} task={task} />
             ))}
           </CardContent>
         </Card>

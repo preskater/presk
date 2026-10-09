@@ -43,6 +43,8 @@ interface CalendarStore extends CalendarData {
   getMember: (id?: string) => Member | undefined
   getCalendar: (id: string) => CalendarSource | undefined
   visibleEvents: CalendarEvent[]
+  showTasks: boolean
+  toggleShowTasks: () => void
   eventsInRange: (start: Date, end: Date) => CalendarEvent[]
   eventsOnDay: (date: Date) => CalendarEvent[]
   createEvent: (input: EventInput) => void
@@ -81,6 +83,7 @@ export function CalendarsProvider({
     initialData.calendars
   )
   const [events, setEvents] = React.useState<CalendarEvent[]>(initialData.events)
+  const [showTasks, setShowTasks] = React.useState(false)
 
   React.useEffect(() => {
     setCalendars(initialData.calendars)
@@ -115,6 +118,8 @@ export function CalendarsProvider({
       getMember,
       getCalendar,
       visibleEvents,
+      showTasks,
+      toggleShowTasks: () => setShowTasks((prev) => !prev),
       eventsInRange: (start, end) =>
         visibleEvents.filter((event) => {
           const eventStart = new Date(event.startAt)
@@ -238,7 +243,7 @@ export function CalendarsProvider({
           .catch((error) => toast.error(te(error, "updateFailed")))
       },
     }
-  }, [calendars, events, members, currentUserId, visibleEvents])
+  }, [calendars, events, members, currentUserId, visibleEvents, showTasks])
 
   return (
     <CalendarContext.Provider value={store}>
