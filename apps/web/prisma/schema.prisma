@@ -96,6 +96,7 @@ model Organization {
   projects       Project[]
   labels         Label[]
   tasks          Task[]
+  taskTemplates  TaskTemplate[]
   calendars      Calendar[]
   calendarEvents CalendarEvent[]
   files          FileNode[]
@@ -186,6 +187,7 @@ model Project {
   labels     ProjectLabel[]
   tasks      Task[]
   activities ProjectActivity[]
+  templates  TaskTemplate[]
 
   @@index([organizationId])
   @@map("project")
@@ -255,6 +257,25 @@ model Task {
   @@index([projectId])
   @@index([assigneeId])
   @@map("task")
+}
+
+model TaskTemplate {
+  id             String       @id @default(cuid())
+  organizationId String
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  projectId      String
+  project        Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  name           String
+  description    String?
+  status         String       @default("todo")
+  priority       String       @default("medium")
+  labelIds       String[]
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([organizationId])
+  @@index([projectId])
+  @@map("taskTemplate")
 }
 
 model TaskLabel {

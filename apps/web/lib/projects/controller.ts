@@ -8,10 +8,12 @@ import {
   addMemberSchema,
   createProjectSchema,
   createTaskSchema,
+  createTaskTemplateSchema,
   moveTaskSchema,
   updateMemberRoleSchema,
   updateProjectSchema,
   updateTaskSchema,
+  updateTaskTemplateSchema,
 } from "./schemas"
 
 export async function listProjects(request: Request) {
@@ -161,4 +163,34 @@ export async function removeLabel(
   const ctx = await getRequestContext({ request })
   const { labelId } = await params
   return projectService.removeLabel(ctx, labelId)
+}
+
+export async function listTaskTemplates(request: Request) {
+  const ctx = await getRequestContext({ request })
+  return projectService.listTemplates(ctx)
+}
+
+export async function createTaskTemplate(request: Request) {
+  const ctx = await getRequestContext({ request })
+  const input = createTaskTemplateSchema.parse(await readJson(request))
+  return projectService.createTemplate(ctx, input)
+}
+
+export async function updateTaskTemplate(
+  request: Request,
+  { params }: { params: Promise<{ templateId: string }> }
+) {
+  const ctx = await getRequestContext({ request })
+  const { templateId } = await params
+  const input = updateTaskTemplateSchema.parse(await readJson(request))
+  return projectService.updateTemplate(ctx, templateId, input)
+}
+
+export async function removeTaskTemplate(
+  request: Request,
+  { params }: { params: Promise<{ templateId: string }> }
+) {
+  const ctx = await getRequestContext({ request })
+  const { templateId } = await params
+  return projectService.removeTemplate(ctx, templateId)
 }

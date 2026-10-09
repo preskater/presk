@@ -35,5 +35,9 @@
   "createTaskFailed": "Could not create task.",
   "commentFailed": "Comment failed.",
   "addMemberFailed": "Could not add member.",
-  "addLabelFailed": "Could not add label."
+  "addLabelFailed": "Could not add label.",
+  "templateCreated": "Template “{name}” created.",
+  "templateUpdated": "Template updated.",
+  "templateDeleted": "Template deleted.",
+  "createTemplateFailed": "Could not create template."
 }

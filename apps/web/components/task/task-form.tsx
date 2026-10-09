@@ -31,6 +31,7 @@ import {
   type Task,
   type TaskPriority,
   type TaskStatus,
+  type TaskTemplate,
 } from "@/lib/projects/types"
 
 export interface TaskFormValue extends CreateTaskInput {}
@@ -38,11 +39,13 @@ export interface TaskFormValue extends CreateTaskInput {}
 export function TaskForm({
   projectId,
   task,
+  template,
   formId,
   onSubmit,
 }: {
   projectId: string
   task?: Task
+  template?: TaskTemplate
   formId: string
   onSubmit: (value: TaskFormValue) => void
 }) {
@@ -54,15 +57,21 @@ export function TaskForm({
   }))
   const { labels } = useProjectStore()
   const [title, setTitle] = React.useState(task?.title ?? "")
-  const [description, setDescription] = React.useState(task?.description ?? "")
-  const [status, setStatus] = React.useState<TaskStatus>(task?.status ?? "todo")
+  const [description, setDescription] = React.useState(
+    task?.description ?? template?.description ?? ""
+  )
+  const [status, setStatus] = React.useState<TaskStatus>(
+    task?.status ?? template?.status ?? "todo"
+  )
   const [priority, setPriority] = React.useState<TaskPriority>(
-    task?.priority ?? "medium"
+    task?.priority ?? template?.priority ?? "medium"
   )
   const [assigneeId, setAssigneeId] = React.useState<string | undefined>(
     task?.assigneeId
   )
-  const [labelIds, setLabelIds] = React.useState<string[]>(task?.labelIds ?? [])
+  const [labelIds, setLabelIds] = React.useState<string[]>(
+    task?.labelIds ?? template?.labelIds ?? []
+  )
   const [dueDate, setDueDate] = React.useState<string | undefined>(task?.dueDate)
   const [endDate, setEndDate] = React.useState<string | undefined>(task?.endDate)
 

@@ -61,6 +61,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@workspace/ui/componen
 
 import { useProjectStore } from "@/lib/projects/store"
 import { useEnumLabel } from "@/lib/i18n/labels"
+import { useOrgPermissions } from "@/lib/organization/use-permissions"
 import {
   TASK_STATUS_VALUES,
   type MemberRole,
@@ -71,6 +72,7 @@ import {
   LABEL_COLOR_PALETTE,
   LabelColorPicker,
 } from "./label-color-picker"
+import { TaskTemplatesManager } from "./task-templates-manager"
 
 const ROLE_VALUES: MemberRole[] = ["owner", "admin", "member", "viewer"]
 
@@ -257,6 +259,8 @@ export function ProjectSettings({ project }: { project: Project }) {
   }))
   const { members, labels, updateMemberRole, removeMember, removeLabel } =
     useProjectStore()
+  const { roles } = useOrgPermissions()
+  const canManage = roles.includes("owner") || roles.includes("admin")
 
   return (
     <Tabs defaultValue="members" className="flex flex-col gap-4">
@@ -264,6 +268,9 @@ export function ProjectSettings({ project }: { project: Project }) {
         <TabsTrigger value="members">{t("members")}</TabsTrigger>
         <TabsTrigger value="labels">{t("labels")}</TabsTrigger>
         <TabsTrigger value="statuses">{t("statuses")}</TabsTrigger>
+        {canManage ? (
+          <TabsTrigger value="templates">{t("templates")}</TabsTrigger>
+        ) : null}
       </TabsList>
 
       <TabsContent value="members">
@@ -427,6 +434,12 @@ export function ProjectSettings({ project }: { project: Project }) {
           </CardContent>
         </Card>
       </TabsContent>
+
+      {canManage ? (
+        <TabsContent value="templates">
+          <TaskTemplatesManager projectId={project.id} />
+        </TabsContent>
+      ) : null}
     </Tabs>
   )
 }

@@ -11,10 +11,12 @@ import {
   addMemberSchema,
   createProjectSchema,
   createTaskSchema,
+  createTaskTemplateSchema,
   moveTaskSchema,
   updateMemberRoleSchema,
   updateProjectSchema,
   updateTaskSchema,
+  updateTaskTemplateSchema,
 } from "@/lib/projects/schemas"
 
 export const listProjectsAction = withAction(async () => {
@@ -148,5 +150,31 @@ export const removeLabelAction = withAction(async (id: string) => {
   const ctx = await getRequestContext()
   const result = await projectService.removeLabel(ctx, id)
   await revalidateOrgPath(ctx.organizationId, "/projects")
+  return result
+})
+
+export const createTaskTemplateAction = withAction(async (input: unknown) => {
+  const ctx = await getRequestContext()
+  const parsed = await parseLocalized(createTaskTemplateSchema, input)
+  const template = await projectService.createTemplate(ctx, parsed)
+  await revalidateOrgPath(ctx.organizationId, `/projects/${parsed.projectId}`)
+  await revalidateOrgPath(ctx.organizationId)
+  return template
+})
+
+export const updateTaskTemplateAction = withAction(
+  async (id: string, input: unknown) => {
+    const ctx = await getRequestContext()
+    const parsed = await parseLocalized(updateTaskTemplateSchema, input)
+    const template = await projectService.updateTemplate(ctx, id, parsed)
+    await revalidateOrgPath(ctx.organizationId, `/projects/${template.projectId}`)
+    return template
+  }
+)
+
+export const removeTaskTemplateAction = withAction(async (id: string) => {
+  const ctx = await getRequestContext()
+  const result = await projectService.removeTemplate(ctx, id)
+  await revalidateOrgPath(ctx.organizationId)
   return result
 })

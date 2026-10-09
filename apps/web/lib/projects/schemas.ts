@@ -54,6 +54,23 @@ export const updateTaskSchema = z.object({
   endDate: z.string().nullable().optional(),
 })
 
+export const createTaskTemplateSchema = z.object({
+  projectId: z.string().min(1),
+  name: z.string().min(1).max(120),
+  description: z.string().max(5000).optional(),
+  status: taskStatusSchema.optional(),
+  priority: taskPrioritySchema.optional(),
+  labelIds: z.array(z.string()).optional(),
+})
+
+export const updateTaskTemplateSchema = z.object({
+  name: z.string().min(1).max(120).optional(),
+  description: z.string().max(5000).nullable().optional(),
+  status: taskStatusSchema.optional(),
+  priority: taskPrioritySchema.optional(),
+  labelIds: z.array(z.string()).optional(),
+})
+
 export const moveTaskSchema = z.object({
   status: taskStatusSchema,
 })
@@ -90,3 +107,5 @@ export type AddCommentInput = z.infer<typeof addCommentSchema>
 export type AddMemberInput = z.infer<typeof addMemberSchema>
 export type UpdateMemberRoleInput = z.infer<typeof updateMemberRoleSchema>
 export type AddLabelInput = z.infer<typeof addLabelSchema>
+export type CreateTaskTemplateInput = z.infer<typeof createTaskTemplateSchema>
+export type UpdateTaskTemplateInput = z.infer<typeof updateTaskTemplateSchema>

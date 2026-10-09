@@ -25,6 +25,16 @@ export interface Label {
   color: string
 }
 
+export interface TaskTemplate {
+  id: string
+  projectId: string
+  name: string
+  description?: string
+  status: TaskStatus
+  priority: TaskPriority
+  labelIds: string[]
+}
+
 export interface Subtask {
   id: string
   title: string
@@ -93,6 +103,7 @@ export interface ProjectData {
   tasks: Task[]
   members: Member[]
   labels: Label[]
+  templates: TaskTemplate[]
   activities: Activity[]
 }
 
