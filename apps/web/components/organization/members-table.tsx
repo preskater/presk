@@ -38,7 +38,7 @@ import {
 
 import { authClient } from "@/lib/auth-client"
 import { useEnumLabel } from "@/lib/i18n/labels"
-import { ORG_ROLES, type OrgRole } from "@/lib/organization/roles"
+import { ORG_ROLES, roleRank, type OrgRole } from "@/lib/organization/roles"
 import { getInitials, parseRoles } from "@/lib/organization/utils"
 
 export interface OrgMember {
@@ -66,6 +66,16 @@ export function MembersTable({
   const [pendingId, setPendingId] = React.useState<string | null>(null)
   const t = useTranslations("Org")
   const L = useEnumLabel()
+
+  const sortedMembers = React.useMemo(
+    () =>
+      [...members].sort(
+        (a, b) =>
+          roleRank(b.role) - roleRank(a.role) ||
+          a.user.name.localeCompare(b.user.name)
+      ),
+    [members]
+  )
 
   async function updateRole(memberId: string, role: OrgRole) {
     setPendingId(memberId)
@@ -107,7 +117,7 @@ export function MembersTable({
         </TableRow>
       </TableHeader>
       <TableBody>
-        {members.map((member) => {
+        {sortedMembers.map((member) => {
           const memberRoles = parseRoles(member.role)
           const isOwner = memberRoles.includes("owner")
           const isSelf = member.userId === currentUserId
