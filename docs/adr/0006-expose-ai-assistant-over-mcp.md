@@ -84,3 +84,10 @@ Completions for custom OpenAI-compatible base URLs.
 - `apps/web/lib/assistant/agent.ts`
 - `apps/web/lib/assistant/provider.ts`
 - `README.md` — environment variables (`MCP_SERVICE_*`, `OPENAI_*`)
+
+## Update
+
+2026-10-10: The MCP endpoint's authentication was replaced. The session/static
+service-token `verifyToken` described above is superseded by OAuth 2.1 via
+`@better-auth/mcp`; see [ADR-0011](0011-authenticate-mcp-with-oauth2.md). The
+`MCP_SERVICE_*` variables are removed.
