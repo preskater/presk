@@ -31,3 +31,4 @@ collection.
 | [0008](0008-use-next-intl-for-i18n.md)                    | accepted | Use next-intl for internationalization                                   |
 | [0009](0009-ship-standalone-docker-image.md)              | accepted | Ship a standalone Docker image with a separate migration service         |
 | [0010](0010-chunked-upload-protocol.md)                   | accepted | Use a chunked upload protocol with `UploadSession`                       |
+| [0011](0011-authenticate-mcp-with-oauth2.md)              | accepted | Authenticate the MCP endpoint with OAuth2                                |
