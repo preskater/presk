@@ -35,13 +35,26 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
 
 | Path | Description |
 | --- | --- |
-| `apps/web` | Next.js application (App Router, i18n, API + MCP routes). |
+| `apps/web` | Customer shell: marketing, auth, onboarding, org selection, settings, MCP and OAuth (App Router, i18n). |
+| `apps/projects` | Projects, tasks, templates and repository sync. |
+| `apps/calendars` | Calendars, events, meeting requests and settings. |
+| `apps/files` | Files, uploads, versions and shares. |
+| `apps/messages` | Conversations, threads and attachments. |
+| `apps/clients` | Clients, contacts, pipelines and deals. |
+| `apps/employees` | Employee profiles, attendance, leave and payroll views. |
+| `apps/portal` | Client-facing portal (documents, meetings, projects). |
+| `apps/copilot` | AI chat with persisted conversations; call copilot groundwork. |
 | `apps/control-tower` | Internal platform administration app (organizations, users, audit, ops). |
+| `packages/core` | Request context, errors, roles, permissions, app URLs and shared server helpers. |
+| `packages/auth` | Shared Better Auth configuration, session helpers and sign-out action. |
+| `packages/organization` | Member directory types, roles, plans and permissions. |
+| `packages/i18n` | next-intl routing and the en/fr message catalogs. |
+| `packages/app-shell` | Shared workspace shell, sidebar, header and appearance/recents providers. |
+| `packages/projects`, `calendars`, `files`, `messaging`, `clients`, `employees`, `meetings`, `portal`, `ai` | Domain services, schemas and UI. |
+| `packages/notifications`, `integrations`, `appearance`, `storage` | Cross-domain services. |
 | `packages/db` | Shared Prisma schema, migrations, `pg` pool and generated client (`@workspace/db`). |
 | `packages/ui` | Shared UI component library. |
-| `packages/eslint-config` | Shared ESLint configuration. |
-| `packages/typescript-config` | Shared TypeScript configuration. |
-| `charts/presk` | Helm umbrella chart for deploying both apps. |
+| `charts/presk` | Helm umbrella chart: shell, control tower, migration hook and the domain apps. |
 
 ## Getting started
 
@@ -88,7 +101,9 @@ Presk is an AI‑first workspace that automates your workflow, centralizes your 
    npm run dev
    ```
 
-   The app is available at http://localhost:3000.
+   The shell is available at http://localhost:3000. `npm run dev` also starts
+   projects (`:3003`), calendars (`:3004`), files (`:3005`), messages (`:3006`),
+   clients (`:3007`), employees (`:3008`), portal (`:3009`) and copilot (`:3010`).
 
 > Prefer containers? `docker compose up --build` runs PostgreSQL, applies
 > migrations, serves the customer app on port **3002** and the control tower on
@@ -139,7 +154,9 @@ Customer-app variables live in `apps/web/.env` (see
 | `DATABASE_URL` | Yes | PostgreSQL connection string. |
 | `DATABASE_POOL_MAX` | No | Max Postgres connections per instance (default `3`). |
 | `BETTER_AUTH_SECRET` | Yes | Secret used to sign sessions and encrypt the stored MCP/OAuth JWKS keys. Keep it stable across runtimes; clear the `jwks` table when rotating it. |
-| `BETTER_AUTH_URL` | Yes | Public base URL of the app. |
+| `BETTER_AUTH_URL` | Yes | Public origin of the shell/auth server. |
+| `AUTH_COOKIE_DOMAIN` | No | Parent cookie domain for the shared customer session, e.g. `.presk.re`. Empty in local dev. |
+| `PROJECTS_APP_URL` … `COPILOT_APP_URL` | No | Public origins of the domain apps; default to the local dev ports. |
 | `OPENAI_API_KEY` | No | Enables AI assistant features. |
 | `OPENAI_API_URL` | No | Custom OpenAI-compatible base URL. |
 | `ASSISTANT_MODEL` | No | Model used by the assistant (default `gpt-4o-mini`). |
@@ -227,16 +244,17 @@ npm run verify:large-object --workspace=web
 
 ## Deployment
 
-The Docker workflow publishes three images to GHCR:
+The Docker workflow publishes one image per app to GHCR:
 
 | Image | Dockerfile stage | Runs |
 | --- | --- | --- |
-| `ghcr.io/preskater/presk` | `runner` (`APP=web`) | Customer app |
+| `ghcr.io/preskater/presk` | `runner` (`APP=web`) | Customer shell |
+| `ghcr.io/preskater/presk-projects` … `presk-copilot` | `runner` (`APP=<app>`) | Domain apps |
 | `ghcr.io/preskater/presk-control-tower` | `runner` (`APP=control-tower`) | Internal control tower |
 | `ghcr.io/preskater/presk-migrate` | `migrate` (`APP=web`) | One-shot Prisma migrations |
 
 Deploy them with the Helm umbrella chart in `charts/presk`, which composes the
-`presk-web` and `presk-control-tower` subcharts:
+`presk-web`, `presk-control-tower` and generic `presk-app` subcharts:
 
 ```bash
 helm dependency build charts/presk

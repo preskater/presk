@@ -5,5 +5,29 @@ dependencies:
 - name: presk-control-tower
   repository: file://../presk-control-tower
   version: 0.1.0
-digest: sha256:9fc4cd753438c4bc735a0a217b2d4f1b636171432f068b28042f35470096ef3a
-generated: "2026-10-22T22:27:47.869275+02:00"
+- name: presk-app
+  repository: file://../presk-app
+  version: 0.1.0
+- name: presk-app
+  repository: file://../presk-app
+  version: 0.1.0
+- name: presk-app
+  repository: file://../presk-app
+  version: 0.1.0
+- name: presk-app
+  repository: file://../presk-app
+  version: 0.1.0
+- name: presk-app
+  repository: file://../presk-app
+  version: 0.1.0
+- name: presk-app
+  repository: file://../presk-app
+  version: 0.1.0
+- name: presk-app
+  repository: file://../presk-app
+  version: 0.1.0
+- name: presk-app
+  repository: file://../presk-app
+  version: 0.1.0
+digest: sha256:acc0b715f69218b8ca6556e071d401aa115017199ee6634af36fe65e1304fa12
+generated: "2026-10-24T10:57:44.070014+02:00"

@@ -1,0 +1,258 @@
+{
+  "taskStatus": {
+    "backlog": "Backlog",
+    "todo": "Todo",
+    "in_progress": "In Progress",
+    "review": "Review",
+    "done": "Done"
+  },
+  "taskPriority": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "urgent": "Urgent"
+  },
+  "taskTemplateFieldType": {
+    "text": "Short text",
+    "textarea": "Long text",
+    "select": "Dropdown",
+    "radio": "Single choice",
+    "checkbox": "Multiple choice",
+    "date": "Date"
+  },
+  "projectStatus": {
+    "active": "Active",
+    "paused": "Paused",
+    "completed": "Completed"
+  },
+  "orgRole": {
+    "owner": "Owner",
+    "admin": "Admin",
+    "member": "Member",
+    "viewer": "Viewer",
+    "client": "Client (portal)"
+  },
+  "orgRoleDescription": {
+    "owner": "Full access, including deleting the organization.",
+    "admin": "Manage members, invitations and organization settings.",
+    "member": "Use the workspace. Cannot manage people or settings.",
+    "viewer": "Read-only access to the workspace.",
+    "client": "Read-only access to their company's projects in the client portal."
+  },
+  "fileKind": {
+    "folder": "Folder",
+    "document": "Document",
+    "spreadsheet": "Spreadsheet",
+    "presentation": "Presentation",
+    "pdf": "PDF",
+    "image": "Image",
+    "video": "Video",
+    "audio": "Audio",
+    "archive": "Archive",
+    "code": "Code",
+    "other": "File"
+  },
+  "sharePermission": {
+    "view": "Can view",
+    "comment": "Can comment",
+    "edit": "Can edit"
+  },
+  "fileLocation": {
+    "my-files": "My files",
+    "shared": "Shared with me",
+    "recent": "Recent",
+    "favorites": "Favorites",
+    "trash": "Trash"
+  },
+  "eventColor": {
+    "blue": "Blue",
+    "green": "Green",
+    "orange": "Orange",
+    "red": "Red",
+    "purple": "Purple"
+  },
+  "reminder": {
+    "none": "No reminder",
+    "at_start": "At start",
+    "m5": "5 minutes before",
+    "m15": "15 minutes before",
+    "m30": "30 minutes before",
+    "h1": "1 hour before"
+  },
+  "response": {
+    "accepted": "Accepted",
+    "tentative": "Tentative",
+    "declined": "Declined",
+    "pending": "No response"
+  },
+  "conversationKind": {
+    "channel": "Channel",
+    "dm": "Direct message"
+  },
+  "attendanceStatus": {
+    "on_site": "On-site",
+    "remote": "Remote",
+    "leave": "Leave",
+    "rtt": "RTT",
+    "sick_leave": "Sick leave",
+    "training": "Training",
+    "business_trip": "Business trip",
+    "holiday": "Holiday",
+    "unavailable": "Unavailable",
+    "other": "Other"
+  },
+  "dayPeriod": {
+    "morning": "Morning",
+    "afternoon": "Afternoon"
+  },
+  "workLocationKind": {
+    "on_site": "On-site",
+    "remote": "Remote",
+    "client_site": "Client site",
+    "traveling": "Traveling",
+    "other": "Other"
+  },
+  "leaveType": {
+    "paid_leave": "Paid leave",
+    "rtt": "RTT",
+    "unpaid": "Unpaid",
+    "sick": "Sick leave",
+    "training": "Training",
+    "other": "Other"
+  },
+  "leaveStatus": {
+    "pending": "Pending",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "cancelled": "Cancelled"
+  },
+  "balanceType": {
+    "paid_leave": "Paid leave",
+    "rtt": "RTT",
+    "recovery": "Recovery time",
+    "unpaid": "Unpaid",
+    "training": "Training",
+    "other": "Other"
+  },
+  "activityKind": {
+    "internal": "Internal",
+    "non_billable": "Non-billable"
+  },
+  "employmentType": {
+    "associate": "Associate",
+    "employee": "Employee",
+    "intern": "Intern",
+    "contractor": "Contractor"
+  },
+  "contractType": {
+    "cdi": "CDI",
+    "cdd": "CDD",
+    "internship": "Internship",
+    "freelance": "Freelance",
+    "other": "Other"
+  },
+  "salaryType": {
+    "full_time": "Full-time",
+    "part_time": "Part-time",
+    "intern": "Intern",
+    "apprentice": "Apprentice",
+    "contractor": "Contractor",
+    "other": "Other"
+  },
+  "dealStatus": {
+    "open": "Open",
+    "won": "Won",
+    "lost": "Lost"
+  },
+  "pipelineStageType": {
+    "open": "Open",
+    "won": "Won",
+    "lost": "Lost"
+  },
+  "presence": {
+    "available": "Available",
+    "away": "Away",
+    "busy": "Busy",
+    "offline": "Offline"
+  },
+  "meetingStatus": {
+    "pending": "Pending",
+    "accepted": "Accepted",
+    "declined": "Declined",
+    "cancelled": "Cancelled"
+  },
+  "meetingMode": {
+    "online": "Online",
+    "in_person": "In person"
+  },
+  "meetingProvider": {
+    "manual": "No app (use the client's link)",
+    "google_meet": "Google Meet",
+    "microsoft_teams": "Microsoft Teams",
+    "zoom": "Zoom"
+  },
+  "feedbackCategory": {
+    "bug": "Bug",
+    "idea": "Idea",
+    "design": "Design / UX",
+    "performance": "Performance",
+    "other": "Other"
+  },
+  "feedbackImpact": {
+    "low": "Low",
+    "medium": "Medium",
+    "high": "High",
+    "critical": "Critical"
+  },
+  "feedbackFrequency": {
+    "always": "Always",
+    "often": "Often",
+    "sometimes": "Sometimes",
+    "once": "Once",
+    "unknown": "Not sure"
+  },
+  "resource": {
+    "project": "Project",
+    "task": "Task",
+    "file": "File",
+    "folder": "Folder",
+    "event": "Event",
+    "message": "Message",
+    "conversation": "Conversation",
+    "calendar": "Calendar",
+    "team": "Team",
+    "member": "Member",
+    "invitation": "Invitation",
+    "label": "Label",
+    "taskTemplate": "Task template",
+    "meetingRequest": "Meeting request",
+    "meetingSlot": "Meeting time",
+    "resource": "Resource"
+  },
+  "clientStatus": {
+    "prospect": "Prospect",
+    "active": "Active client",
+    "inactive": "Inactive"
+  },
+  "clientActivityType": {
+    "note": "Note",
+    "call": "Call",
+    "email": "Email",
+    "meeting": "Meeting"
+  },
+  "clientFieldType": {
+    "text": "Text",
+    "number": "Number",
+    "date": "Date",
+    "select": "Select",
+    "multiselect": "Multi-select",
+    "boolean": "Yes / No",
+    "url": "URL",
+    "email": "Email",
+    "phone": "Phone"
+  },
+  "clientDocumentVisibility": {
+    "internal": "Internal",
+    "client": "Client-visible"
+  }
+}

@@ -1,0 +1,258 @@
+{
+  "taskStatus": {
+    "backlog": "En attente",
+    "todo": "À faire",
+    "in_progress": "En cours",
+    "review": "En revue",
+    "done": "Terminé"
+  },
+  "taskPriority": {
+    "low": "Basse",
+    "medium": "Moyenne",
+    "high": "Haute",
+    "urgent": "Urgente"
+  },
+  "taskTemplateFieldType": {
+    "text": "Texte court",
+    "textarea": "Texte long",
+    "select": "Liste déroulante",
+    "radio": "Choix unique",
+    "checkbox": "Choix multiple",
+    "date": "Date"
+  },
+  "projectStatus": {
+    "active": "Actif",
+    "paused": "En pause",
+    "completed": "Terminé"
+  },
+  "orgRole": {
+    "owner": "Propriétaire",
+    "admin": "Administrateur",
+    "member": "Membre",
+    "viewer": "Lecteur",
+    "client": "Client (portail)"
+  },
+  "orgRoleDescription": {
+    "owner": "Accès complet, y compris la suppression de l'organisation.",
+    "admin": "Gérer les membres, les invitations et les paramètres de l'organisation.",
+    "member": "Utiliser l'espace de travail. Ne peut pas gérer les personnes ni les paramètres.",
+    "viewer": "Accès en lecture seule à l'espace de travail.",
+    "client": "Accès en lecture seule aux projets de leur société dans le portail client."
+  },
+  "fileKind": {
+    "folder": "Dossier",
+    "document": "Document",
+    "spreadsheet": "Feuille de calcul",
+    "presentation": "Présentation",
+    "pdf": "PDF",
+    "image": "Image",
+    "video": "Vidéo",
+    "audio": "Audio",
+    "archive": "Archive",
+    "code": "Code",
+    "other": "Fichier"
+  },
+  "sharePermission": {
+    "view": "Peut consulter",
+    "comment": "Peut commenter",
+    "edit": "Peut modifier"
+  },
+  "fileLocation": {
+    "my-files": "Mes fichiers",
+    "shared": "Partagés avec moi",
+    "recent": "Récents",
+    "favorites": "Favoris",
+    "trash": "Corbeille"
+  },
+  "eventColor": {
+    "blue": "Bleu",
+    "green": "Vert",
+    "orange": "Orange",
+    "red": "Rouge",
+    "purple": "Violet"
+  },
+  "reminder": {
+    "none": "Aucun rappel",
+    "at_start": "Au début",
+    "m5": "5 minutes avant",
+    "m15": "15 minutes avant",
+    "m30": "30 minutes avant",
+    "h1": "1 heure avant"
+  },
+  "response": {
+    "accepted": "Accepté",
+    "tentative": "Provisoire",
+    "declined": "Refusé",
+    "pending": "Sans réponse"
+  },
+  "conversationKind": {
+    "channel": "Canal",
+    "dm": "Message direct"
+  },
+  "attendanceStatus": {
+    "on_site": "Sur site",
+    "remote": "Télétravail",
+    "leave": "Congé",
+    "rtt": "RTT",
+    "sick_leave": "Maladie",
+    "training": "Formation",
+    "business_trip": "Déplacement",
+    "holiday": "Férié",
+    "unavailable": "Indisponible",
+    "other": "Autre"
+  },
+  "dayPeriod": {
+    "morning": "Matin",
+    "afternoon": "Après-midi"
+  },
+  "workLocationKind": {
+    "on_site": "Sur site",
+    "remote": "À distance",
+    "client_site": "Chez le client",
+    "traveling": "En déplacement",
+    "other": "Autre"
+  },
+  "leaveType": {
+    "paid_leave": "Congés payés",
+    "rtt": "RTT",
+    "unpaid": "Sans solde",
+    "sick": "Maladie",
+    "training": "Formation",
+    "other": "Autre"
+  },
+  "leaveStatus": {
+    "pending": "En attente",
+    "approved": "Approuvé",
+    "rejected": "Refusé",
+    "cancelled": "Annulé"
+  },
+  "balanceType": {
+    "paid_leave": "Congés payés",
+    "rtt": "RTT",
+    "recovery": "Récupération",
+    "unpaid": "Sans solde",
+    "training": "Formation",
+    "other": "Autre"
+  },
+  "activityKind": {
+    "internal": "Interne",
+    "non_billable": "Non facturable"
+  },
+  "employmentType": {
+    "associate": "Associé",
+    "employee": "Salarié",
+    "intern": "Stagiaire",
+    "contractor": "Prestataire"
+  },
+  "contractType": {
+    "cdi": "CDI",
+    "cdd": "CDD",
+    "internship": "Stage",
+    "freelance": "Freelance",
+    "other": "Autre"
+  },
+  "salaryType": {
+    "full_time": "Temps plein",
+    "part_time": "Temps partiel",
+    "intern": "Stagiaire",
+    "apprentice": "Alternant",
+    "contractor": "Prestataire",
+    "other": "Autre"
+  },
+  "dealStatus": {
+    "open": "Ouverte",
+    "won": "Gagnée",
+    "lost": "Perdue"
+  },
+  "pipelineStageType": {
+    "open": "Ouverte",
+    "won": "Gagnée",
+    "lost": "Perdue"
+  },
+  "presence": {
+    "available": "Disponible",
+    "away": "Absent",
+    "busy": "Occupé",
+    "offline": "Hors ligne"
+  },
+  "meetingStatus": {
+    "pending": "En attente",
+    "accepted": "Accepté",
+    "declined": "Refusé",
+    "cancelled": "Annulé"
+  },
+  "meetingMode": {
+    "online": "En ligne",
+    "in_person": "En présentiel"
+  },
+  "meetingProvider": {
+    "manual": "Aucune application (lien fourni par le client)",
+    "google_meet": "Google Meet",
+    "microsoft_teams": "Microsoft Teams",
+    "zoom": "Zoom"
+  },
+  "feedbackCategory": {
+    "bug": "Anomalie",
+    "idea": "Idée",
+    "design": "Design / UX",
+    "performance": "Performance",
+    "other": "Autre"
+  },
+  "feedbackImpact": {
+    "low": "Faible",
+    "medium": "Moyenne",
+    "high": "Élevée",
+    "critical": "Critique"
+  },
+  "feedbackFrequency": {
+    "always": "Toujours",
+    "often": "Souvent",
+    "sometimes": "Parfois",
+    "once": "Une fois",
+    "unknown": "Je ne sais pas"
+  },
+  "resource": {
+    "project": "Projet",
+    "task": "Tâche",
+    "file": "Fichier",
+    "folder": "Dossier",
+    "event": "Événement",
+    "message": "Message",
+    "conversation": "Conversation",
+    "calendar": "Calendrier",
+    "team": "Équipe",
+    "member": "Membre",
+    "invitation": "Invitation",
+    "label": "Étiquette",
+    "taskTemplate": "Modèle de tâche",
+    "meetingRequest": "Demande de rendez-vous",
+    "meetingSlot": "Créneau de rendez-vous",
+    "resource": "Ressource"
+  },
+  "clientStatus": {
+    "prospect": "Prospect",
+    "active": "Client actif",
+    "inactive": "Inactif"
+  },
+  "clientActivityType": {
+    "note": "Note",
+    "call": "Appel",
+    "email": "E-mail",
+    "meeting": "Réunion"
+  },
+  "clientFieldType": {
+    "text": "Texte",
+    "number": "Nombre",
+    "date": "Date",
+    "select": "Liste déroulante",
+    "multiselect": "Sélection multiple",
+    "boolean": "Oui / Non",
+    "url": "URL",
+    "email": "E-mail",
+    "phone": "Téléphone"
+  },
+  "clientDocumentVisibility": {
+    "internal": "Interne",
+    "client": "Visible client"
+  }
+}

@@ -6,8 +6,9 @@ installs both from the umbrella chart in `charts/presk`.
 ```
 charts/
   presk/                 # umbrella: dependencies, migration hook, values
-  presk-web/             # customer app, ingress, CronJobs
+  presk-web/             # customer shell: auth, marketing, settings, MCP
   presk-control-tower/   # internal platform app, ingress
+  presk-app/             # generic domain app, instantiated per alias
 ```
 
 ## Prerequisites
@@ -37,13 +38,14 @@ charts/
 
 ## Images
 
-`.github/workflows/docker.yml` publishes three images for every push to `main`
+`.github/workflows/docker.yml` publishes one image per app for every push to `main`
 and every `v*` tag:
 
 | Image | Built from | Purpose |
 | --- | --- | --- |
 | `ghcr.io/preskater/presk` | `runner` stage, `APP=web` | Customer app |
 | `ghcr.io/preskater/presk-control-tower` | `runner` stage, `APP=control-tower` | Control tower |
+| `ghcr.io/preskater/presk-projects` … `presk-copilot` | `runner` stage, `APP=<domain>` | Domain apps |
 | `ghcr.io/preskater/presk-migrate` | `migrate` stage, `APP=web` | One-shot Prisma migrations |
 
 The workflow tags images with the branch, the release tag and `sha-<shortsha>`.
@@ -121,13 +123,12 @@ lists. The defaults already target `presk.re` and
 
 | Resource | Name | Notes |
 | --- | --- | --- |
-| Deployment | `presk-web` | 2 replicas by default |
-| Deployment | `presk-control-tower` | 2 replicas by default |
-| Service | `presk-web`, `presk-control-tower` | ClusterIP, port 80 → container 3000 |
-| Ingress | `presk-web`, `presk-control-tower` | One host each |
-| ConfigMap | `presk-web`, `presk-control-tower` | Non-secret runtime config |
-| CronJob | `presk-web-uploads-sweep` | `0 3 * * *` |
-| CronJob | `presk-web-repository-sync` | `0 * * * *` |
+| Deployment | `presk-web`, `presk-control-tower`, `presk-<domain>` | 2 replicas by default |
+| Service | `presk-web`, `presk-control-tower`, `presk-<domain>` | ClusterIP, port 80 → container 3000 |
+| Ingress | one per app | Shell at `presk.re`; domains at `<domain>.presk.re` |
+| ConfigMap | one per app | Non-secret runtime config |
+| CronJob | `presk-files-uploads-sweep` | `0 3 * * *` |
+| CronJob | `presk-projects-repository-sync` | `0 * * * *` |
 | Job (hook) | `presk-migrate` | Pre-install and pre-upgrade |
 | ServiceAccount | `presk-web`, `presk-control-tower`, `presk-migrate` | Token automount disabled |
 | PDB | `presk-web`, `presk-control-tower` | `minAvailable: 1` |
@@ -188,7 +189,7 @@ upload chunk.
 Each pod opens one pool (`DATABASE_POOL_MAX`, default 10 in the chart). Keep:
 
 ```
-(web replicas + control-tower replicas) × DATABASE_POOL_MAX
+(shell + control tower + all domain apps replicas) × DATABASE_POOL_MAX
   + migration/cron headroom
 ```
 
@@ -242,11 +243,11 @@ The migrate image runs as a non-root user with a read-only root filesystem and
 
 ## Scheduled jobs
 
-The two CronJobs replace the former Vercel crons and call the in-cluster
+The two CronJobs replace the former Vercel crons and call the owning app
 Service. Both send `Authorization: Bearer $CRON_SECRET`, read from
 `presk-web-secrets`; the corresponding route rejects a missing/incorrect token
 when `CRON_SECRET` is set. `concurrencyPolicy: Forbid` prevents overlapping
-runs. Change schedules through `presk-web.cronjobs.<job>.schedule`.
+runs. Change schedules through `presk-files.cronjobs.uploadsSweep.schedule` or `presk-projects.cronjobs.repositorySync.schedule`.
 
 ## Upgrades and rollback
 
@@ -297,3 +298,74 @@ kubectl -n presk logs deploy/presk-web --tail=100
   `apps/<app>/.next/cache`, mounted as an `emptyDir`. If a custom runtime path
   is used, override `cache.mountPath` or
   `securityContext.readOnlyRootFilesystem`.
+
+## Local Docker Desktop cluster
+
+`charts/presk/values.local.yaml` deploys the whole workspace to the Docker
+Desktop Kubernetes cluster. It uses:
+
+- the local Docker daemon's images (`presk:local`, `presk-<app>:local`,
+  `presk-control-tower:local`);
+- HTTP ingress disabled in favour of HTTPS on `*.lvh.me` (resolves to
+  `127.0.0.1` for every app);
+- the in-cluster `postgres` service and the existing `presk-web-secrets` /
+  `presk-control-tower-secrets`;
+- `migrate.enabled: false`, because migrations are applied from the host.
+
+Build the images from the working tree:
+
+```bash
+for app in web control-tower projects calendars files messages clients employees portal copilot; do
+  image="presk"
+  [ "$app" != "web" ] && image="presk-$app"
+  docker build --build-arg APP="$app" -t "$image:local" .
+done
+```
+
+Create the wildcard TLS secret used by every ingress:
+
+```bash
+openssl req -x509 -nodes -newkey rsa:2048 -days 3650 \
+  -keyout /tmp/lvh.key -out /tmp/lvh.crt \
+  -subj '/CN=*.lvh.me' \
+  -addext 'subjectAltName=DNS:lvh.me,DNS:*.lvh.me,DNS:presk.lvh.me,DNS:*.presk.lvh.me'
+kubectl -n presk create secret tls presk-lvh-tls \
+  --cert=/tmp/lvh.crt --key=/tmp/lvh.key
+```
+
+Apply the new migrations from the host (the Postgres Service is not exposed
+outside the cluster):
+
+```bash
+kubectl -n presk port-forward svc/postgres 55432:5432 &
+cd packages/db
+DATABASE_URL='postgresql://preskater:<password>@localhost:55432/preskater?schema=public' \
+  npx prisma migrate deploy
+```
+
+Deploy or upgrade:
+
+```bash
+helm dependency build charts/presk
+helm upgrade --install presk charts/presk -n presk \
+  -f charts/presk/values.local.yaml
+```
+
+The apps are then available at:
+
+| App | URL |
+| --- | --- |
+| Shell | `https://presk.lvh.me` |
+| Projects | `https://projects.presk.lvh.me` |
+| Calendars | `https://calendars.presk.lvh.me` |
+| Files | `https://files.presk.lvh.me` |
+| Messages | `https://messages.presk.lvh.me` |
+| Clients | `https://clients.presk.lvh.me` |
+| Employees | `https://employees.presk.lvh.me` |
+| Portal | `https://portal.presk.lvh.me` |
+| Copilot | `https://copilot.presk.lvh.me` |
+| Control tower | `https://control-tower.presk.lvh.me` |
+
+The certificate is self-signed, so browsers warn once per host. Copilot chat
+needs `OPENAI_API_KEY` in `presk-web-secrets`; every app already mounts that
+Secret.
